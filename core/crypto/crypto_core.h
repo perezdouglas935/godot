@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,13 +31,15 @@
 #ifndef CRYPTO_CORE_H
 #define CRYPTO_CORE_H
 
-#include "core/object/reference.h"
+#include "core/reference.h"
 
 class CryptoCore {
+
 public:
 	class MD5Context {
+
 	private:
-		void *ctx = nullptr; // To include, or not to include...
+		void *ctx; // To include, or not to include...
 
 	public:
 		MD5Context();
@@ -49,8 +51,9 @@ public:
 	};
 
 	class SHA1Context {
+
 	private:
-		void *ctx = nullptr; // To include, or not to include...
+		void *ctx; // To include, or not to include...
 
 	public:
 		SHA1Context();
@@ -62,8 +65,9 @@ public:
 	};
 
 	class SHA256Context {
+
 	private:
-		void *ctx = nullptr; // To include, or not to include...
+		void *ctx; // To include, or not to include...
 
 	public:
 		SHA256Context();
@@ -75,8 +79,9 @@ public:
 	};
 
 	class AESContext {
+
 	private:
-		void *ctx = nullptr; // To include, or not to include...
+		void *ctx; // To include, or not to include...
 
 	public:
 		AESContext();
@@ -86,10 +91,6 @@ public:
 		Error set_decode_key(const uint8_t *p_key, size_t p_bits);
 		Error encrypt_ecb(const uint8_t p_src[16], uint8_t r_dst[16]);
 		Error decrypt_ecb(const uint8_t p_src[16], uint8_t r_dst[16]);
-		Error encrypt_cbc(size_t p_length, uint8_t r_iv[16], const uint8_t *p_src, uint8_t *r_dst);
-		Error decrypt_cbc(size_t p_length, uint8_t r_iv[16], const uint8_t *p_src, uint8_t *r_dst);
-		Error encrypt_cfb(size_t p_length, uint8_t p_iv[16], const uint8_t *p_src, uint8_t *r_dst);
-		Error decrypt_cfb(size_t p_length, uint8_t p_iv[16], const uint8_t *p_src, uint8_t *r_dst);
 	};
 
 	static String b64_encode_str(const uint8_t *p_src, int p_src_len);

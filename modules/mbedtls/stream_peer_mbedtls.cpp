@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,13 +34,12 @@
 #include "core/os/file_access.h"
 
 int StreamPeerMbedTLS::bio_send(void *ctx, const unsigned char *buf, size_t len) {
-	if (buf == nullptr || len <= 0) {
-		return 0;
-	}
+
+	if (buf == NULL || len <= 0) return 0;
 
 	StreamPeerMbedTLS *sp = (StreamPeerMbedTLS *)ctx;
 
-	ERR_FAIL_COND_V(sp == nullptr, 0);
+	ERR_FAIL_COND_V(sp == NULL, 0);
 
 	int sent;
 	Error err = sp->base->put_partial_data((const uint8_t *)buf, len, sent);
@@ -54,13 +53,12 @@ int StreamPeerMbedTLS::bio_send(void *ctx, const unsigned char *buf, size_t len)
 }
 
 int StreamPeerMbedTLS::bio_recv(void *ctx, unsigned char *buf, size_t len) {
-	if (buf == nullptr || len <= 0) {
-		return 0;
-	}
+
+	if (buf == NULL || len <= 0) return 0;
 
 	StreamPeerMbedTLS *sp = (StreamPeerMbedTLS *)ctx;
 
-	ERR_FAIL_COND_V(sp == nullptr, 0);
+	ERR_FAIL_COND_V(sp == NULL, 0);
 
 	int got;
 	Error err = sp->base->get_partial_data((uint8_t *)buf, len, got);
@@ -74,6 +72,7 @@ int StreamPeerMbedTLS::bio_recv(void *ctx, unsigned char *buf, size_t len) {
 }
 
 void StreamPeerMbedTLS::_cleanup() {
+
 	ssl_ctx->clear();
 	base = Ref<StreamPeer>();
 	status = STATUS_DISCONNECTED;
@@ -103,6 +102,7 @@ Error StreamPeerMbedTLS::_do_handshake() {
 }
 
 Error StreamPeerMbedTLS::connect_to_stream(Ref<StreamPeer> p_base, bool p_validate_certs, const String &p_for_hostname, Ref<X509Certificate> p_ca_certs) {
+
 	ERR_FAIL_COND_V(p_base.is_null(), ERR_INVALID_PARAMETER);
 
 	base = p_base;
@@ -112,7 +112,7 @@ Error StreamPeerMbedTLS::connect_to_stream(Ref<StreamPeer> p_base, bool p_valida
 	ERR_FAIL_COND_V(err != OK, err);
 
 	mbedtls_ssl_set_hostname(ssl_ctx->get_context(), p_for_hostname.utf8().get_data());
-	mbedtls_ssl_set_bio(ssl_ctx->get_context(), this, bio_send, bio_recv, nullptr);
+	mbedtls_ssl_set_bio(ssl_ctx->get_context(), this, bio_send, bio_recv, NULL);
 
 	status = STATUS_HANDSHAKING;
 
@@ -125,6 +125,7 @@ Error StreamPeerMbedTLS::connect_to_stream(Ref<StreamPeer> p_base, bool p_valida
 }
 
 Error StreamPeerMbedTLS::accept_stream(Ref<StreamPeer> p_base, Ref<CryptoKey> p_key, Ref<X509Certificate> p_cert, Ref<X509Certificate> p_ca_chain) {
+
 	ERR_FAIL_COND_V(p_base.is_null(), ERR_INVALID_PARAMETER);
 
 	Error err = ssl_ctx->init_server(MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_VERIFY_NONE, p_key, p_cert);
@@ -132,7 +133,7 @@ Error StreamPeerMbedTLS::accept_stream(Ref<StreamPeer> p_base, Ref<CryptoKey> p_
 
 	base = p_base;
 
-	mbedtls_ssl_set_bio(ssl_ctx->get_context(), this, bio_send, bio_recv, nullptr);
+	mbedtls_ssl_set_bio(ssl_ctx->get_context(), this, bio_send, bio_recv, NULL);
 
 	status = STATUS_HANDSHAKING;
 
@@ -143,8 +144,8 @@ Error StreamPeerMbedTLS::accept_stream(Ref<StreamPeer> p_base, Ref<CryptoKey> p_
 	status = STATUS_CONNECTED;
 	return OK;
 }
-
 Error StreamPeerMbedTLS::put_data(const uint8_t *p_data, int p_bytes) {
+
 	ERR_FAIL_COND_V(status != STATUS_CONNECTED, ERR_UNCONFIGURED);
 
 	Error err;
@@ -165,13 +166,13 @@ Error StreamPeerMbedTLS::put_data(const uint8_t *p_data, int p_bytes) {
 }
 
 Error StreamPeerMbedTLS::put_partial_data(const uint8_t *p_data, int p_bytes, int &r_sent) {
+
 	ERR_FAIL_COND_V(status != STATUS_CONNECTED, ERR_UNCONFIGURED);
 
 	r_sent = 0;
 
-	if (p_bytes == 0) {
+	if (p_bytes == 0)
 		return OK;
-	}
 
 	int ret = mbedtls_ssl_write(ssl_ctx->get_context(), p_data, p_bytes);
 	if (ret == MBEDTLS_ERR_SSL_WANT_READ || ret == MBEDTLS_ERR_SSL_WANT_WRITE) {
@@ -192,12 +193,14 @@ Error StreamPeerMbedTLS::put_partial_data(const uint8_t *p_data, int p_bytes, in
 }
 
 Error StreamPeerMbedTLS::get_data(uint8_t *p_buffer, int p_bytes) {
+
 	ERR_FAIL_COND_V(status != STATUS_CONNECTED, ERR_UNCONFIGURED);
 
 	Error err;
 
 	int got = 0;
 	while (p_bytes > 0) {
+
 		err = get_partial_data(p_buffer, p_bytes, got);
 
 		if (err != OK) {
@@ -212,6 +215,7 @@ Error StreamPeerMbedTLS::get_data(uint8_t *p_buffer, int p_bytes) {
 }
 
 Error StreamPeerMbedTLS::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r_received) {
+
 	ERR_FAIL_COND_V(status != STATUS_CONNECTED, ERR_UNCONFIGURED);
 
 	r_received = 0;
@@ -234,6 +238,7 @@ Error StreamPeerMbedTLS::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r
 }
 
 void StreamPeerMbedTLS::poll() {
+
 	ERR_FAIL_COND(status != STATUS_CONNECTED && status != STATUS_HANDSHAKING);
 	ERR_FAIL_COND(!base.is_valid());
 
@@ -267,12 +272,13 @@ void StreamPeerMbedTLS::poll() {
 }
 
 int StreamPeerMbedTLS::get_available_bytes() const {
+
 	ERR_FAIL_COND_V(status != STATUS_CONNECTED, 0);
 
 	return mbedtls_ssl_get_bytes_avail(&(ssl_ctx->ssl));
 }
-
 StreamPeerMbedTLS::StreamPeerMbedTLS() {
+
 	ssl_ctx.instance();
 	status = STATUS_DISCONNECTED;
 }
@@ -282,9 +288,9 @@ StreamPeerMbedTLS::~StreamPeerMbedTLS() {
 }
 
 void StreamPeerMbedTLS::disconnect_from_stream() {
-	if (status != STATUS_CONNECTED && status != STATUS_HANDSHAKING) {
+
+	if (status != STATUS_CONNECTED && status != STATUS_HANDSHAKING)
 		return;
-	}
 
 	Ref<StreamPeerTCP> tcp = base;
 	if (tcp.is_valid() && tcp->get_status() == StreamPeerTCP::STATUS_CONNECTED) {
@@ -296,19 +302,23 @@ void StreamPeerMbedTLS::disconnect_from_stream() {
 }
 
 StreamPeerMbedTLS::Status StreamPeerMbedTLS::get_status() const {
+
 	return status;
 }
 
 StreamPeerSSL *StreamPeerMbedTLS::_create_func() {
+
 	return memnew(StreamPeerMbedTLS);
 }
 
 void StreamPeerMbedTLS::initialize_ssl() {
+
 	_create = _create_func;
 	available = true;
 }
 
 void StreamPeerMbedTLS::finalize_ssl() {
+
 	available = false;
-	_create = nullptr;
+	_create = NULL;
 }

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,9 +33,9 @@
 #include "core/crypto/crypto_core.h"
 
 Error HashingContext::start(HashType p_type) {
-	ERR_FAIL_COND_V(ctx != nullptr, ERR_ALREADY_IN_USE);
+	ERR_FAIL_COND_V(ctx != NULL, ERR_ALREADY_IN_USE);
 	_create_ctx(p_type);
-	ERR_FAIL_COND_V(ctx == nullptr, ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(ctx == NULL, ERR_UNAVAILABLE);
 	switch (type) {
 		case HASH_MD5:
 			return ((CryptoCore::MD5Context *)ctx)->start();
@@ -47,11 +47,11 @@ Error HashingContext::start(HashType p_type) {
 	return ERR_UNAVAILABLE;
 }
 
-Error HashingContext::update(PackedByteArray p_chunk) {
-	ERR_FAIL_COND_V(ctx == nullptr, ERR_UNCONFIGURED);
+Error HashingContext::update(PoolByteArray p_chunk) {
+	ERR_FAIL_COND_V(ctx == NULL, ERR_UNCONFIGURED);
 	size_t len = p_chunk.size();
 	ERR_FAIL_COND_V(len == 0, FAILED);
-	const uint8_t *r = p_chunk.ptr();
+	PoolByteArray::Read r = p_chunk.read();
 	switch (type) {
 		case HASH_MD5:
 			return ((CryptoCore::MD5Context *)ctx)->update(&r[0], len);
@@ -63,26 +63,26 @@ Error HashingContext::update(PackedByteArray p_chunk) {
 	return ERR_UNAVAILABLE;
 }
 
-PackedByteArray HashingContext::finish() {
-	ERR_FAIL_COND_V(ctx == nullptr, PackedByteArray());
-	PackedByteArray out;
+PoolByteArray HashingContext::finish() {
+	ERR_FAIL_COND_V(ctx == NULL, PoolByteArray());
+	PoolByteArray out;
 	Error err = FAILED;
 	switch (type) {
 		case HASH_MD5:
 			out.resize(16);
-			err = ((CryptoCore::MD5Context *)ctx)->finish(out.ptrw());
+			err = ((CryptoCore::MD5Context *)ctx)->finish(out.write().ptr());
 			break;
 		case HASH_SHA1:
 			out.resize(20);
-			err = ((CryptoCore::SHA1Context *)ctx)->finish(out.ptrw());
+			err = ((CryptoCore::SHA1Context *)ctx)->finish(out.write().ptr());
 			break;
 		case HASH_SHA256:
 			out.resize(32);
-			err = ((CryptoCore::SHA256Context *)ctx)->finish(out.ptrw());
+			err = ((CryptoCore::SHA256Context *)ctx)->finish(out.write().ptr());
 			break;
 	}
 	_delete_ctx();
-	ERR_FAIL_COND_V(err != OK, PackedByteArray());
+	ERR_FAIL_COND_V(err != OK, PoolByteArray());
 	return out;
 }
 
@@ -99,11 +99,12 @@ void HashingContext::_create_ctx(HashType p_type) {
 			ctx = memnew(CryptoCore::SHA256Context);
 			break;
 		default:
-			ctx = nullptr;
+			ctx = NULL;
 	}
 }
 
 void HashingContext::_delete_ctx() {
+
 	switch (type) {
 		case HASH_MD5:
 			memdelete((CryptoCore::MD5Context *)ctx);
@@ -115,7 +116,7 @@ void HashingContext::_delete_ctx() {
 			memdelete((CryptoCore::SHA256Context *)ctx);
 			break;
 	}
-	ctx = nullptr;
+	ctx = NULL;
 }
 
 void HashingContext::_bind_methods() {
@@ -127,8 +128,11 @@ void HashingContext::_bind_methods() {
 	BIND_ENUM_CONSTANT(HASH_SHA256);
 }
 
+HashingContext::HashingContext() {
+	ctx = NULL;
+}
+
 HashingContext::~HashingContext() {
-	if (ctx != nullptr) {
+	if (ctx != NULL)
 		_delete_ctx();
-	}
 }

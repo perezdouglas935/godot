@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,18 +30,16 @@
 
 #include "image_loader_bmp.h"
 
-#include "core/io/file_access_memory.h"
-
 Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 		const uint8_t *p_buffer,
 		const uint8_t *p_color_buffer,
 		const uint32_t color_table_size,
 		const bmp_header_s &p_header) {
+
 	Error err = OK;
 
-	if (p_buffer == nullptr) {
+	if (p_buffer == NULL)
 		err = FAILED;
-	}
 
 	if (err == OK) {
 		size_t index = 0;
@@ -70,7 +68,7 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 		}
 
 		// Image data (might be indexed)
-		Vector<uint8_t> data;
+		PoolVector<uint8_t> data;
 		int data_len = 0;
 
 		if (bits_per_pixel <= 8) { // indexed
@@ -81,8 +79,8 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 		ERR_FAIL_COND_V_MSG(data_len == 0, ERR_BUG, "Couldn't parse the BMP image data.");
 		err = data.resize(data_len);
 
-		uint8_t *data_w = data.ptrw();
-		uint8_t *write_buffer = data_w;
+		PoolVector<uint8_t>::Write data_w = data.write();
+		uint8_t *write_buffer = data_w.ptr();
 
 		const uint32_t width_bytes = width * bits_per_pixel / 8;
 		const uint32_t line_width = (width_bytes + 3) & ~3;
@@ -156,18 +154,18 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 			line -= line_width;
 		}
 
-		if (p_color_buffer == nullptr || color_table_size == 0) { // regular pixels
+		if (p_color_buffer == NULL || color_table_size == 0) { // regular pixels
 
-			p_image->create(width, height, false, Image::FORMAT_RGBA8, data);
+			p_image->create(width, height, 0, Image::FORMAT_RGBA8, data);
 
 		} else { // data is in indexed format, extend it
 
 			// Palette data
-			Vector<uint8_t> palette_data;
+			PoolVector<uint8_t> palette_data;
 			palette_data.resize(color_table_size * 4);
 
-			uint8_t *palette_data_w = palette_data.ptrw();
-			uint8_t *pal = palette_data_w;
+			PoolVector<uint8_t>::Write palette_data_w = palette_data.write();
+			uint8_t *pal = palette_data_w.ptr();
 
 			const uint8_t *cb = p_color_buffer;
 
@@ -182,11 +180,11 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 				cb += 4;
 			}
 			// Extend palette to image
-			Vector<uint8_t> extended_data;
+			PoolVector<uint8_t> extended_data;
 			extended_data.resize(data.size() * 4);
 
-			uint8_t *ex_w = extended_data.ptrw();
-			uint8_t *dest = ex_w;
+			PoolVector<uint8_t>::Write ex_w = extended_data.write();
+			uint8_t *dest = ex_w.ptr();
 
 			const int num_pixels = width * height;
 
@@ -198,7 +196,7 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 
 				dest += 4;
 			}
-			p_image->create(width, height, false, Image::FORMAT_RGBA8, extended_data);
+			p_image->create(width, height, 0, Image::FORMAT_RGBA8, extended_data);
 		}
 	}
 	return err;
@@ -206,6 +204,7 @@ Error ImageLoaderBMP::convert_to_image(Ref<Image> p_image,
 
 Error ImageLoaderBMP::load_image(Ref<Image> p_image, FileAccess *f,
 		bool p_force_linear, float p_scale) {
+
 	bmp_header_s bmp_header;
 	Error err = ERR_INVALID_DATA;
 
@@ -267,27 +266,27 @@ Error ImageLoaderBMP::load_image(Ref<Image> p_image, FileAccess *f,
 						vformat("Couldn't parse the BMP color table: %s", f->get_path()));
 			}
 
-			Vector<uint8_t> bmp_color_table;
+			PoolVector<uint8_t> bmp_color_table;
 			// Color table is usually 4 bytes per color -> [B][G][R][0]
 			bmp_color_table.resize(color_table_size * 4);
-			uint8_t *bmp_color_table_w = bmp_color_table.ptrw();
-			f->get_buffer(bmp_color_table_w, color_table_size * 4);
+			PoolVector<uint8_t>::Write bmp_color_table_w = bmp_color_table.write();
+			f->get_buffer(bmp_color_table_w.ptr(), color_table_size * 4);
 
 			f->seek(bmp_header.bmp_file_header.bmp_file_offset);
 
 			uint32_t bmp_buffer_size = (bmp_header.bmp_file_header.bmp_file_size -
 										bmp_header.bmp_file_header.bmp_file_offset);
 
-			Vector<uint8_t> bmp_buffer;
+			PoolVector<uint8_t> bmp_buffer;
 			err = bmp_buffer.resize(bmp_buffer_size);
 			if (err == OK) {
-				uint8_t *bmp_buffer_w = bmp_buffer.ptrw();
-				f->get_buffer(bmp_buffer_w, bmp_buffer_size);
+				PoolVector<uint8_t>::Write bmp_buffer_w = bmp_buffer.write();
+				f->get_buffer(bmp_buffer_w.ptr(), bmp_buffer_size);
 
-				const uint8_t *bmp_buffer_r = bmp_buffer.ptr();
-				const uint8_t *bmp_color_table_r = bmp_color_table.ptr();
-				err = convert_to_image(p_image, bmp_buffer_r,
-						bmp_color_table_r, color_table_size, bmp_header);
+				PoolVector<uint8_t>::Read bmp_buffer_r = bmp_buffer.read();
+				PoolVector<uint8_t>::Read bmp_color_table_r = bmp_color_table.read();
+				err = convert_to_image(p_image, bmp_buffer_r.ptr(),
+						bmp_color_table_r.ptr(), color_table_size, bmp_header);
 			}
 			f->close();
 		}
@@ -295,21 +294,10 @@ Error ImageLoaderBMP::load_image(Ref<Image> p_image, FileAccess *f,
 	return err;
 }
 
-void ImageLoaderBMP::get_recognized_extensions(List<String> *p_extensions) const {
+void ImageLoaderBMP::get_recognized_extensions(
+		List<String> *p_extensions) const {
+
 	p_extensions->push_back("bmp");
 }
 
-static Ref<Image> _bmp_mem_loader_func(const uint8_t *p_bmp, int p_size) {
-	FileAccessMemory memfile;
-	Error open_memfile_error = memfile.open_custom(p_bmp, p_size);
-	ERR_FAIL_COND_V_MSG(open_memfile_error, Ref<Image>(), "Could not create memfile for BMP image buffer.");
-	Ref<Image> img;
-	img.instance();
-	Error load_error = ImageLoaderBMP().load_image(img, &memfile, false, 1.0f);
-	ERR_FAIL_COND_V_MSG(load_error, Ref<Image>(), "Failed to load BMP image.");
-	return img;
-}
-
-ImageLoaderBMP::ImageLoaderBMP() {
-	Image::_bmp_mem_loader_func = _bmp_mem_loader_func;
-}
+ImageLoaderBMP::ImageLoaderBMP() {}

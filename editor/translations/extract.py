@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 
 import fnmatch
 import os
@@ -33,11 +33,10 @@ matches.sort()
 
 unique_str = []
 unique_loc = {}
-ctx_group = {}  # Store msgctx, msg, and locations.
 main_po = """
-# LANGUAGE translation of the Godot Engine editor.
-# Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.
-# Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).
+# LANGUAGE translation of the Godot Engine editor
+# Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.
+# Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).
 # This file is distributed under the same license as the Godot source code.
 #
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
@@ -46,49 +45,17 @@ main_po = """
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\\n"
-"Report-Msgid-Bugs-To: https://github.com/godotengine/godot\\n"
-"MIME-Version: 1.0\\n"
 "Content-Type: text/plain; charset=UTF-8\\n"
 "Content-Transfer-Encoding: 8-bit\\n"\n
 """
 
 
-def _write_message(msgctx, msg, msg_plural, location):
-    global main_po
-    main_po += "#: " + location + "\n"
-    if msgctx != "":
-        main_po += 'msgctxt "' + msgctx + '"\n'
-    main_po += 'msgid "' + msg + '"\n'
-    if msg_plural != "":
-        main_po += 'msgid_plural "' + msg_plural + '"\n'
-        main_po += 'msgstr[0] ""\n'
-        main_po += 'msgstr[1] ""\n\n'
-    else:
-        main_po += 'msgstr ""\n\n'
-
-
-def _add_additional_location(msgctx, msg, location):
-    global main_po
-    # Add additional location to previous occurrence.
-    if msgctx != "":
-        msg_pos = main_po.find('\nmsgctxt "' + msgctx + '"\nmsgid "' + msg + '"')
-    else:
-        msg_pos = main_po.find('\nmsgid "' + msg + '"')
-
-    if msg_pos == -1:
-        print("Someone apparently thought writing Python was as easy as GDScript. Ping Akien.")
-    main_po = main_po[:msg_pos] + " " + location + main_po[msg_pos:]
-
-
-def _write_translator_comment(msgctx, msg, translator_comment):
+def _write_translator_comment(msg, translator_comment):
     if translator_comment == "":
         return
 
     global main_po
-    if msgctx != "":
-        msg_pos = main_po.find('\nmsgctxt "' + msgctx + '"\nmsgid "' + msg + '"')
-    else:
-        msg_pos = main_po.find('\nmsgid "' + msg + '"')
+    msg_pos = main_po.find('\nmsgid "' + msg + '"')
 
     # If it's a new message, just append comment to the end of PO file.
     if msg_pos == -1:
@@ -183,7 +150,7 @@ def process_file(f, fname):
 
     global main_po, unique_str, unique_loc
 
-    patterns = ['RTR("', 'TTR("', 'TTRC("', 'TTRN("', 'RTRN("']
+    patterns = ['RTR("', 'TTR("', 'TTRC("']
 
     l = f.readline()
     lc = 1
@@ -211,7 +178,6 @@ def process_file(f, fname):
         pos = 0
 
         while not reading_translator_comment and pos >= 0:
-            # Loop until a pattern is found. If not, next line.
             pos = l.find(patterns[idx], pos)
             if pos == -1:
                 if idx < len(patterns) - 1:
@@ -220,68 +186,32 @@ def process_file(f, fname):
                 continue
             pos += len(patterns[idx])
 
-            # Read msg until "
             msg = ""
             while pos < len(l) and (l[pos] != '"' or l[pos - 1] == "\\"):
                 msg += l[pos]
                 pos += 1
 
-            # Read plural.
-            msg_plural = ""
-            if patterns[idx] in ['TTRN("', 'RTRN("']:
-                pos = l.find('"', pos + 1)
-                pos += 1
-                while pos < len(l) and (l[pos] != '"' or l[pos - 1] == "\\"):
-                    msg_plural += l[pos]
-                    pos += 1
-
-            # Read context.
-            msgctx = ""
-            pos += 1
-            read_ctx = False
-            while pos < len(l):
-                if l[pos] == ")":
-                    break
-                elif l[pos] == '"':
-                    read_ctx = True
-                    break
-                pos += 1
-
-            pos += 1
-            if read_ctx:
-                while pos < len(l) and (l[pos] != '"' or l[pos - 1] == "\\"):
-                    msgctx += l[pos]
-                    pos += 1
-
-            # File location.
             location = os.path.relpath(fname).replace("\\", "/")
             if line_nb:
                 location += ":" + str(lc)
 
             # Write translator comment.
-            _write_translator_comment(msgctx, msg, translator_comment)
+            _write_translator_comment(msg, translator_comment)
             translator_comment = ""
 
-            if msgctx != "":
-                # If it's a new context or a new message within an existing context, then write new msgid.
-                # Else add location to existing msgid.
-                if not msgctx in ctx_group:
-                    _write_message(msgctx, msg, msg_plural, location)
-                    ctx_group[msgctx] = {msg: [location]}
-                elif not msg in ctx_group[msgctx]:
-                    _write_message(msgctx, msg, msg_plural, location)
-                    ctx_group[msgctx][msg] = [location]
-                elif not location in ctx_group[msgctx][msg]:
-                    _add_additional_location(msgctx, msg, location)
-                    ctx_group[msgctx][msg].append(location)
-            else:
-                if not msg in unique_str:
-                    _write_message(msgctx, msg, msg_plural, location)
-                    unique_str.append(msg)
-                    unique_loc[msg] = [location]
-                elif not location in unique_loc[msg]:
-                    _add_additional_location(msgctx, msg, location)
-                    unique_loc[msg].append(location)
+            if not msg in unique_str:
+                main_po += "#: " + location + "\n"
+                main_po += 'msgid "' + msg + '"\n'
+                main_po += 'msgstr ""\n\n'
+                unique_str.append(msg)
+                unique_loc[msg] = [location]
+            elif not location in unique_loc[msg]:
+                # Add additional location to previous occurrence too
+                msg_pos = main_po.find('\nmsgid "' + msg + '"')
+                if msg_pos == -1:
+                    print("Someone apparently thought writing Python was as easy as GDScript. Ping Akien.")
+                main_po = main_po[:msg_pos] + " " + location + main_po[msg_pos:]
+                unique_loc[msg].append(location)
 
         l = f.readline()
         lc += 1

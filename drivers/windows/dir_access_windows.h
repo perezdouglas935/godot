@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,20 +42,21 @@
 struct DirAccessWindowsPrivate;
 
 class DirAccessWindows : public DirAccess {
+
 	enum {
 		MAX_DRIVES = 26
 	};
 
-	DirAccessWindowsPrivate *p = nullptr;
+	DirAccessWindowsPrivate *p;
 	/* Windows stuff */
 
-	char drives[MAX_DRIVES] = { 0 }; // a-z:
-	int drive_count = 0;
+	char drives[MAX_DRIVES]; // a-z:
+	int drive_count;
 
 	String current_dir;
 
-	bool _cisdir = false;
-	bool _cishidden = false;
+	bool _cisdir;
+	bool _cishidden;
 
 public:
 	virtual Error list_dir_begin(); ///< This starts dir listing
@@ -68,7 +69,8 @@ public:
 	virtual String get_drive(int p_drive);
 
 	virtual Error change_dir(String p_dir); ///< can be relative or absolute, return false on success
-	virtual String get_current_dir(bool p_include_drive = true); ///< return current dir location
+	virtual String get_current_dir(); ///< return current dir location
+	virtual String get_current_dir_without_drive();
 
 	virtual bool file_exists(String p_file);
 	virtual bool dir_exists(String p_dir);

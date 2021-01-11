@@ -120,6 +120,7 @@ public interface InputManagerCompat {
 	 * Use this to construct a compatible InputManager.
 	 */
 	public static class Factory {
+
 		/**
 		 * Constructs and returns a compatible InputManger
 		 *

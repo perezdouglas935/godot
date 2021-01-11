@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,31 +30,36 @@
 
 #include "memory.h"
 
-#include "core/error/error_macros.h"
+#include "core/error_macros.h"
 #include "core/os/copymem.h"
-#include "core/templates/safe_refcount.h"
+#include "core/safe_refcount.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 void *operator new(size_t p_size, const char *p_description) {
+
 	return Memory::alloc_static(p_size, false);
 }
 
 void *operator new(size_t p_size, void *(*p_allocfunc)(size_t p_size)) {
+
 	return p_allocfunc(p_size);
 }
 
 #ifdef _MSC_VER
 void operator delete(void *p_mem, const char *p_description) {
+
 	CRASH_NOW_MSG("Call to placement delete should not happen.");
 }
 
 void operator delete(void *p_mem, void *(*p_allocfunc)(size_t p_size)) {
+
 	CRASH_NOW_MSG("Call to placement delete should not happen.");
 }
 
 void operator delete(void *p_mem, void *p_pointer, size_t check, const char *p_description) {
+
 	CRASH_NOW_MSG("Call to placement delete should not happen.");
 }
 #endif
@@ -67,6 +72,7 @@ uint64_t Memory::max_usage = 0;
 uint64_t Memory::alloc_count = 0;
 
 void *Memory::alloc_static(size_t p_bytes, bool p_pad_align) {
+
 #ifdef DEBUG_ENABLED
 	bool prepad = true;
 #else
@@ -75,7 +81,7 @@ void *Memory::alloc_static(size_t p_bytes, bool p_pad_align) {
 
 	void *mem = malloc(p_bytes + (prepad ? PAD_ALIGN : 0));
 
-	ERR_FAIL_COND_V(!mem, nullptr);
+	ERR_FAIL_COND_V(!mem, NULL);
 
 	atomic_increment(&alloc_count);
 
@@ -96,7 +102,8 @@ void *Memory::alloc_static(size_t p_bytes, bool p_pad_align) {
 }
 
 void *Memory::realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align) {
-	if (p_memory == nullptr) {
+
+	if (p_memory == NULL) {
 		return alloc_static(p_bytes, p_pad_align);
 	}
 
@@ -123,12 +130,12 @@ void *Memory::realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align) {
 
 		if (p_bytes == 0) {
 			free(mem);
-			return nullptr;
+			return NULL;
 		} else {
 			*s = p_bytes;
 
 			mem = (uint8_t *)realloc(mem, p_bytes + PAD_ALIGN);
-			ERR_FAIL_COND_V(!mem, nullptr);
+			ERR_FAIL_COND_V(!mem, NULL);
 
 			s = (uint64_t *)mem;
 
@@ -137,16 +144,18 @@ void *Memory::realloc_static(void *p_memory, size_t p_bytes, bool p_pad_align) {
 			return mem + PAD_ALIGN;
 		}
 	} else {
+
 		mem = (uint8_t *)realloc(mem, p_bytes);
 
-		ERR_FAIL_COND_V(mem == nullptr && p_bytes > 0, nullptr);
+		ERR_FAIL_COND_V(mem == NULL && p_bytes > 0, NULL);
 
 		return mem;
 	}
 }
 
 void Memory::free_static(void *p_ptr, bool p_pad_align) {
-	ERR_FAIL_COND(p_ptr == nullptr);
+
+	ERR_FAIL_COND(p_ptr == NULL);
 
 	uint8_t *mem = (uint8_t *)p_ptr;
 
@@ -168,11 +177,13 @@ void Memory::free_static(void *p_ptr, bool p_pad_align) {
 
 		free(mem);
 	} else {
+
 		free(mem);
 	}
 }
 
 uint64_t Memory::get_mem_available() {
+
 	return -1; // 0xFFFF...
 }
 
@@ -193,6 +204,8 @@ uint64_t Memory::get_mem_max_usage() {
 }
 
 _GlobalNil::_GlobalNil() {
+
+	color = 1;
 	left = this;
 	right = this;
 	parent = this;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="ProgressBar" inherits="Range" version="4.0">
+<class name="ProgressBar" inherits="Range" version="3.2">
 	<brief_description>
 		General-purpose progress bar.
 	</brief_description>
@@ -34,9 +34,6 @@
 		</theme_item>
 		<theme_item name="font_color_shadow" type="Color" default="Color( 0, 0, 0, 1 )">
 			The color of the text's shadow.
-		</theme_item>
-		<theme_item name="font_size" type="int">
-			Font size used to draw the fill percentage if [member percent_visible] is [code]true[/code].
 		</theme_item>
 	</theme_items>
 </class>

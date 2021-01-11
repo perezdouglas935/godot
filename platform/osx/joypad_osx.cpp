@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,9 +34,17 @@
 
 #define GODOT_JOY_LOOP_RUN_MODE CFSTR("GodotJoypad")
 
-static JoypadOSX *self = nullptr;
+static JoypadOSX *self = NULL;
 
 joypad::joypad() {
+	device_ref = NULL;
+	ff_device = NULL;
+	ff_axes = NULL;
+	ff_directions = NULL;
+	ffservice = 0;
+	ff_timestamp = 0;
+	id = 0;
+
 	ff_constant_force.lMagnitude = 10000;
 	ff_effect.dwDuration = 0;
 	ff_effect.dwSamplePeriod = 0;
@@ -45,7 +53,7 @@ joypad::joypad() {
 	ff_effect.dwTriggerButton = FFEB_NOTRIGGER;
 	ff_effect.dwStartDelay = 0;
 	ff_effect.dwTriggerRepeatInterval = 0;
-	ff_effect.lpEnvelope = nullptr;
+	ff_effect.lpEnvelope = NULL;
 	ff_effect.cbTypeSpecificParams = sizeof(FFCONSTANTFORCE);
 	ff_effect.lpvTypeSpecificParams = &ff_constant_force;
 	ff_effect.dwSize = sizeof(ff_effect);
@@ -90,7 +98,6 @@ int joypad::get_hid_element_state(rec_element *p_element) const {
 	}
 	return value;
 }
-
 void joypad::add_hid_element(IOHIDElementRef p_element) {
 	const CFTypeID elementTypeID = p_element ? CFGetTypeID(p_element) : 0;
 
@@ -98,7 +105,7 @@ void joypad::add_hid_element(IOHIDElementRef p_element) {
 		const IOHIDElementCookie cookie = IOHIDElementGetCookie(p_element);
 		const uint32_t usagePage = IOHIDElementGetUsagePage(p_element);
 		const uint32_t usage = IOHIDElementGetUsage(p_element);
-		Vector<rec_element> *list = nullptr;
+		Vector<rec_element> *list = NULL;
 
 		switch (IOHIDElementGetType(p_element)) {
 			case kIOHIDElementTypeInput_Misc:
@@ -233,6 +240,7 @@ static bool is_joypad(IOHIDDeviceRef p_device_ref) {
 }
 
 void JoypadOSX::_device_added(IOReturn p_res, IOHIDDeviceRef p_device) {
+
 	if (p_res != kIOReturnSuccess || have_device(p_device)) {
 		return;
 	}
@@ -241,7 +249,7 @@ void JoypadOSX::_device_added(IOReturn p_res, IOHIDDeviceRef p_device) {
 	if (is_joypad(p_device)) {
 		configure_joypad(p_device, &new_joypad);
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-		if (IOHIDDeviceGetService != nullptr) {
+		if (IOHIDDeviceGetService != NULL) {
 #endif
 			const io_service_t ioservice = IOHIDDeviceGetService(p_device);
 			if ((ioservice) && (FFIsForceFeedback(ioservice) == FF_OK) && new_joypad.config_force_feedback(ioservice)) {
@@ -256,6 +264,7 @@ void JoypadOSX::_device_added(IOReturn p_res, IOHIDDeviceRef p_device) {
 }
 
 void JoypadOSX::_device_removed(IOReturn p_res, IOHIDDeviceRef p_device) {
+
 	int device = get_joy_ref(p_device);
 	ERR_FAIL_COND(device == -1);
 
@@ -265,6 +274,7 @@ void JoypadOSX::_device_removed(IOReturn p_res, IOHIDDeviceRef p_device) {
 }
 
 static String _hex_str(uint8_t p_byte) {
+
 	static const char *dict = "0123456789abcdef";
 	char ret[3];
 	ret[2] = 0;
@@ -276,6 +286,7 @@ static String _hex_str(uint8_t p_byte) {
 }
 
 bool JoypadOSX::configure_joypad(IOHIDDeviceRef p_device_ref, joypad *p_joy) {
+
 	p_joy->device_ref = p_device_ref;
 	/* get device name */
 	String name;
@@ -326,7 +337,7 @@ bool JoypadOSX::configure_joypad(IOHIDDeviceRef p_device_ref, joypad *p_joy) {
 		input->joy_connection_changed(id, true, name, guid);
 	}
 
-	CFArrayRef array = IOHIDDeviceCopyMatchingElements(p_device_ref, nullptr, kIOHIDOptionsTypeNone);
+	CFArrayRef array = IOHIDDeviceCopyMatchingElements(p_device_ref, NULL, kIOHIDOptionsTypeNone);
 	if (array) {
 		p_joy->add_hid_elements(array);
 		CFRelease(array);
@@ -342,6 +353,7 @@ bool JoypadOSX::configure_joypad(IOHIDDeviceRef p_device_ref, joypad *p_joy) {
 		}                               \
 	}
 bool joypad::config_force_feedback(io_service_t p_service) {
+
 	HRESULT ret = FFCreateDevice(p_service, &ff_device);
 	ERR_FAIL_COND_V(ret != FF_OK, false);
 
@@ -363,13 +375,13 @@ bool joypad::config_force_feedback(io_service_t p_service) {
 
 #define TEST_FF(ff) (features.supportedEffects & (ff))
 bool joypad::check_ff_features() {
+
 	FFCAPABILITIES features;
 	HRESULT ret = FFDeviceGetForceFeedbackCapabilities(ff_device, &features);
 	if (ret == FF_OK && (features.supportedEffects & FFCAP_ET_CONSTANTFORCE)) {
 		uint32_t val;
 		ret = FFDeviceGetForceFeedbackProperty(ff_device, FFPROP_FFGAIN, &val, sizeof(val));
-		if (ret != FF_OK)
-			return false;
+		if (ret != FF_OK) return false;
 		int num_axes = features.numFfAxes;
 		ff_axes = (DWORD *)memalloc(sizeof(DWORD) * num_axes);
 		ff_directions = (LONG *)memalloc(sizeof(LONG) * num_axes);
@@ -390,38 +402,38 @@ bool joypad::check_ff_features() {
 static int process_hat_value(int p_min, int p_max, int p_value) {
 	int range = (p_max - p_min + 1);
 	int value = p_value - p_min;
-	int hat_value = Input::HAT_MASK_CENTER;
+	int hat_value = InputDefault::HAT_MASK_CENTER;
 	if (range == 4) {
 		value *= 2;
 	}
 
 	switch (value) {
 		case 0:
-			hat_value = Input::HAT_MASK_UP;
+			hat_value = InputDefault::HAT_MASK_UP;
 			break;
 		case 1:
-			hat_value = Input::HAT_MASK_UP | Input::HAT_MASK_RIGHT;
+			hat_value = InputDefault::HAT_MASK_UP | InputDefault::HAT_MASK_RIGHT;
 			break;
 		case 2:
-			hat_value = Input::HAT_MASK_RIGHT;
+			hat_value = InputDefault::HAT_MASK_RIGHT;
 			break;
 		case 3:
-			hat_value = Input::HAT_MASK_DOWN | Input::HAT_MASK_RIGHT;
+			hat_value = InputDefault::HAT_MASK_DOWN | InputDefault::HAT_MASK_RIGHT;
 			break;
 		case 4:
-			hat_value = Input::HAT_MASK_DOWN;
+			hat_value = InputDefault::HAT_MASK_DOWN;
 			break;
 		case 5:
-			hat_value = Input::HAT_MASK_DOWN | Input::HAT_MASK_LEFT;
+			hat_value = InputDefault::HAT_MASK_DOWN | InputDefault::HAT_MASK_LEFT;
 			break;
 		case 6:
-			hat_value = Input::HAT_MASK_LEFT;
+			hat_value = InputDefault::HAT_MASK_LEFT;
 			break;
 		case 7:
-			hat_value = Input::HAT_MASK_UP | Input::HAT_MASK_LEFT;
+			hat_value = InputDefault::HAT_MASK_UP | InputDefault::HAT_MASK_LEFT;
 			break;
 		default:
-			hat_value = Input::HAT_MASK_CENTER;
+			hat_value = InputDefault::HAT_MASK_CENTER;
 			break;
 	}
 	return hat_value;
@@ -433,8 +445,8 @@ void JoypadOSX::poll_joypads() const {
 	}
 }
 
-static const Input::JoyAxis axis_correct(int p_value, int p_min, int p_max) {
-	Input::JoyAxis jx;
+static const InputDefault::JoyAxis axis_correct(int p_value, int p_min, int p_max) {
+	InputDefault::JoyAxis jx;
 	if (p_min < 0) {
 		jx.min = -1;
 		if (p_value < 0) {
@@ -504,16 +516,14 @@ void JoypadOSX::joypad_vibration_stop(int p_id, uint64_t p_timestamp) {
 
 int JoypadOSX::get_joy_index(int p_id) const {
 	for (int i = 0; i < device_list.size(); i++) {
-		if (device_list[i].id == p_id)
-			return i;
+		if (device_list[i].id == p_id) return i;
 	}
 	return -1;
 }
 
 int JoypadOSX::get_joy_ref(IOHIDDeviceRef p_device) const {
 	for (int i = 0; i < device_list.size(); i++) {
-		if (device_list[i].device_ref == p_device)
-			return i;
+		if (device_list[i].device_ref == p_device) return i;
 	}
 	return -1;
 }
@@ -528,7 +538,7 @@ bool JoypadOSX::have_device(IOHIDDeviceRef p_device) const {
 }
 
 static CFDictionaryRef create_match_dictionary(const UInt32 page, const UInt32 usage, int *okay) {
-	CFDictionaryRef retval = nullptr;
+	CFDictionaryRef retval = NULL;
 	CFNumberRef pageNumRef = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &page);
 	CFNumberRef usageNumRef = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &usage);
 	const void *keys[2] = { (void *)CFSTR(kIOHIDDeviceUsagePageKey), (void *)CFSTR(kIOHIDDeviceUsageKey) };
@@ -553,13 +563,14 @@ static CFDictionaryRef create_match_dictionary(const UInt32 page, const UInt32 u
 }
 
 void JoypadOSX::config_hid_manager(CFArrayRef p_matching_array) const {
+
 	CFRunLoopRef runloop = CFRunLoopGetCurrent();
 	IOReturn ret = IOHIDManagerOpen(hid_manager, kIOHIDOptionsTypeNone);
 	ERR_FAIL_COND(ret != kIOReturnSuccess);
 
 	IOHIDManagerSetDeviceMatchingMultiple(hid_manager, p_matching_array);
-	IOHIDManagerRegisterDeviceMatchingCallback(hid_manager, joypad_added_callback, nullptr);
-	IOHIDManagerRegisterDeviceRemovalCallback(hid_manager, joypad_removed_callback, nullptr);
+	IOHIDManagerRegisterDeviceMatchingCallback(hid_manager, joypad_added_callback, NULL);
+	IOHIDManagerRegisterDeviceRemovalCallback(hid_manager, joypad_removed_callback, NULL);
 	IOHIDManagerScheduleWithRunLoop(hid_manager, runloop, GODOT_JOY_LOOP_RUN_MODE);
 
 	while (CFRunLoopRunInMode(GODOT_JOY_LOOP_RUN_MODE, 0, TRUE) == kCFRunLoopRunHandledSource) {
@@ -567,9 +578,9 @@ void JoypadOSX::config_hid_manager(CFArrayRef p_matching_array) const {
 	}
 }
 
-JoypadOSX::JoypadOSX(Input *in) {
+JoypadOSX::JoypadOSX() {
 	self = this;
-	input = in;
+	input = (InputDefault *)Input::get_singleton();
 
 	int okay = 1;
 	const void *vals[] = {
@@ -578,7 +589,7 @@ JoypadOSX::JoypadOSX(Input *in) {
 		(void *)create_match_dictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_MultiAxisController, &okay),
 	};
 	const size_t n_elements = sizeof(vals) / sizeof(vals[0]);
-	CFArrayRef array = okay ? CFArrayCreate(kCFAllocatorDefault, vals, n_elements, &kCFTypeArrayCallBacks) : nullptr;
+	CFArrayRef array = okay ? CFArrayCreate(kCFAllocatorDefault, vals, n_elements, &kCFTypeArrayCallBacks) : NULL;
 
 	for (size_t i = 0; i < n_elements; i++) {
 		if (vals[i]) {
@@ -588,7 +599,7 @@ JoypadOSX::JoypadOSX(Input *in) {
 
 	if (array) {
 		hid_manager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
-		if (hid_manager != nullptr) {
+		if (hid_manager != NULL) {
 			config_hid_manager(array);
 		}
 		CFRelease(array);
@@ -596,6 +607,7 @@ JoypadOSX::JoypadOSX(Input *in) {
 }
 
 JoypadOSX::~JoypadOSX() {
+
 	for (int i = 0; i < device_list.size(); i++) {
 		device_list.write[i].free();
 	}
@@ -603,5 +615,5 @@ JoypadOSX::~JoypadOSX() {
 	IOHIDManagerUnscheduleFromRunLoop(hid_manager, CFRunLoopGetCurrent(), GODOT_JOY_LOOP_RUN_MODE);
 	IOHIDManagerClose(hid_manager, kIOHIDOptionsTypeNone);
 	CFRelease(hid_manager);
-	hid_manager = nullptr;
+	hid_manager = NULL;
 }

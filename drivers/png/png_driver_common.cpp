@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -105,31 +105,30 @@ Error png_to_image(const uint8_t *p_source, size_t p_size, bool p_force_linear, 
 	}
 
 	const png_uint_32 stride = PNG_IMAGE_ROW_STRIDE(png_img);
-	Vector<uint8_t> buffer;
+	PoolVector<uint8_t> buffer;
 	Error err = buffer.resize(PNG_IMAGE_BUFFER_SIZE(png_img, stride));
 	if (err) {
 		png_image_free(&png_img); // only required when we return before finish_read
 		return err;
 	}
-	uint8_t *writer = buffer.ptrw();
+	PoolVector<uint8_t>::Write writer = buffer.write();
 
 	// read image data to buffer and release libpng resources
-	success = png_image_finish_read(&png_img, nullptr, writer, stride, nullptr);
+	success = png_image_finish_read(&png_img, NULL, writer.ptr(), stride, NULL);
 	ERR_FAIL_COND_V_MSG(check_error(png_img), ERR_FILE_CORRUPT, png_img.message);
 	ERR_FAIL_COND_V(!success, ERR_FILE_CORRUPT);
 
-	//print_line("png width: "+itos(png_img.width)+" height: "+itos(png_img.height));
-	p_image->create(png_img.width, png_img.height, false, dest_format, buffer);
+	p_image->create(png_img.width, png_img.height, 0, dest_format, buffer);
 
 	return OK;
 }
 
-Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
+Error image_to_png(const Ref<Image> &p_image, PoolVector<uint8_t> &p_buffer) {
+
 	Ref<Image> source_image = p_image->duplicate();
 
-	if (source_image->is_compressed()) {
+	if (source_image->is_compressed())
 		source_image->decompress();
-	}
 
 	ERR_FAIL_COND_V(source_image->is_compressed(), FAILED);
 
@@ -162,8 +161,8 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 			}
 	}
 
-	const Vector<uint8_t> image_data = source_image->get_data();
-	const uint8_t *reader = image_data.ptr();
+	const PoolVector<uint8_t> image_data = source_image->get_data();
+	const PoolVector<uint8_t>::Read reader = image_data.read();
 
 	// we may be passed a buffer with existing content we're expected to append to
 	const int buffer_offset = p_buffer.size();
@@ -177,12 +176,13 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 		Error err = p_buffer.resize(buffer_offset + png_size_estimate);
 		ERR_FAIL_COND_V(err, err);
 
-		uint8_t *writer = p_buffer.ptrw();
+		PoolVector<uint8_t>::Write writer = p_buffer.write();
 		success = png_image_write_to_memory(&png_img, &writer[buffer_offset],
-				&compressed_size, 0, reader, 0, nullptr);
+				&compressed_size, 0, reader.ptr(), 0, NULL);
 		ERR_FAIL_COND_V_MSG(check_error(png_img), FAILED, png_img.message);
 	}
 	if (!success) {
+
 		// buffer was big enough, must be some other error
 		ERR_FAIL_COND_V(compressed_size <= png_size_estimate, FAILED);
 
@@ -190,9 +190,9 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 		Error err = p_buffer.resize(buffer_offset + compressed_size);
 		ERR_FAIL_COND_V(err, err);
 
-		uint8_t *writer = p_buffer.ptrw();
+		PoolVector<uint8_t>::Write writer = p_buffer.write();
 		success = png_image_write_to_memory(&png_img, &writer[buffer_offset],
-				&compressed_size, 0, reader, 0, nullptr);
+				&compressed_size, 0, reader.ptr(), 0, NULL);
 		ERR_FAIL_COND_V_MSG(check_error(png_img), FAILED, png_img.message);
 		ERR_FAIL_COND_V(!success, FAILED);
 	}
@@ -203,4 +203,5 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 
 	return OK;
 }
+
 } // namespace PNGDriverCommon

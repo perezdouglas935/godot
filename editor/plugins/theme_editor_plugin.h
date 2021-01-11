@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,6 +42,7 @@
 #include "editor/editor_node.h"
 
 class ThemeEditor : public VBoxContainer {
+
 	GDCLASS(ThemeEditor, VBoxContainer);
 
 	Panel *main_panel;
@@ -98,6 +99,7 @@ public:
 };
 
 class ThemeEditorPlugin : public EditorPlugin {
+
 	GDCLASS(ThemeEditorPlugin, EditorPlugin);
 
 	ThemeEditor *theme_editor;
@@ -105,11 +107,11 @@ class ThemeEditorPlugin : public EditorPlugin {
 	Button *button;
 
 public:
-	virtual String get_name() const override { return "Theme"; }
-	bool has_main_screen() const override { return false; }
-	virtual void edit(Object *p_node) override;
-	virtual bool handles(Object *p_node) const override;
-	virtual void make_visible(bool p_visible) override;
+	virtual String get_name() const { return "Theme"; }
+	bool has_main_screen() const { return false; }
+	virtual void edit(Object *p_node);
+	virtual bool handles(Object *p_node) const;
+	virtual void make_visible(bool p_visible);
 
 	ThemeEditorPlugin(EditorNode *p_node);
 };

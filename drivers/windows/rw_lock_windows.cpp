@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,20 +32,23 @@
 
 #include "rw_lock_windows.h"
 
-#include "core/error/error_macros.h"
+#include "core/error_macros.h"
 #include "core/os/memory.h"
 
 #include <stdio.h>
 
 void RWLockWindows::read_lock() {
+
 	AcquireSRWLockShared(&lock);
 }
 
 void RWLockWindows::read_unlock() {
+
 	ReleaseSRWLockShared(&lock);
 }
 
 Error RWLockWindows::read_try_lock() {
+
 	if (TryAcquireSRWLockShared(&lock) == 0) {
 		return ERR_BUSY;
 	} else {
@@ -54,10 +57,12 @@ Error RWLockWindows::read_try_lock() {
 }
 
 void RWLockWindows::write_lock() {
+
 	AcquireSRWLockExclusive(&lock);
 }
 
 void RWLockWindows::write_unlock() {
+
 	ReleaseSRWLockExclusive(&lock);
 }
 
@@ -70,14 +75,17 @@ Error RWLockWindows::write_try_lock() {
 }
 
 RWLock *RWLockWindows::create_func_windows() {
+
 	return memnew(RWLockWindows);
 }
 
 void RWLockWindows::make_default() {
+
 	create_func = create_func_windows;
 }
 
 RWLockWindows::RWLockWindows() {
+
 	InitializeSRWLock(&lock);
 }
 

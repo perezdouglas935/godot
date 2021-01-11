@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="GDScript" inherits="Script" version="4.0">
+<class name="GDScript" inherits="Script" version="3.2">
 	<brief_description>
 		A script implemented in the GDScript programming language.
 	</brief_description>
@@ -8,11 +8,11 @@
 		[method new] creates a new instance of the script. [method Object.set_script] extends an existing object, if that object's class matches one of the script's base classes.
 	</description>
 	<tutorials>
-		<link title="GDScript tutorial index">https://docs.godotengine.org/en/latest/getting_started/scripting/gdscript/index.html</link>
+		<link>https://docs.godotengine.org/en/latest/getting_started/scripting/gdscript/index.html</link>
 	</tutorials>
 	<methods>
 		<method name="get_as_byte_code" qualifiers="const">
-			<return type="PackedByteArray">
+			<return type="PoolByteArray">
 			</return>
 			<description>
 				Returns byte code for the script source code.

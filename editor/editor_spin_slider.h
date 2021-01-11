@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -62,7 +62,6 @@ class EditorSpinSlider : public Range {
 	Vector2 grabbing_spinner_mouse_pos;
 	double pre_grab_value;
 
-	Popup *value_input_popup;
 	LineEdit *value_input;
 	bool value_input_just_closed;
 
@@ -87,7 +86,7 @@ protected:
 	void _focus_entered();
 
 public:
-	String get_tooltip(const Point2 &p_pos) const override;
+	String get_tooltip(const Point2 &p_pos) const;
 
 	String get_text_value() const;
 	void set_label(const String &p_label);
@@ -107,7 +106,7 @@ public:
 	void setup_and_show() { _focus_entered(); }
 	LineEdit *get_line_edit() { return value_input; }
 
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 	EditorSpinSlider();
 };
 

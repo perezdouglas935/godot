@@ -207,7 +207,7 @@ namespace Godot
             }
         }
 
-        public Quat RotationQuat()
+        internal Quat RotationQuat()
         {
             Basis orthonormalizedBasis = Orthonormalized();
             real_t det = orthonormalizedBasis.Determinant();
@@ -342,6 +342,39 @@ namespace Godot
                 default:
                     throw new IndexOutOfRangeException();
             }
+        }
+
+        /// <summary>
+        /// Deprecated, please use the array operator instead.
+        /// </summary>
+        /// <param name="index">Which column.</param>
+        /// <returns>One of `Column0`, `Column1`, or `Column2`.</returns>
+        [Obsolete("GetColumn is deprecated. Use the array operator instead.")]
+        public Vector3 GetColumn(int index)
+        {
+            return this[index];
+        }
+
+        /// <summary>
+        /// Deprecated, please use the array operator instead.
+        /// </summary>
+        /// <param name="index">Which column.</param>
+        /// <param name="value">The vector to set the column to.</param>
+        [Obsolete("SetColumn is deprecated. Use the array operator instead.")]
+        public void SetColumn(int index, Vector3 value)
+        {
+            this[index] = value;
+        }
+
+        /// <summary>
+        /// Deprecated, please use the array operator instead.
+        /// </summary>
+        /// <param name="axis">Which column.</param>
+        /// <returns>One of `Column0`, `Column1`, or `Column2`.</returns>
+        [Obsolete("GetAxis is deprecated. Use the array operator instead.")]
+        public Vector3 GetAxis(int axis)
+        {
+            return new Vector3(this.Row0[axis], this.Row1[axis], this.Row2[axis]);
         }
 
         /// <summary>

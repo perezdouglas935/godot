@@ -35,7 +35,7 @@ namespace GodotTools.Internals
 
         public static void ReloadAssemblies(bool softReload) => internal_ReloadAssemblies(softReload);
 
-        public static void EditorDebuggerNodeReloadScripts() => internal_EditorDebuggerNodeReloadScripts();
+        public static void ScriptEditorDebuggerReloadScripts() => internal_ScriptEditorDebuggerReloadScripts();
 
         public static bool ScriptEditorEdit(Resource resource, int line, int col, bool grabFocus = true) =>
             internal_ScriptEditorEdit(resource, line, col, grabFocus);
@@ -92,7 +92,7 @@ namespace GodotTools.Internals
         private static extern void internal_ReloadAssemblies(bool softReload);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void internal_EditorDebuggerNodeReloadScripts();
+        private static extern void internal_ScriptEditorDebuggerReloadScripts();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool internal_ScriptEditorEdit(Resource resource, int line, int col, bool grabFocus);

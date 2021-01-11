@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -38,8 +38,10 @@
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/texture_rect.h"
+#include "scene/gui/tool_button.h"
 
 class EditorSettingsDialog : public AcceptDialog {
+
 	GDCLASS(EditorSettingsDialog, AcceptDialog);
 
 	bool updating;
@@ -63,8 +65,8 @@ class EditorSettingsDialog : public AcceptDialog {
 	String shortcut_configured;
 	String shortcut_filter;
 
-	virtual void cancel_pressed() override;
-	virtual void ok_pressed() override;
+	virtual void cancel_pressed();
+	virtual void ok_pressed();
 
 	void _settings_changed();
 	void _settings_property_edited(const String &p_name);
@@ -93,7 +95,7 @@ class EditorSettingsDialog : public AcceptDialog {
 	Label *restart_label;
 	TextureRect *restart_icon;
 	PanelContainer *restart_container;
-	Button *restart_close_button;
+	ToolButton *restart_close_button;
 
 	void _editor_restart_request();
 	void _editor_restart();

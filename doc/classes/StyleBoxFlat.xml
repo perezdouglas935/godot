@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="StyleBoxFlat" inherits="StyleBox" version="4.0">
+<class name="StyleBoxFlat" inherits="StyleBox" version="3.2">
 	<brief_description>
 		Customizable [StyleBox] with a given set of parameters (no texture required).
 	</brief_description>
@@ -27,10 +27,10 @@
 		<method name="get_border_width" qualifiers="const">
 			<return type="int">
 			</return>
-			<argument index="0" name="margin" type="int" enum="Side">
+			<argument index="0" name="margin" type="int" enum="Margin">
 			</argument>
 			<description>
-				Returns the specified [enum Side]'s border width.
+				Returns the given [code]margin[/code]'s border width. See [enum Margin] for possible values.
 			</description>
 		</method>
 		<method name="get_border_width_min" qualifiers="const">
@@ -52,21 +52,21 @@
 		<method name="get_expand_margin" qualifiers="const">
 			<return type="float">
 			</return>
-			<argument index="0" name="margin" type="int" enum="Side">
+			<argument index="0" name="margin" type="int" enum="Margin">
 			</argument>
 			<description>
-				Returns the size of the specified [enum Side]'s expand margin.
+				Returns the size of the given [code]margin[/code]'s expand margin. See [enum Margin] for possible values.
 			</description>
 		</method>
 		<method name="set_border_width">
 			<return type="void">
 			</return>
-			<argument index="0" name="margin" type="int" enum="Side">
+			<argument index="0" name="margin" type="int" enum="Margin">
 			</argument>
 			<argument index="1" name="width" type="int">
 			</argument>
 			<description>
-				Sets the specified [enum Side]'s border width to [code]width[/code] pixels.
+				Sets the border width to [code]width[/code] pixels for the given [code]margin[/code]. See [enum Margin] for possible values.
 			</description>
 		</method>
 		<method name="set_border_width_all">
@@ -75,7 +75,7 @@
 			<argument index="0" name="width" type="int">
 			</argument>
 			<description>
-				Sets the border width to [code]width[/code] pixels for all sides.
+				Sets the border width to [code]width[/code] pixels for all margins.
 			</description>
 		</method>
 		<method name="set_corner_radius">
@@ -116,12 +116,12 @@
 		<method name="set_expand_margin">
 			<return type="void">
 			</return>
-			<argument index="0" name="margin" type="int" enum="Side">
+			<argument index="0" name="margin" type="int" enum="Margin">
 			</argument>
 			<argument index="1" name="size" type="float">
 			</argument>
 			<description>
-				Sets the expand margin to [code]size[/code] pixels for the specified [enum Side].
+				Sets the expand margin to [code]size[/code] pixels for the given [code]margin[/code]. See [enum Margin] for possible values.
 			</description>
 		</method>
 		<method name="set_expand_margin_all">

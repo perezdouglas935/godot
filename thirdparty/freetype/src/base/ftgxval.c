@@ -25,10 +25,11 @@
  */
 
 
-#include <freetype/internal/ftdebug.h>
+#include <ft2build.h>
+#include FT_INTERNAL_DEBUG_H
 
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/services/svgxval.h>
+#include FT_INTERNAL_OBJECTS_H
+#include FT_SERVICE_GX_VALIDATE_H
 
 
   /* documentation is in ftgxval.h */

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VisualScript" inherits="Script" version="4.0">
+<class name="VisualScript" inherits="Script" version="3.2">
 	<brief_description>
 		A script implemented in the Visual Script programming environment.
 	</brief_description>
@@ -9,13 +9,13 @@
 		You are most likely to use this class via the Visual Script editor or when writing plugins for it.
 	</description>
 	<tutorials>
-		<link title="VisualScript tutorial index">https://docs.godotengine.org/en/latest/getting_started/scripting/visual_script/index.html</link>
+		<link>https://docs.godotengine.org/en/latest/getting_started/scripting/visual_script/index.html</link>
 	</tutorials>
 	<methods>
 		<method name="add_custom_signal">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Add a custom signal with the specified name to the VisualScript.
@@ -24,31 +24,31 @@
 		<method name="add_function">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
-			</argument>
-			<argument index="1" name="func_node_id" type="int">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
-				Add a function with the specified name to the VisualScript, and assign the root [VisualScriptFunction] node's id as [code]func_node_id[/code].
+				Add a function with the specified name to the VisualScript.
 			</description>
 		</method>
 		<method name="add_node">
 			<return type="void">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="node" type="VisualScriptNode">
+			<argument index="1" name="id" type="int">
 			</argument>
-			<argument index="2" name="position" type="Vector2" default="Vector2( 0, 0 )">
+			<argument index="2" name="node" type="VisualScriptNode">
+			</argument>
+			<argument index="3" name="position" type="Vector2" default="Vector2( 0, 0 )">
 			</argument>
 			<description>
-				Add a node to the VisualScript.
+				Add a node to a function of the VisualScript.
 			</description>
 		</method>
 		<method name="add_variable">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="default_value" type="Variant" default="null">
 			</argument>
@@ -61,7 +61,7 @@
 		<method name="custom_signal_add_argument">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="type" type="int" enum="Variant.Type">
 			</argument>
@@ -76,7 +76,7 @@
 		<method name="custom_signal_get_argument_count" qualifiers="const">
 			<return type="int">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Get the count of a custom signal's arguments.
@@ -85,7 +85,7 @@
 		<method name="custom_signal_get_argument_name" qualifiers="const">
 			<return type="String">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -96,7 +96,7 @@
 		<method name="custom_signal_get_argument_type" qualifiers="const">
 			<return type="int" enum="Variant.Type">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -107,7 +107,7 @@
 		<method name="custom_signal_remove_argument">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -118,7 +118,7 @@
 		<method name="custom_signal_set_argument_name">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -131,7 +131,7 @@
 		<method name="custom_signal_set_argument_type">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -144,7 +144,7 @@
 		<method name="custom_signal_swap_argument">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="argidx" type="int">
 			</argument>
@@ -157,13 +157,15 @@
 		<method name="data_connect">
 			<return type="void">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_port" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_port" type="int">
 			</argument>
-			<argument index="3" name="to_port" type="int">
+			<argument index="3" name="to_node" type="int">
+			</argument>
+			<argument index="4" name="to_port" type="int">
 			</argument>
 			<description>
 				Connect two data ports. The value of [code]from_node[/code]'s [code]from_port[/code] would be fed into [code]to_node[/code]'s [code]to_port[/code].
@@ -172,13 +174,15 @@
 		<method name="data_disconnect">
 			<return type="void">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_port" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_port" type="int">
 			</argument>
-			<argument index="3" name="to_port" type="int">
+			<argument index="3" name="to_node" type="int">
+			</argument>
+			<argument index="4" name="to_port" type="int">
 			</argument>
 			<description>
 				Disconnect two data ports previously connected with [method data_connect].
@@ -187,41 +191,47 @@
 		<method name="get_function_node_id" qualifiers="const">
 			<return type="int">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns the id of a function's entry point node.
 			</description>
 		</method>
+		<method name="get_function_scroll" qualifiers="const">
+			<return type="Vector2">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<description>
+				Returns the position of the center of the screen for a given function.
+			</description>
+		</method>
 		<method name="get_node" qualifiers="const">
 			<return type="VisualScriptNode">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
+			</argument>
+			<argument index="1" name="id" type="int">
 			</argument>
 			<description>
-				Returns a node given its id.
+				Returns a node given its id and its function.
 			</description>
 		</method>
 		<method name="get_node_position" qualifiers="const">
 			<return type="Vector2">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
+			</argument>
+			<argument index="1" name="id" type="int">
 			</argument>
 			<description>
 				Returns a node's position in pixels.
 			</description>
 		</method>
-		<method name="get_scroll" qualifiers="const">
-			<return type="Vector2">
-			</return>
-			<description>
-				Returns the current position of the center of the screen.
-			</description>
-		</method>
 		<method name="get_variable_default_value" qualifiers="const">
 			<return type="Variant">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns the default (initial) value of a variable.
@@ -230,7 +240,7 @@
 		<method name="get_variable_export" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns whether a variable is exported.
@@ -239,7 +249,7 @@
 		<method name="get_variable_info" qualifiers="const">
 			<return type="Dictionary">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns the information for a given variable as a dictionary. The information includes its name, type, hint and usage.
@@ -248,7 +258,7 @@
 		<method name="has_custom_signal" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns whether a signal exists with the specified name.
@@ -257,13 +267,15 @@
 		<method name="has_data_connection" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_port" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_port" type="int">
 			</argument>
-			<argument index="3" name="to_port" type="int">
+			<argument index="3" name="to_node" type="int">
+			</argument>
+			<argument index="4" name="to_port" type="int">
 			</argument>
 			<description>
 				Returns whether the specified data ports are connected.
@@ -272,7 +284,7 @@
 		<method name="has_function" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns whether a function exists with the specified name.
@@ -281,7 +293,9 @@
 		<method name="has_node" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
+			</argument>
+			<argument index="1" name="id" type="int">
 			</argument>
 			<description>
 				Returns whether a node exists with the given id.
@@ -290,11 +304,13 @@
 		<method name="has_sequence_connection" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_output" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_output" type="int">
+			</argument>
+			<argument index="3" name="to_node" type="int">
 			</argument>
 			<description>
 				Returns whether the specified sequence ports are connected.
@@ -303,7 +319,7 @@
 		<method name="has_variable" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Returns whether a variable exists with the specified name.
@@ -312,7 +328,7 @@
 		<method name="remove_custom_signal">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Remove a custom signal with the given name.
@@ -321,7 +337,7 @@
 		<method name="remove_function">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Remove a specific function and its nodes from the script.
@@ -330,16 +346,18 @@
 		<method name="remove_node">
 			<return type="void">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
+			</argument>
+			<argument index="1" name="id" type="int">
 			</argument>
 			<description>
-				Remove the node with the specified id.
+				Remove a specific node.
 			</description>
 		</method>
 		<method name="remove_variable">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<description>
 				Remove a variable with the given name.
@@ -348,9 +366,9 @@
 		<method name="rename_custom_signal">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
-			<argument index="1" name="new_name" type="StringName">
+			<argument index="1" name="new_name" type="String">
 			</argument>
 			<description>
 				Change the name of a custom signal.
@@ -359,9 +377,9 @@
 		<method name="rename_function">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
-			<argument index="1" name="new_name" type="StringName">
+			<argument index="1" name="new_name" type="String">
 			</argument>
 			<description>
 				Change the name of a function.
@@ -370,9 +388,9 @@
 		<method name="rename_variable">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
-			<argument index="1" name="new_name" type="StringName">
+			<argument index="1" name="new_name" type="String">
 			</argument>
 			<description>
 				Change the name of a variable.
@@ -381,11 +399,13 @@
 		<method name="sequence_connect">
 			<return type="void">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_output" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_output" type="int">
+			</argument>
+			<argument index="3" name="to_node" type="int">
 			</argument>
 			<description>
 				Connect two sequence ports. The execution will flow from of [code]from_node[/code]'s [code]from_output[/code] into [code]to_node[/code].
@@ -395,20 +415,33 @@
 		<method name="sequence_disconnect">
 			<return type="void">
 			</return>
-			<argument index="0" name="from_node" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="from_output" type="int">
+			<argument index="1" name="from_node" type="int">
 			</argument>
-			<argument index="2" name="to_node" type="int">
+			<argument index="2" name="from_output" type="int">
+			</argument>
+			<argument index="3" name="to_node" type="int">
 			</argument>
 			<description>
 				Disconnect two sequence ports previously connected with [method sequence_connect].
 			</description>
 		</method>
+		<method name="set_function_scroll">
+			<return type="void">
+			</return>
+			<argument index="0" name="name" type="String">
+			</argument>
+			<argument index="1" name="ofs" type="Vector2">
+			</argument>
+			<description>
+				Position the center of the screen for a function.
+			</description>
+		</method>
 		<method name="set_instance_base_type">
 			<return type="void">
 			</return>
-			<argument index="0" name="type" type="StringName">
+			<argument index="0" name="type" type="String">
 			</argument>
 			<description>
 				Set the base type of the script.
@@ -417,27 +450,20 @@
 		<method name="set_node_position">
 			<return type="void">
 			</return>
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="func" type="String">
 			</argument>
-			<argument index="1" name="position" type="Vector2">
+			<argument index="1" name="id" type="int">
 			</argument>
-			<description>
-				Set the node position in the VisualScript graph.
-			</description>
-		</method>
-		<method name="set_scroll">
-			<return type="void">
-			</return>
-			<argument index="0" name="ofs" type="Vector2">
+			<argument index="2" name="position" type="Vector2">
 			</argument>
 			<description>
-				Set the screen center to the given position.
+				Position a node on the screen.
 			</description>
 		</method>
 		<method name="set_variable_default_value">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="value" type="Variant">
 			</argument>
@@ -448,7 +474,7 @@
 		<method name="set_variable_export">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="enable" type="bool">
 			</argument>
@@ -459,7 +485,7 @@
 		<method name="set_variable_info">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="value" type="Dictionary">
 			</argument>
@@ -470,7 +496,9 @@
 	</methods>
 	<signals>
 		<signal name="node_ports_changed">
-			<argument index="0" name="id" type="int">
+			<argument index="0" name="function" type="String">
+			</argument>
+			<argument index="1" name="id" type="int">
 			</argument>
 			<description>
 				Emitted when the ports of a node are changed.

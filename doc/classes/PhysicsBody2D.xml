@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="PhysicsBody2D" inherits="CollisionObject2D" version="4.0">
+<class name="PhysicsBody2D" inherits="CollisionObject2D" version="3.2">
 	<brief_description>
 		Base class for all objects affected by physics in 2D space.
 	</brief_description>
@@ -7,7 +7,7 @@
 		PhysicsBody2D is an abstract base class for implementing a physics body. All *Body2D types inherit from it.
 	</description>
 	<tutorials>
-		<link title="Physics introduction">https://docs.godotengine.org/en/latest/tutorials/physics/physics_introduction.html</link>
+		<link>https://docs.godotengine.org/en/latest/tutorials/physics/physics_introduction.html</link>
 	</tutorials>
 	<methods>
 		<method name="add_collision_exception_with">
@@ -20,7 +20,7 @@
 			</description>
 		</method>
 		<method name="get_collision_exceptions">
-			<return type="PhysicsBody2D[]">
+			<return type="Array">
 			</return>
 			<description>
 				Returns an array of nodes that were added as collision exceptions for this body.
@@ -86,6 +86,9 @@
 			The physics layers this area scans for collisions. See [url=https://docs.godotengine.org/en/latest/tutorials/physics/physics_introduction.html#collision-layers-and-masks]Collision layers and masks[/url] in the documentation for more information.
 		</member>
 		<member name="input_pickable" type="bool" setter="set_pickable" getter="is_pickable" override="true" default="false" />
+		<member name="layers" type="int" setter="_set_layers" getter="_get_layers">
+			Both [member collision_layer] and [member collision_mask]. Returns [member collision_layer] when accessed. Updates [member collision_layer] and [member collision_mask] when modified.
+		</member>
 	</members>
 	<constants>
 	</constants>

@@ -221,14 +221,15 @@ namespace Godot
 
             real_t dot = v1.Dot(v2);
 
-            dot = Mathf.Clamp(dot, -1.0f, 1.0f);
+            // Clamp dot to [-1, 1]
+            dot = dot < -1.0f ? -1.0f : (dot > 1.0f ? 1.0f : dot);
 
             Vector2 v;
 
             if (dot > 0.9995f)
             {
                 // Linearly interpolate to avoid numerical precision issues
-                v = v1.Lerp(v2, weight).Normalized();
+                v = v1.LinearInterpolate(v2, weight).Normalized();
             }
             else
             {
@@ -242,8 +243,8 @@ namespace Godot
             Vector2 p2 = transform.origin;
 
             // Construct matrix
-            var res = new Transform2D(Mathf.Atan2(v.y, v.x), p1.Lerp(p2, weight));
-            Vector2 scale = s1.Lerp(s2, weight);
+            var res = new Transform2D(Mathf.Atan2(v.y, v.x), p1.LinearInterpolate(p2, weight));
+            Vector2 scale = s1.LinearInterpolate(s2, weight);
             res.x *= scale;
             res.y *= scale;
 

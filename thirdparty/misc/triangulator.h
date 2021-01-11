@@ -21,9 +21,9 @@
 #ifndef TRIANGULATOR_H
 #define TRIANGULATOR_H
 
-#include "core/templates/list.h"
+#include "core/list.h"
 #include "core/math/vector2.h"
-#include "core/templates/set.h"
+#include "core/set.h"
 
 //2D point structure
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -41,13 +41,16 @@
 	}
 
 Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const String &p_field) {
+
 	ERR_FAIL_COND_V(p_target.get_type() != p_source.get_type(), p_target);
 
 	/* clang-format makes a mess of this macro usage */
 	/* clang-format off */
 
 	switch (p_source.get_type()) {
+
 		case Variant::VECTOR2: {
+
 			SETUP_TYPE(Vector2)
 
 			/**/ TRY_TRANSFER_FIELD("x", x)
@@ -57,6 +60,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::RECT2: {
+
 			SETUP_TYPE(Rect2)
 
 			/**/ TRY_TRANSFER_FIELD("x", position.x)
@@ -68,6 +72,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::VECTOR3: {
+
 			SETUP_TYPE(Vector3)
 
 			/**/ TRY_TRANSFER_FIELD("x", x)
@@ -78,6 +83,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::PLANE: {
+
 			SETUP_TYPE(Plane)
 
 			/**/ TRY_TRANSFER_FIELD("x", normal.x)
@@ -89,6 +95,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::QUAT: {
+
 			SETUP_TYPE(Quat)
 
 			/**/ TRY_TRANSFER_FIELD("x", x)
@@ -100,6 +107,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::AABB: {
+
 			SETUP_TYPE(AABB)
 
 			/**/ TRY_TRANSFER_FIELD("px", position.x)
@@ -113,6 +121,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::TRANSFORM2D: {
+
 			SETUP_TYPE(Transform2D)
 
 			/**/ TRY_TRANSFER_FIELD("xx", elements[0][0])
@@ -126,6 +135,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::BASIS: {
+
 			SETUP_TYPE(Basis)
 
 			/**/ TRY_TRANSFER_FIELD("xx", elements[0][0])
@@ -142,6 +152,7 @@ Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const
 		}
 
 		case Variant::TRANSFORM: {
+
 			SETUP_TYPE(Transform)
 
 			/**/ TRY_TRANSFER_FIELD("xx", basis.elements[0][0])

@@ -33,10 +33,7 @@
 #include "gxvcommn.h"
 #include "gxvmort.h"
 
-#include <freetype/ftsnames.h>
-
-
-FT_BEGIN_HEADER
+#include FT_SFNT_NAMES_H
 
 
   FT_LOCAL( void )
@@ -64,8 +61,6 @@ FT_BEGIN_HEADER
                                     FT_Bytes       limit,
                                     GXV_Validator  gxvalid );
 
-
-FT_END_HEADER
 
 #endif /* GXVMORX_H_ */
 

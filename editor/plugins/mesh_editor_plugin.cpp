@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,13 +33,15 @@
 #include "editor/editor_scale.h"
 
 void MeshEditor::_gui_input(Ref<InputEvent> p_event) {
+
 	Ref<InputEventMouseMotion> mm = p_event;
 	if (mm.is_valid() && mm->get_button_mask() & BUTTON_MASK_LEFT) {
+
 		rot_x -= mm->get_relative().y * 0.01;
 		rot_y -= mm->get_relative().x * 0.01;
-		if (rot_x < -Math_PI / 2) {
+		if (rot_x < -Math_PI / 2)
 			rot_x = -Math_PI / 2;
-		} else if (rot_x > Math_PI / 2) {
+		else if (rot_x > Math_PI / 2) {
 			rot_x = Math_PI / 2;
 		}
 		_update_rotation();
@@ -47,22 +49,25 @@ void MeshEditor::_gui_input(Ref<InputEvent> p_event) {
 }
 
 void MeshEditor::_notification(int p_what) {
+
 	if (p_what == NOTIFICATION_READY) {
+
 		//get_scene()->connect("node_removed",this,"_node_removed");
 
 		if (first_enter) {
 			//it's in propertyeditor so. could be moved around
 
-			light_1_switch->set_normal_texture(get_theme_icon("MaterialPreviewLight1", "EditorIcons"));
-			light_1_switch->set_pressed_texture(get_theme_icon("MaterialPreviewLight1Off", "EditorIcons"));
-			light_2_switch->set_normal_texture(get_theme_icon("MaterialPreviewLight2", "EditorIcons"));
-			light_2_switch->set_pressed_texture(get_theme_icon("MaterialPreviewLight2Off", "EditorIcons"));
+			light_1_switch->set_normal_texture(get_icon("MaterialPreviewLight1", "EditorIcons"));
+			light_1_switch->set_pressed_texture(get_icon("MaterialPreviewLight1Off", "EditorIcons"));
+			light_2_switch->set_normal_texture(get_icon("MaterialPreviewLight2", "EditorIcons"));
+			light_2_switch->set_pressed_texture(get_icon("MaterialPreviewLight2Off", "EditorIcons"));
 			first_enter = false;
 		}
 	}
 }
 
 void MeshEditor::_update_rotation() {
+
 	Transform t;
 	t.basis.rotate(Vector3(0, 1, 0), -rot_y);
 	t.basis.rotate(Vector3(1, 0, 0), -rot_x);
@@ -70,6 +75,7 @@ void MeshEditor::_update_rotation() {
 }
 
 void MeshEditor::edit(Ref<Mesh> p_mesh) {
+
 	mesh = p_mesh;
 	mesh_instance->set_mesh(mesh);
 
@@ -92,6 +98,7 @@ void MeshEditor::edit(Ref<Mesh> p_mesh) {
 }
 
 void MeshEditor::_button_pressed(Node *p_button) {
+
 	if (p_button == light_1_switch) {
 		light1->set_visible(!light_1_switch->is_pressed());
 	}
@@ -102,42 +109,45 @@ void MeshEditor::_button_pressed(Node *p_button) {
 }
 
 void MeshEditor::_bind_methods() {
+
 	ClassDB::bind_method(D_METHOD("_gui_input"), &MeshEditor::_gui_input);
+	ClassDB::bind_method(D_METHOD("_button_pressed"), &MeshEditor::_button_pressed);
 }
 
 MeshEditor::MeshEditor() {
-	viewport = memnew(SubViewport);
-	Ref<World3D> world_3d;
-	world_3d.instance();
-	viewport->set_world_3d(world_3d); //use own world
+
+	viewport = memnew(Viewport);
+	Ref<World> world;
+	world.instance();
+	viewport->set_world(world); //use own world
 	add_child(viewport);
 	viewport->set_disable_input(true);
 	viewport->set_msaa(Viewport::MSAA_2X);
 	set_stretch(true);
-	camera = memnew(Camera3D);
+	camera = memnew(Camera);
 	camera->set_transform(Transform(Basis(), Vector3(0, 0, 1.1)));
 	camera->set_perspective(45, 0.1, 10);
 	viewport->add_child(camera);
 
-	light1 = memnew(DirectionalLight3D);
+	light1 = memnew(DirectionalLight);
 	light1->set_transform(Transform().looking_at(Vector3(-1, -1, -1), Vector3(0, 1, 0)));
 	viewport->add_child(light1);
 
-	light2 = memnew(DirectionalLight3D);
+	light2 = memnew(DirectionalLight);
 	light2->set_transform(Transform().looking_at(Vector3(0, 1, 0), Vector3(0, 0, 1)));
 	light2->set_color(Color(0.7, 0.7, 0.7));
 	viewport->add_child(light2);
 
-	rotation = memnew(Node3D);
+	rotation = memnew(Spatial);
 	viewport->add_child(rotation);
-	mesh_instance = memnew(MeshInstance3D);
+	mesh_instance = memnew(MeshInstance);
 	rotation->add_child(mesh_instance);
 
 	set_custom_minimum_size(Size2(1, 150) * EDSCALE);
 
 	HBoxContainer *hb = memnew(HBoxContainer);
 	add_child(hb);
-	hb->set_anchors_and_offsets_preset(Control::PRESET_WIDE, Control::PRESET_MODE_MINSIZE, 2);
+	hb->set_anchors_and_margins_preset(Control::PRESET_WIDE, Control::PRESET_MODE_MINSIZE, 2);
 
 	hb->add_spacer();
 
@@ -147,12 +157,12 @@ MeshEditor::MeshEditor() {
 	light_1_switch = memnew(TextureButton);
 	light_1_switch->set_toggle_mode(true);
 	vb_light->add_child(light_1_switch);
-	light_1_switch->connect("pressed", callable_mp(this, &MeshEditor::_button_pressed), varray(light_1_switch));
+	light_1_switch->connect("pressed", this, "_button_pressed", varray(light_1_switch));
 
 	light_2_switch = memnew(TextureButton);
 	light_2_switch->set_toggle_mode(true);
 	vb_light->add_child(light_2_switch);
-	light_2_switch->connect("pressed", callable_mp(this, &MeshEditor::_button_pressed), varray(light_2_switch));
+	light_2_switch->connect("pressed", this, "_button_pressed", varray(light_2_switch));
 
 	first_enter = true;
 
@@ -163,10 +173,12 @@ MeshEditor::MeshEditor() {
 ///////////////////////
 
 bool EditorInspectorPluginMesh::can_handle(Object *p_object) {
-	return Object::cast_to<Mesh>(p_object) != nullptr;
+
+	return Object::cast_to<Mesh>(p_object) != NULL;
 }
 
 void EditorInspectorPluginMesh::parse_begin(Object *p_object) {
+
 	Mesh *mesh = Object::cast_to<Mesh>(p_object);
 	if (!mesh) {
 		return;
@@ -179,6 +191,7 @@ void EditorInspectorPluginMesh::parse_begin(Object *p_object) {
 }
 
 MeshEditorPlugin::MeshEditorPlugin(EditorNode *p_node) {
+
 	Ref<EditorInspectorPluginMesh> plugin;
 	plugin.instance();
 	add_inspector_plugin(plugin);

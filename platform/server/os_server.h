@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,38 +31,47 @@
 #ifndef OS_SERVER_H
 #define OS_SERVER_H
 
-#include "core/input/input.h"
 #include "drivers/dummy/texture_loader_dummy.h"
 #include "drivers/unix/os_unix.h"
+#include "main/input_default.h"
 #ifdef __APPLE__
 #include "platform/osx/crash_handler_osx.h"
+#include "platform/osx/power_osx.h"
 #include "platform/osx/semaphore_osx.h"
 #else
-#include "platform/x11/crash_handler_linuxbsd.h"
+#include "platform/x11/crash_handler_x11.h"
+#include "platform/x11/power_x11.h"
 #endif
 #include "servers/audio_server.h"
-#include "servers/rendering/renderer_compositor.h"
-#include "servers/rendering_server.h"
+#include "servers/visual/rasterizer.h"
+#include "servers/visual_server.h"
 
 #undef CursorShape
 
 class OS_Server : public OS_Unix {
-	RenderingServer *rendering_server = nullptr;
+
+	VisualServer *visual_server;
 	VideoMode current_videomode;
 	List<String> args;
-	MainLoop *main_loop = nullptr;
+	MainLoop *main_loop;
 
-	bool grab = false;
+	bool grab;
 
 	virtual void delete_main_loop();
 
-	bool force_quit = false;
+	bool force_quit;
 
-	InputDefault *input = nullptr;
+	InputDefault *input;
+
+#ifdef __APPLE__
+	PowerOSX *power_manager;
+#else
+	PowerX11 *power_manager;
+#endif
 
 	CrashHandler crash_handler;
 
-	int video_driver_index = 0;
+	int video_driver_index;
 
 	Ref<ResourceFormatDummyTexture> resource_loader_dummy;
 
@@ -70,6 +79,8 @@ protected:
 	virtual int get_video_driver_count() const;
 	virtual const char *get_video_driver_name(int p_driver) const;
 	virtual int get_current_video_driver() const;
+	virtual int get_audio_driver_count() const;
+	virtual const char *get_audio_driver_name(int p_driver) const;
 
 	virtual void initialize_core();
 	virtual Error initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver);
@@ -89,6 +100,8 @@ public:
 
 	virtual MainLoop *get_main_loop() const;
 
+	virtual bool can_draw() const;
+
 	virtual void set_video_mode(const VideoMode &p_video_mode, int p_screen = 0);
 	virtual VideoMode get_video_mode(int p_screen = 0) const;
 	virtual void get_fullscreen_mode_list(List<VideoMode> *p_list, int p_screen = 0) const;
@@ -99,6 +112,9 @@ public:
 
 	void run();
 
+	virtual OS::PowerState get_power_state();
+	virtual int get_power_seconds_left();
+	virtual int get_power_percent_left();
 	virtual bool _check_internal_feature_support(const String &p_feature);
 
 	virtual String get_config_path() const;

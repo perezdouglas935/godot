@@ -16,10 +16,11 @@
  */
 
 
-#include <freetype/internal/ftobjs.h>
-#include <freetype/ftcache.h>
+#include <ft2build.h>
+#include FT_INTERNAL_OBJECTS_H
+#include FT_CACHE_H
 #include "ftcglyph.h"
-#include <freetype/fterrors.h>
+#include FT_ERRORS_H
 
 #include "ftccback.h"
 #include "ftcerror.h"

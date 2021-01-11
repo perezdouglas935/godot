@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,17 +31,19 @@
 #ifndef JNI_SINGLETON_H
 #define JNI_SINGLETON_H
 
-#include <core/config/engine.h>
-#include <core/variant/variant.h>
+#include <core/engine.h>
+#include <core/variant.h>
 #ifdef ANDROID_ENABLED
 #include <platform/android/jni_utils.h>
 #endif
 
 class JNISingleton : public Object {
+
 	GDCLASS(JNISingleton, Object);
 
 #ifdef ANDROID_ENABLED
 	struct MethodData {
+
 		jmethodID method;
 		Variant::Type ret_type;
 		Vector<Variant::Type> argtypes;
@@ -52,7 +54,7 @@ class JNISingleton : public Object {
 #endif
 
 public:
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) override {
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
 #ifdef ANDROID_ENABLED
 		Map<StringName, MethodData>::Element *E = method_map.find(p_method);
 
@@ -61,6 +63,7 @@ public:
 		bool call_error = !E || E->get().argtypes.size() != p_argcount;
 		if (!call_error) {
 			for (int i = 0; i < p_argcount; i++) {
+
 				if (!Variant::can_convert(p_args[i]->get_type(), E->get().argtypes[i])) {
 					call_error = true;
 					break;
@@ -75,11 +78,12 @@ public:
 
 		ERR_FAIL_COND_V(!instance, Variant());
 
-		r_error.error = Callable::CallError::CALL_OK;
+		r_error.error = Variant::CallError::CALL_OK;
 
-		jvalue *v = nullptr;
+		jvalue *v = NULL;
 
 		if (p_argcount) {
+
 			v = (jvalue *)alloca(sizeof(jvalue) * p_argcount);
 		}
 
@@ -91,6 +95,7 @@ public:
 
 		List<jobject> to_erase;
 		for (int i = 0; i < p_argcount; i++) {
+
 			jvalret vr = _variant_to_jvalue(env, E->get().argtypes[i], p_args[i]);
 			v[i] = vr.val;
 			if (vr.obj)
@@ -100,66 +105,76 @@ public:
 		Variant ret;
 
 		switch (E->get().ret_type) {
+
 			case Variant::NIL: {
+
 				env->CallVoidMethodA(instance, E->get().method, v);
 			} break;
 			case Variant::BOOL: {
+
 				ret = env->CallBooleanMethodA(instance, E->get().method, v) == JNI_TRUE;
 			} break;
 			case Variant::INT: {
+
 				ret = env->CallIntMethodA(instance, E->get().method, v);
 			} break;
-			case Variant::FLOAT: {
+			case Variant::REAL: {
+
 				ret = env->CallFloatMethodA(instance, E->get().method, v);
 			} break;
 			case Variant::STRING: {
+
 				jobject o = env->CallObjectMethodA(instance, E->get().method, v);
 				ret = jstring_to_string((jstring)o, env);
 				env->DeleteLocalRef(o);
 			} break;
-			case Variant::PACKED_STRING_ARRAY: {
+			case Variant::POOL_STRING_ARRAY: {
+
 				jobjectArray arr = (jobjectArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				ret = _jobject_to_variant(env, arr);
 
 				env->DeleteLocalRef(arr);
 			} break;
-			case Variant::PACKED_INT32_ARRAY: {
+			case Variant::POOL_INT_ARRAY: {
+
 				jintArray arr = (jintArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				Vector<int> sarr;
+				PoolVector<int> sarr;
 				sarr.resize(fCount);
 
-				int *w = sarr.ptrw();
-				env->GetIntArrayRegion(arr, 0, fCount, w);
+				PoolVector<int>::Write w = sarr.write();
+				env->GetIntArrayRegion(arr, 0, fCount, w.ptr());
+				w.release();
 				ret = sarr;
 				env->DeleteLocalRef(arr);
 			} break;
-			case Variant::PACKED_FLOAT32_ARRAY: {
+			case Variant::POOL_REAL_ARRAY: {
+
 				jfloatArray arr = (jfloatArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				Vector<float> sarr;
+				PoolVector<float> sarr;
 				sarr.resize(fCount);
 
-				float *w = sarr.ptrw();
-				env->GetFloatArrayRegion(arr, 0, fCount, w);
+				PoolVector<float>::Write w = sarr.write();
+				env->GetFloatArrayRegion(arr, 0, fCount, w.ptr());
+				w.release();
 				ret = sarr;
 				env->DeleteLocalRef(arr);
 			} break;
 
-#ifndef _MSC_VER
-#warning This is missing 64 bits arrays, I have no idea how to do it in JNI
-#endif
 			case Variant::DICTIONARY: {
+
 				jobject obj = env->CallObjectMethodA(instance, E->get().method, v);
 				ret = _jobject_to_variant(env, obj);
 				env->DeleteLocalRef(obj);
 
 			} break;
 			default: {
-				env->PopLocalFrame(nullptr);
+
+				env->PopLocalFrame(NULL);
 				ERR_FAIL_V(Variant());
 			} break;
 		}
@@ -169,7 +184,7 @@ public:
 			to_erase.pop_front();
 		}
 
-		env->PopLocalFrame(nullptr);
+		env->PopLocalFrame(NULL);
 
 		return ret;
 #else // ANDROID_ENABLED
@@ -181,14 +196,17 @@ public:
 
 #ifdef ANDROID_ENABLED
 	jobject get_instance() const {
+
 		return instance;
 	}
 
 	void set_instance(jobject p_instance) {
+
 		instance = p_instance;
 	}
 
 	void add_method(const StringName &p_name, jmethodID p_method, const Vector<Variant::Type> &p_args, Variant::Type p_ret_type) {
+
 		MethodData md;
 		md.method = p_method;
 		md.argtypes = p_args;
@@ -215,7 +233,7 @@ public:
 
 	JNISingleton() {
 #ifdef ANDROID_ENABLED
-		instance = nullptr;
+		instance = NULL;
 #endif
 	}
 };

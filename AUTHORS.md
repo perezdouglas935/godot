@@ -127,7 +127,6 @@ name is available.
     marynate
     Masoud BH (masoudbh3)
     Mateo Kuruk Miccino (kuruk-mm)
-    Matthew (skyace65)
     Matthias Hölzl (hoelzl)
     Max Hilbrunner (mhilbrunner)
     merumelu
@@ -135,7 +134,6 @@ name is available.
     MichiRecRoom (LikeLakers2)
     mrezai
     muiroc
-    Nathan Lovato (NathanLovato)
     Nathan Warden (NathanWarden)
     Nils André-Chang (NilsIrl)
     Noah Beard (TwistedTwigleg)

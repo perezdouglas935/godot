@@ -10,7 +10,7 @@ namespace GodotTools
 
         public override void _Notification(int what)
         {
-            if (what == Node.NotificationWmWindowFocusIn)
+            if (what == MainLoop.NotificationWmFocusIn)
             {
                 RestartTimer();
 
@@ -40,7 +40,7 @@ namespace GodotTools
                 OneShot = false,
                 WaitTime = (float)EditorDef("mono/assembly_watch_interval_sec", 0.5)
             };
-            watchTimer.Timeout += TimerTimeout;
+            watchTimer.Connect("timeout", this, nameof(TimerTimeout));
             AddChild(watchTimer);
             watchTimer.Start();
         }

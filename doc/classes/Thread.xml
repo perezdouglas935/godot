@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Thread" inherits="Reference" version="4.0">
+<class name="Thread" inherits="Reference" version="3.2">
 	<brief_description>
 		A unit of execution in a process.
 	</brief_description>
@@ -10,7 +10,6 @@
 	<tutorials>
 		<link title="Using multiple threads">https://docs.godotengine.org/en/latest/tutorials/threads/using_multiple_threads.html</link>
 		<link title="Thread-safe APIs">https://docs.godotengine.org/en/latest/tutorials/threads/thread_safe_apis.html</link>
-		<link title="3D Voxel Demo">https://godotengine.org/asset-library/asset/676</link>
 	</tutorials>
 	<methods>
 		<method name="get_id" qualifiers="const">
@@ -32,7 +31,7 @@
 			</return>
 			<argument index="0" name="instance" type="Object">
 			</argument>
-			<argument index="1" name="method" type="StringName">
+			<argument index="1" name="method" type="String">
 			</argument>
 			<argument index="2" name="userdata" type="Variant" default="null">
 			</argument>

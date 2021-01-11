@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,6 +35,7 @@
 #include "scene/resources/curve.h"
 
 class Path2D : public Node2D {
+
 	GDCLASS(Path2D, Node2D);
 
 	Ref<Curve2D> curve;
@@ -47,35 +48,36 @@ protected:
 
 public:
 #ifdef TOOLS_ENABLED
-	virtual Rect2 _edit_get_rect() const override;
-	virtual bool _edit_use_rect() const override;
-	virtual bool _edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const override;
+	virtual Rect2 _edit_get_rect() const;
+	virtual bool _edit_use_rect() const;
+	virtual bool _edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const;
 #endif
 
 	void set_curve(const Ref<Curve2D> &p_curve);
 	Ref<Curve2D> get_curve() const;
 
-	Path2D() {}
+	Path2D();
 };
 
 class PathFollow2D : public Node2D {
+
 	GDCLASS(PathFollow2D, Node2D);
 
 public:
 private:
-	Path2D *path = nullptr;
-	real_t offset = 0;
-	real_t h_offset = 0;
-	real_t v_offset = 0;
-	real_t lookahead = 4;
-	bool cubic = true;
-	bool loop = true;
-	bool rotates = true;
+	Path2D *path;
+	real_t offset;
+	real_t h_offset;
+	real_t v_offset;
+	real_t lookahead;
+	bool cubic;
+	bool loop;
+	bool rotate;
 
 	void _update_transform();
 
 protected:
-	virtual void _validate_property(PropertyInfo &property) const override;
+	virtual void _validate_property(PropertyInfo &property) const;
 
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -99,15 +101,15 @@ public:
 	void set_loop(bool p_loop);
 	bool has_loop() const;
 
-	void set_rotates(bool p_rotates);
+	void set_rotate(bool p_rotate);
 	bool is_rotating() const;
 
 	void set_cubic_interpolation(bool p_enable);
 	bool get_cubic_interpolation() const;
 
-	String get_configuration_warning() const override;
+	String get_configuration_warning() const;
 
-	PathFollow2D() {}
+	PathFollow2D();
 };
 
 #endif // PATH_2D_H

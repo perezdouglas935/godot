@@ -161,16 +161,15 @@ namespace Godot
         /// <param name="b">The destination vector.</param>
         /// <param name="preA">A vector before this vector.</param>
         /// <param name="postB">A vector after `b`.</param>
-        /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
+        /// <param name="t">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The interpolated vector.</returns>
-        public Vector3 CubicInterpolate(Vector3 b, Vector3 preA, Vector3 postB, real_t weight)
+        public Vector3 CubicInterpolate(Vector3 b, Vector3 preA, Vector3 postB, real_t t)
         {
             Vector3 p0 = preA;
             Vector3 p1 = this;
             Vector3 p2 = b;
             Vector3 p3 = postB;
 
-            real_t t = weight;
             real_t t2 = t * t;
             real_t t3 = t2 * t;
 
@@ -285,7 +284,7 @@ namespace Godot
         /// <param name="to">The destination vector for interpolation.</param>
         /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting vector of the interpolation.</returns>
-        public Vector3 Lerp(Vector3 to, real_t weight)
+        public Vector3 LinearInterpolate(Vector3 to, real_t weight)
         {
             return new Vector3
             (
@@ -302,7 +301,7 @@ namespace Godot
         /// <param name="to">The destination vector for interpolation.</param>
         /// <param name="weight">A vector with components on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting vector of the interpolation.</returns>
-        public Vector3 Lerp(Vector3 to, Vector3 weight)
+        public Vector3 LinearInterpolate(Vector3 to, Vector3 weight)
         {
             return new Vector3
             (
@@ -453,6 +452,21 @@ namespace Godot
             return new Vector3(Mathf.Round(x), Mathf.Round(y), Mathf.Round(z));
         }
 
+        [Obsolete("Set is deprecated. Use the Vector3(" + nameof(real_t) + ", " + nameof(real_t) + ", " + nameof(real_t) + ") constructor instead.", error: true)]
+        public void Set(real_t x, real_t y, real_t z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+        [Obsolete("Set is deprecated. Use the Vector3(" + nameof(Vector3) + ") constructor instead.", error: true)]
+        public void Set(Vector3 v)
+        {
+            x = v.x;
+            y = v.y;
+            z = v.z;
+        }
+
         /// <summary>
         /// Returns a vector with each component set to one or negative one, depending
         /// on the signs of this vector's components, or zero if the component is zero,
@@ -513,9 +527,9 @@ namespace Godot
         {
             return new Vector3
             (
-                Mathf.Snapped(x, step.x),
-                Mathf.Snapped(y, step.y),
-                Mathf.Snapped(z, step.z)
+                Mathf.Stepify(x, step.x),
+                Mathf.Stepify(y, step.y),
+                Mathf.Stepify(z, step.z)
             );
         }
 
@@ -538,6 +552,7 @@ namespace Godot
         // Constants
         private static readonly Vector3 _zero = new Vector3(0, 0, 0);
         private static readonly Vector3 _one = new Vector3(1, 1, 1);
+        private static readonly Vector3 _negOne = new Vector3(-1, -1, -1);
         private static readonly Vector3 _inf = new Vector3(Mathf.Inf, Mathf.Inf, Mathf.Inf);
 
         private static readonly Vector3 _up = new Vector3(0, 1, 0);
@@ -557,6 +572,11 @@ namespace Godot
         /// </summary>
         /// <value>Equivalent to `new Vector3(1, 1, 1)`</value>
         public static Vector3 One { get { return _one; } }
+        /// <summary>
+        /// Deprecated, please use a negative sign with <see cref="One"/> instead.
+        /// </summary>
+        /// <value>Equivalent to `new Vector3(-1, -1, -1)`</value>
+        public static Vector3 NegOne { get { return _negOne; } }
         /// <summary>
         /// Infinity vector, a vector with all components set to `Mathf.Inf`.
         /// </summary>
@@ -714,53 +734,49 @@ namespace Godot
 
         public static bool operator <(Vector3 left, Vector3 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
-                if (left.y == right.y)
-                {
+                if (Mathf.IsEqualApprox(left.y, right.y))
                     return left.z < right.z;
-                }
                 return left.y < right.y;
             }
+
             return left.x < right.x;
         }
 
         public static bool operator >(Vector3 left, Vector3 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
-                if (left.y == right.y)
-                {
+                if (Mathf.IsEqualApprox(left.y, right.y))
                     return left.z > right.z;
-                }
                 return left.y > right.y;
             }
+
             return left.x > right.x;
         }
 
         public static bool operator <=(Vector3 left, Vector3 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
-                if (left.y == right.y)
-                {
+                if (Mathf.IsEqualApprox(left.y, right.y))
                     return left.z <= right.z;
-                }
                 return left.y < right.y;
             }
+
             return left.x < right.x;
         }
 
         public static bool operator >=(Vector3 left, Vector3 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
-                if (left.y == right.y)
-                {
+                if (Mathf.IsEqualApprox(left.y, right.y))
                     return left.z >= right.z;
-                }
                 return left.y > right.y;
             }
+
             return left.x > right.x;
         }
 

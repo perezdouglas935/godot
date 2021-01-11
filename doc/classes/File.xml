@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="File" inherits="Reference" version="4.0">
+<class name="File" inherits="Reference" version="3.2">
 	<brief_description>
 		Type to handle file reading and writing operations.
 	</brief_description>
 	<description>
 		File type. This is used to permanently store data into the user device's file system and to read from it. This can be used to store game save data or player configuration files, for example.
 		Here's a sample on how to write and read from a file:
-		[codeblocks]
-		[gdscript]
+		[codeblock]
 		func save(content):
 		    var file = File.new()
 		    file.open("user://save_game.dat", File.WRITE)
@@ -20,32 +19,11 @@
 		    var content = file.get_as_text()
 		    file.close()
 		    return content
-		[/gdscript]
-		[csharp]
-		public void Save(string content)
-		{
-		    var file = new File();
-		    file.Open("user://save_game.dat", File.ModeFlags.Write);
-		    file.StoreString(content);
-		    file.Close();
-		}
-
-		public string Load()
-		{
-		    var file = new File();
-		    file.Open("user://save_game.dat", File.ModeFlags.Read);
-		    string content = file.GetAsText();
-		    file.Close();
-		    return content;
-		}
-		[/csharp]
-		[/codeblocks]
+		[/codeblock]
 		In the example above, the file will be saved in the user data folder as specified in the [url=https://docs.godotengine.org/en/latest/tutorials/io/data_paths.html]Data paths[/url] documentation.
-		[b]Note:[/b] To access project resources once exported, it is recommended to use [ResourceLoader] instead of the [File] API, as some files are converted to engine-specific formats and their original source files might not be present in the exported PCK package.
 	</description>
 	<tutorials>
-		<link title="File system">https://docs.godotengine.org/en/latest/getting_started/step_by_step/filesystem.html</link>
-		<link title="3D Voxel Demo">https://godotengine.org/asset-library/asset/676</link>
+		<link>https://docs.godotengine.org/en/latest/getting_started/step_by_step/filesystem.html</link>
 	</tutorials>
 	<methods>
 		<method name="close">
@@ -70,7 +48,7 @@
 			</argument>
 			<description>
 				Returns [code]true[/code] if the file exists in the given path.
-				[b]Note:[/b] Many resources types are imported (e.g. textures or sound files), and their source asset will not be included in the exported game, as only the imported version is used. See [method ResourceLoader.exists] for an alternative approach that takes resource remapping into account.
+				[b]Note:[/b] Many resources types are imported (e.g. textures or sound files), and that their source asset will not be included in the exported game, as only the imported version is used (in the [code]res://.import[/code] folder). To check for the existence of such resources while taking into account the remapping to their imported location, use [method ResourceLoader.exists]. Typically, using [code]File.file_exists[/code] on an imported resource would work while you are developing in the editor (the source asset is present in [code]res://[/code], but fail when exported).
 			</description>
 		</method>
 		<method name="get_16" qualifiers="const">
@@ -110,16 +88,16 @@
 			</description>
 		</method>
 		<method name="get_buffer" qualifiers="const">
-			<return type="PackedByteArray">
+			<return type="PoolByteArray">
 			</return>
 			<argument index="0" name="len" type="int">
 			</argument>
 			<description>
-				Returns next [code]len[/code] bytes of the file as a [PackedByteArray].
+				Returns next [code]len[/code] bytes of the file as a [PoolByteArray].
 			</description>
 		</method>
 		<method name="get_csv_line" qualifiers="const">
-			<return type="PackedStringArray">
+			<return type="PoolStringArray">
 			</return>
 			<argument index="0" name="delim" type="String" default="&quot;,&quot;">
 			</argument>
@@ -275,7 +253,7 @@
 			</argument>
 			<argument index="1" name="mode_flags" type="int" enum="File.ModeFlags">
 			</argument>
-			<argument index="2" name="key" type="PackedByteArray">
+			<argument index="2" name="key" type="PoolByteArray">
 			</argument>
 			<description>
 				Opens an encrypted file in write or read mode. You need to pass a binary key to encrypt/decrypt it.
@@ -323,8 +301,7 @@
 				Stores an integer as 16 bits in the file.
 				[b]Note:[/b] The [code]value[/code] should lie in the interval [code][0, 2^16 - 1][/code]. Any other value will overflow and wrap around.
 				To store a signed integer, use [method store_64] or store a signed integer from the interval [code][-2^15, 2^15 - 1][/code] (i.e. keeping one bit for the signedness) and compute its sign manually when reading. For example:
-				[codeblocks]
-				[gdscript]
+				[codeblock]
 				const MAX_15B = 1 &lt;&lt; 15
 				const MAX_16B = 1 &lt;&lt; 16
 
@@ -341,22 +318,7 @@
 				    var read2 = f.get_16() # 121
 				    var converted1 = unsigned16_to_signed(read1) # -42
 				    var converted2 = unsigned16_to_signed(read2) # 121
-				[/gdscript]
-				[csharp]
-				public override void _Ready()
-				{
-				    var f = new File();
-				    f.Open("user://file.dat", File.ModeFlags.WriteRead);
-				    f.Store16(unchecked((ushort)-42)); // This wraps around and stores 65494 (2^16 - 42).
-				    f.Store16(121); // In bounds, will store 121.
-				    f.Seek(0); // Go back to start to read the stored value.
-				    ushort read1 = f.Get16(); // 65494
-				    ushort read2 = f.Get16(); // 121
-				    short converted1 = BitConverter.ToInt16(BitConverter.GetBytes(read1), 0); // -42
-				    short converted2 = BitConverter.ToInt16(BitConverter.GetBytes(read2), 0); // 121
-				}
-				[/csharp]
-				[/codeblocks]
+				[/codeblock]
 			</description>
 		</method>
 		<method name="store_32">
@@ -394,7 +356,7 @@
 		<method name="store_buffer">
 			<return type="void">
 			</return>
-			<argument index="0" name="buffer" type="PackedByteArray">
+			<argument index="0" name="buffer" type="PoolByteArray">
 			</argument>
 			<description>
 				Stores the given array of bytes in the file.
@@ -403,12 +365,12 @@
 		<method name="store_csv_line">
 			<return type="void">
 			</return>
-			<argument index="0" name="values" type="PackedStringArray">
+			<argument index="0" name="values" type="PoolStringArray">
 			</argument>
 			<argument index="1" name="delim" type="String" default="&quot;,&quot;">
 			</argument>
 			<description>
-				Store the given [PackedStringArray] in the file as a line formatted in the CSV (Comma-Separated Values) format. You can pass a different delimiter [code]delim[/code] to use other than the default [code]","[/code] (comma). This delimiter must be one-character long.
+				Store the given [PoolStringArray] in the file as a line formatted in the CSV (Comma-Separated Values) format. You can pass a different delimiter [code]delim[/code] to use other than the default [code]","[/code] (comma). This delimiter must be one-character long.
 				Text will be encoded as UTF-8.
 			</description>
 		</method>
@@ -436,7 +398,8 @@
 			<argument index="0" name="line" type="String">
 			</argument>
 			<description>
-				Appends [code]line[/code] to the file followed by a line return character ([code]\n[/code]), encoding the text as UTF-8.
+				Stores the given [String] as a line in the file.
+				Text will be encoded as UTF-8.
 			</description>
 		</method>
 		<method name="store_pascal_string">
@@ -464,7 +427,8 @@
 			<argument index="0" name="string" type="String">
 			</argument>
 			<description>
-				Appends [code]string[/code] to the file without a line return, encoding the text as UTF-8.
+				Stores the given [String] in the file.
+				Text will be encoded as UTF-8.
 			</description>
 		</method>
 		<method name="store_var">

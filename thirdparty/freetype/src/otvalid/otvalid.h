@@ -20,12 +20,13 @@
 #define OTVALID_H_
 
 
-#include <freetype/freetype.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-#include "otverror.h"                      /* must come before `ftvalid.h' */
+#include "otverror.h"           /* must come before FT_INTERNAL_VALIDATE_H */
 
-#include <freetype/internal/ftvalid.h>
-#include <freetype/internal/ftstream.h>
+#include FT_INTERNAL_VALIDATE_H
+#include FT_INTERNAL_STREAM_H
 
 
 FT_BEGIN_HEADER

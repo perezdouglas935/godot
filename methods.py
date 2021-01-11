@@ -3,18 +3,12 @@ import re
 import glob
 import subprocess
 from collections import OrderedDict
-
-# We need to define our own `Action` method to control the verbosity of output
-# and whenever we need to run those commands in a subprocess on some platforms.
-from SCons.Script import Action
-from SCons import Node
-from SCons.Script import Glob
-from platform_methods import run_in_subprocess
+from compat import iteritems, isbasestring, open_utf8, decode_utf8, qualname
 
 
 def add_source_files(self, sources, files, warn_duplicates=True):
     # Convert string to list of absolute paths (including expanding wildcard)
-    if isinstance(files, (str, bytes)):
+    if isbasestring(files):
         # Keep SCons project-absolute path as they are (no wildcard support)
         if files.startswith("#"):
             if "*" in files:
@@ -69,9 +63,6 @@ def update_version(module_version_string=""):
 
     # NOTE: It is safe to generate this file here, since this is still executed serially
     f = open("core/version_generated.gen.h", "w")
-    f.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-    f.write("#ifndef VERSION_GENERATED_GEN_H\n")
-    f.write("#define VERSION_GENERATED_GEN_H\n")
     f.write('#define VERSION_SHORT_NAME "' + str(version.short_name) + '"\n')
     f.write('#define VERSION_NAME "' + str(version.name) + '"\n')
     f.write("#define VERSION_MAJOR " + str(version.major) + "\n")
@@ -82,14 +73,10 @@ def update_version(module_version_string=""):
     f.write('#define VERSION_MODULE_CONFIG "' + str(version.module_config) + module_version_string + '"\n')
     f.write("#define VERSION_YEAR " + str(version.year) + "\n")
     f.write('#define VERSION_WEBSITE "' + str(version.website) + '"\n')
-    f.write("#endif // VERSION_GENERATED_GEN_H\n")
     f.close()
 
     # NOTE: It is safe to generate this file here, since this is still executed serially
     fhash = open("core/version_hash.gen.h", "w")
-    fhash.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-    fhash.write("#ifndef VERSION_HASH_GEN_H\n")
-    fhash.write("#define VERSION_HASH_GEN_H\n")
     githash = ""
     gitfolder = ".git"
 
@@ -99,7 +86,7 @@ def update_version(module_version_string=""):
             gitfolder = module_folder[8:]
 
     if os.path.isfile(os.path.join(gitfolder, "HEAD")):
-        head = open(os.path.join(gitfolder, "HEAD"), "r", encoding="utf8").readline().strip()
+        head = open_utf8(os.path.join(gitfolder, "HEAD"), "r").readline().strip()
         if head.startswith("ref: "):
             head = os.path.join(gitfolder, head[5:])
             if os.path.isfile(head):
@@ -107,8 +94,7 @@ def update_version(module_version_string=""):
         else:
             githash = head
 
-    fhash.write('#define VERSION_HASH "' + githash + '"\n')
-    fhash.write("#endif // VERSION_HASH_GEN_H\n")
+    fhash.write('#define VERSION_HASH "' + githash + '"')
     fhash.close()
 
 
@@ -168,7 +154,6 @@ def is_module(path):
 
 def write_modules(module_list):
     includes_cpp = ""
-    preregister_cpp = ""
     register_cpp = ""
     unregister_cpp = ""
 
@@ -176,44 +161,36 @@ def write_modules(module_list):
         try:
             with open(os.path.join(path, "register_types.h")):
                 includes_cpp += '#include "' + path + '/register_types.h"\n'
-                preregister_cpp += "#ifdef MODULE_" + name.upper() + "_ENABLED\n"
-                preregister_cpp += "#ifdef MODULE_" + name.upper() + "_HAS_PREREGISTER\n"
-                preregister_cpp += "\tpreregister_" + name + "_types();\n"
-                preregister_cpp += "#endif\n"
-                preregister_cpp += "#endif\n"
                 register_cpp += "#ifdef MODULE_" + name.upper() + "_ENABLED\n"
                 register_cpp += "\tregister_" + name + "_types();\n"
                 register_cpp += "#endif\n"
                 unregister_cpp += "#ifdef MODULE_" + name.upper() + "_ENABLED\n"
                 unregister_cpp += "\tunregister_" + name + "_types();\n"
                 unregister_cpp += "#endif\n"
-        except OSError:
+        except IOError:
             pass
 
-    modules_cpp = """// register_module_types.gen.cpp
-/* THIS FILE IS GENERATED DO NOT EDIT */
+    modules_cpp = (
+        """
+// modules.cpp - THIS FILE IS GENERATED, DO NOT EDIT!!!!!!!
 #include "register_module_types.h"
 
-#include "modules/modules_enabled.gen.h"
-
-%s
-
-void preregister_module_types() {
-%s
-}
+"""
+        + includes_cpp
+        + """
 
 void register_module_types() {
-%s
+"""
+        + register_cpp
+        + """
 }
 
 void unregister_module_types() {
-%s
+"""
+        + unregister_cpp
+        + """
 }
-""" % (
-        includes_cpp,
-        preregister_cpp,
-        register_cpp,
-        unregister_cpp,
+"""
     )
 
     # NOTE: It is safe to generate this file here, since this is still executed serially
@@ -237,30 +214,6 @@ def convert_custom_modules_path(path):
 
 def disable_module(self):
     self.disabled_modules.append(self.current_module)
-
-
-def module_check_dependencies(self, module, dependencies):
-    """
-    Checks if module dependencies are enabled for a given module,
-    and prints a warning if they aren't.
-    Meant to be used in module `can_build` methods.
-    Returns a boolean (True if dependencies are satisfied).
-    """
-    missing_deps = []
-    for dep in dependencies:
-        opt = "module_{}_enabled".format(dep)
-        if not opt in self or not self[opt]:
-            missing_deps.append(dep)
-
-    if missing_deps != []:
-        print(
-            "Disabling '{}' module as the following dependencies are not satisfied: {}".format(
-                module, ", ".join(missing_deps)
-            )
-        )
-        return False
-    else:
-        return True
 
 
 def use_windows_spawn_fix(self, platform=None):
@@ -305,7 +258,7 @@ def use_windows_spawn_fix(self, platform=None):
         cmdline = cmd + " " + newargs
 
         rv = 0
-        env = {str(key): str(value) for key, value in iter(env.items())}
+        env = {str(key): str(value) for key, value in iteritems(env)}
         if len(cmdline) > 32000 and cmd.endswith("ar"):
             cmdline = cmd + " " + args[1] + " " + args[2] + " "
             for i in range(3, len(args)):
@@ -318,6 +271,65 @@ def use_windows_spawn_fix(self, platform=None):
         return rv
 
     self["SPAWN"] = mySpawn
+
+
+def split_lib(self, libname, src_list=None, env_lib=None):
+    env = self
+
+    num = 0
+    cur_base = ""
+    max_src = 64
+    list = []
+    lib_list = []
+
+    if src_list is None:
+        src_list = getattr(env, libname + "_sources")
+
+    if type(env_lib) == type(None):
+        env_lib = env
+
+    for f in src_list:
+        fname = ""
+        if type(f) == type(""):
+            fname = env.File(f).path
+        else:
+            fname = env.File(f)[0].path
+        fname = fname.replace("\\", "/")
+        base = "/".join(fname.split("/")[:2])
+        if base != cur_base and len(list) > max_src:
+            if num > 0:
+                lib = env_lib.add_library(libname + str(num), list)
+                lib_list.append(lib)
+                list = []
+            num = num + 1
+        cur_base = base
+        list.append(f)
+
+    lib = env_lib.add_library(libname + str(num), list)
+    lib_list.append(lib)
+
+    lib_base = []
+    env_lib.add_source_files(lib_base, "*.cpp")
+    lib = env_lib.add_library(libname, lib_base)
+    lib_list.insert(0, lib)
+
+    env.Prepend(LIBS=lib_list)
+
+    # When we split modules into arbitrary chunks, we end up with linking issues
+    # due to symbol dependencies split over several libs, which may not be linked
+    # in the required order. We use --start-group and --end-group to tell the
+    # linker that those archives should be searched repeatedly to resolve all
+    # undefined references.
+    # As SCons doesn't give us much control over how inserting libs in LIBS
+    # impacts the linker call, we need to hack our way into the linking commands
+    # LINKCOM and SHLINKCOM to set those flags.
+
+    if "-Wl,--start-group" in env["LINKCOM"] and "-Wl,--start-group" in env["SHLINKCOM"]:
+        # Already added by a previous call, skip.
+        return
+
+    env["LINKCOM"] = str(env["LINKCOM"]).replace("$_LIBFLAGS", "-Wl,--start-group $_LIBFLAGS -Wl,--end-group")
+    env["SHLINKCOM"] = str(env["LINKCOM"]).replace("$_LIBFLAGS", "-Wl,--start-group $_LIBFLAGS -Wl,--end-group")
 
 
 def save_active_platforms(apnames, ap):
@@ -371,29 +383,53 @@ def no_verbose(sys, env):
         colors["red"] = ""
         colors["end"] = ""
 
-    compile_source_message = "{}Compiling {}==> {}$SOURCE{}".format(
-        colors["blue"], colors["purple"], colors["yellow"], colors["end"]
+    compile_source_message = "%sCompiling %s==> %s$SOURCE%s" % (
+        colors["blue"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    java_compile_source_message = "{}Compiling {}==> {}$SOURCE{}".format(
-        colors["blue"], colors["purple"], colors["yellow"], colors["end"]
+    java_compile_source_message = "%sCompiling %s==> %s$SOURCE%s" % (
+        colors["blue"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    compile_shared_source_message = "{}Compiling shared {}==> {}$SOURCE{}".format(
-        colors["blue"], colors["purple"], colors["yellow"], colors["end"]
+    compile_shared_source_message = "%sCompiling shared %s==> %s$SOURCE%s" % (
+        colors["blue"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    link_program_message = "{}Linking Program        {}==> {}$TARGET{}".format(
-        colors["red"], colors["purple"], colors["yellow"], colors["end"]
+    link_program_message = "%sLinking Program        %s==> %s$TARGET%s" % (
+        colors["red"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    link_library_message = "{}Linking Static Library {}==> {}$TARGET{}".format(
-        colors["red"], colors["purple"], colors["yellow"], colors["end"]
+    link_library_message = "%sLinking Static Library %s==> %s$TARGET%s" % (
+        colors["red"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    ranlib_library_message = "{}Ranlib Library         {}==> {}$TARGET{}".format(
-        colors["red"], colors["purple"], colors["yellow"], colors["end"]
+    ranlib_library_message = "%sRanlib Library         %s==> %s$TARGET%s" % (
+        colors["red"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    link_shared_library_message = "{}Linking Shared Library {}==> {}$TARGET{}".format(
-        colors["red"], colors["purple"], colors["yellow"], colors["end"]
+    link_shared_library_message = "%sLinking Shared Library %s==> %s$TARGET%s" % (
+        colors["red"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
-    java_library_message = "{}Creating Java Archive  {}==> {}$TARGET{}".format(
-        colors["red"], colors["purple"], colors["yellow"], colors["end"]
+    java_library_message = "%sCreating Java Archive  %s==> %s$TARGET%s" % (
+        colors["red"],
+        colors["purple"],
+        colors["yellow"],
+        colors["end"],
     )
 
     env.Append(CXXCOMSTR=[compile_source_message])
@@ -524,37 +560,8 @@ def generate_cpp_hint_file(filename):
         try:
             with open(filename, "w") as fd:
                 fd.write("#define GDCLASS(m_class, m_inherits)\n")
-        except OSError:
+        except IOError:
             print("Could not write cpp.hint file.")
-
-
-def glob_recursive(pattern, node="."):
-    results = []
-    for f in Glob(str(node) + "/*", source=True):
-        if type(f) is Node.FS.Dir:
-            results += glob_recursive(pattern, f)
-    results += Glob(str(node) + "/" + pattern, source=True)
-    return results
-
-
-def add_to_vs_project(env, sources):
-    for x in sources:
-        if type(x) == type(""):
-            fname = env.File(x).path
-        else:
-            fname = env.File(x)[0].path
-        pieces = fname.split(".")
-        if len(pieces) > 0:
-            basename = pieces[0]
-            basename = basename.replace("\\\\", "/")
-            if os.path.isfile(basename + ".h"):
-                env.vs_incs += [basename + ".h"]
-            elif os.path.isfile(basename + ".hpp"):
-                env.vs_incs += [basename + ".hpp"]
-            if os.path.isfile(basename + ".c"):
-                env.vs_srcs += [basename + ".c"]
-            elif os.path.isfile(basename + ".cpp"):
-                env.vs_srcs += [basename + ".cpp"]
 
 
 def generate_vs_project(env, num_jobs):
@@ -565,44 +572,38 @@ def generate_vs_project(env, num_jobs):
             common_build_prefix = [
                 'cmd /V /C set "plat=$(PlatformTarget)"',
                 '(if "$(PlatformTarget)"=="x64" (set "plat=x86_amd64"))',
-                'set "tools=%s"' % env["tools"],
+                'set "tools=yes"',
                 '(if "$(Configuration)"=="release" (set "tools=no"))',
+                'set "custom_modules=%s"' % env["custom_modules"],
                 'call "' + batch_file + '" !plat!',
             ]
 
-            # windows allows us to have spaces in paths, so we need
-            # to double quote off the directory. However, the path ends
-            # in a backslash, so we need to remove this, lest it escape the
-            # last double quote off, confusing MSBuild
-            common_build_postfix = [
-                "--directory=\"$(ProjectDir.TrimEnd('\\'))\"",
-                "platform=windows",
-                "target=$(Configuration)",
-                "progress=no",
-                "tools=!tools!",
-                "-j%s" % num_jobs,
-            ]
-
-            if env["custom_modules"]:
-                common_build_postfix.append("custom_modules=%s" % env["custom_modules"])
-
-            result = " ^& ".join(common_build_prefix + [" ".join([commands] + common_build_postfix)])
+            result = " ^& ".join(common_build_prefix + [commands])
             return result
 
-        add_to_vs_project(env, env.core_sources)
-        add_to_vs_project(env, env.drivers_sources)
-        add_to_vs_project(env, env.main_sources)
-        add_to_vs_project(env, env.modules_sources)
-        add_to_vs_project(env, env.scene_sources)
-        add_to_vs_project(env, env.servers_sources)
-        add_to_vs_project(env, env.editor_sources)
+        env.AddToVSProject(env.core_sources)
+        env.AddToVSProject(env.main_sources)
+        env.AddToVSProject(env.modules_sources)
+        env.AddToVSProject(env.scene_sources)
+        env.AddToVSProject(env.servers_sources)
+        env.AddToVSProject(env.editor_sources)
 
-        for header in glob_recursive("**/*.h"):
-            env.vs_incs.append(str(header))
-
-        env["MSVSBUILDCOM"] = build_commandline("scons")
-        env["MSVSREBUILDCOM"] = build_commandline("scons vsproj=yes")
-        env["MSVSCLEANCOM"] = build_commandline("scons --clean")
+        # windows allows us to have spaces in paths, so we need
+        # to double quote off the directory. However, the path ends
+        # in a backslash, so we need to remove this, lest it escape the
+        # last double quote off, confusing MSBuild
+        env["MSVSBUILDCOM"] = build_commandline(
+            "scons --directory=\"$(ProjectDir.TrimEnd('\\'))\" platform=windows progress=no target=$(Configuration) tools=!tools! custom_modules=!custom_modules! -j"
+            + str(num_jobs)
+        )
+        env["MSVSREBUILDCOM"] = build_commandline(
+            "scons --directory=\"$(ProjectDir.TrimEnd('\\'))\" platform=windows progress=no target=$(Configuration) tools=!tools! vsproj=yes custom_modules=!custom_modules! -j"
+            + str(num_jobs)
+        )
+        env["MSVSCLEANCOM"] = build_commandline(
+            "scons --directory=\"$(ProjectDir.TrimEnd('\\'))\" --clean platform=windows progress=no target=$(Configuration) tools=!tools! custom_modules=!custom_modules! -j"
+            + str(num_jobs)
+        )
 
         # This version information (Win32, x64, Debug, Release, Release_Debug seems to be
         # required for Visual Studio to understand that it needs to generate an NMAKE
@@ -628,7 +629,9 @@ def generate_vs_project(env, num_jobs):
             variant=variants,
         )
     else:
-        print("Could not locate Visual Studio batch file to set up the build environment. Not generating VS project.")
+        print(
+            "Could not locate Visual Studio batch file for setting up the build environment. Not generating VS project."
+        )
 
 
 def precious_program(env, program, sources, **args):
@@ -661,14 +664,6 @@ def CommandNoCache(env, target, sources, command, **args):
     return result
 
 
-def Run(env, function, short_message, subprocess=True):
-    output_print = short_message if not env["verbose"] else ""
-    if not subprocess:
-        return Action(function, output_print)
-    else:
-        return Action(run_in_subprocess(function), output_print)
-
-
 def detect_darwin_sdk_path(platform, env):
     sdk_name = ""
     if platform == "osx":
@@ -685,23 +680,12 @@ def detect_darwin_sdk_path(platform, env):
 
     if not env[var_name]:
         try:
-            sdk_path = subprocess.check_output(["xcrun", "--sdk", sdk_name, "--show-sdk-path"]).strip().decode("utf-8")
+            sdk_path = decode_utf8(subprocess.check_output(["xcrun", "--sdk", sdk_name, "--show-sdk-path"]).strip())
             if sdk_path:
                 env[var_name] = sdk_path
         except (subprocess.CalledProcessError, OSError):
             print("Failed to find SDK path while running xcrun --sdk {} --show-sdk-path.".format(sdk_name))
             raise
-
-
-def is_vanilla_clang(env):
-    if not using_clang(env):
-        return False
-    try:
-        version = subprocess.check_output([env.subst(env["CXX"]), "--version"]).strip().decode("utf-8")
-    except (subprocess.CalledProcessError, OSError):
-        print("Couldn't parse CXX environment variable to infer compiler version.")
-        return False
-    return not version.startswith("Apple")
 
 
 def get_compiler_version(env):
@@ -713,7 +697,7 @@ def get_compiler_version(env):
         # Not using -dumpversion as some GCC distros only return major, and
         # Clang used to return hardcoded 4.2.1: # https://reviews.llvm.org/D56803
         try:
-            version = subprocess.check_output([env.subst(env["CXX"]), "--version"]).strip().decode("utf-8")
+            version = decode_utf8(subprocess.check_output([env.subst(env["CXX"]), "--version"]).strip())
         except (subprocess.CalledProcessError, OSError):
             print("Couldn't parse CXX environment variable to infer compiler version.")
             return None
@@ -742,10 +726,12 @@ def show_progress(env):
     # Progress reporting is not available in non-TTY environments since it
     # messes with the output (for example, when writing to a file)
     show_progress = env["progress"] and sys.stdout.isatty()
-    node_count = 0
-    node_count_max = 0
-    node_count_interval = 1
-    node_count_fname = str(env.Dir("#")) + "/.scons_node_count"
+    node_count_data = {
+        "count": 0,
+        "max": 0,
+        "interval": 1,
+        "fname": str(env.Dir("#")) + "/.scons_node_count",
+    }
 
     import time, math
 
@@ -764,10 +750,11 @@ def show_progress(env):
             self.delete(self.file_list())
 
         def __call__(self, node, *args, **kw):
-            nonlocal node_count, node_count_max, node_count_interval, node_count_fname, show_progress
             if show_progress:
                 # Print the progress percentage
-                node_count += node_count_interval
+                node_count_data["count"] += node_count_data["interval"]
+                node_count = node_count_data["count"]
+                node_count_max = node_count_data["max"]
                 if node_count_max > 0 and node_count <= node_count_max:
                     screen.write("\r[%3d%%] " % (node_count * 100 / node_count_max))
                     screen.flush()
@@ -835,15 +822,14 @@ def show_progress(env):
             return total_size
 
     def progress_finish(target, source, env):
-        nonlocal node_count, progressor
-        with open(node_count_fname, "w") as f:
-            f.write("%d\n" % node_count)
+        with open(node_count_data["fname"], "w") as f:
+            f.write("%d\n" % node_count_data["count"])
         progressor.delete(progressor.file_list())
 
     try:
-        with open(node_count_fname) as f:
-            node_count_max = int(f.readline())
-    except Exception:
+        with open(node_count_data["fname"]) as f:
+            node_count_data["max"] = int(f.readline())
+    except:
         pass
 
     cache_directory = os.environ.get("SCONS_CACHE")
@@ -851,7 +837,7 @@ def show_progress(env):
     # cache directory to a size not larger than cache_limit.
     cache_limit = float(os.getenv("SCONS_CACHE_LIMIT", 1024)) * 1024 * 1024
     progressor = cache_progress(cache_directory, cache_limit)
-    Progress(progressor, interval=node_count_interval)
+    Progress(progressor, interval=node_count_data["interval"])
 
     progress_finish_command = Command("progress_finish", [], progress_finish)
     AlwaysBuild(progress_finish_command)
@@ -862,7 +848,7 @@ def dump(env):
     from json import dump
 
     def non_serializable(obj):
-        return "<<non-serializable: %s>>" % (type(obj).__qualname__)
+        return "<<non-serializable: %s>>" % (qualname(type(obj)))
 
     with open(".scons_env.json", "w") as f:
         dump(env.Dictionary(), f, indent=4, default=non_serializable)

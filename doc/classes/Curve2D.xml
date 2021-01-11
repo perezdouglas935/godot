@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Curve2D" inherits="Resource" version="4.0">
+<class name="Curve2D" inherits="Resource" version="3.2">
 	<brief_description>
 		Describes a Bézier curve in 2D space.
 	</brief_description>
@@ -41,10 +41,10 @@
 			</description>
 		</method>
 		<method name="get_baked_points" qualifiers="const">
-			<return type="PackedVector2Array">
+			<return type="PoolVector2Array">
 			</return>
 			<description>
-				Returns the cache of points as a [PackedVector2Array].
+				Returns the cache of points as a [PoolVector2Array].
 			</description>
 		</method>
 		<method name="get_closest_offset" qualifiers="const">
@@ -80,7 +80,7 @@
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
-				Returns the position of the control point leading to the vertex [code]idx[/code]. The returned position is relative to the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console, and returns [code](0, 0)[/code].
+				Returns the position of the control point leading to the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console, and returns [code](0, 0)[/code].
 			</description>
 		</method>
 		<method name="get_point_out" qualifiers="const">
@@ -89,7 +89,7 @@
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
-				Returns the position of the control point leading out of the vertex [code]idx[/code]. The returned position is relative to the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console, and returns [code](0, 0)[/code].
+				Returns the position of the control point leading out of the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console, and returns [code](0, 0)[/code].
 			</description>
 		</method>
 		<method name="get_point_position" qualifiers="const">
@@ -152,7 +152,7 @@
 			<argument index="1" name="position" type="Vector2">
 			</argument>
 			<description>
-				Sets the position of the control point leading to the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console. The position is relative to the vertex.
+				Sets the position of the control point leading to the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console.
 			</description>
 		</method>
 		<method name="set_point_out">
@@ -163,7 +163,7 @@
 			<argument index="1" name="position" type="Vector2">
 			</argument>
 			<description>
-				Sets the position of the control point leading out of the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console. The position is relative to the vertex.
+				Sets the position of the control point leading out of the vertex [code]idx[/code]. If the index is out of bounds, the function sends an error to the console.
 			</description>
 		</method>
 		<method name="set_point_position">
@@ -178,7 +178,7 @@
 			</description>
 		</method>
 		<method name="tessellate" qualifiers="const">
-			<return type="PackedVector2Array">
+			<return type="PoolVector2Array">
 			</return>
 			<argument index="0" name="max_stages" type="int" default="5">
 			</argument>

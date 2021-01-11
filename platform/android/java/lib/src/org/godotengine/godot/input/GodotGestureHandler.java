@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,24 +31,26 @@
 package org.godotengine.godot.input;
 
 import org.godotengine.godot.GodotLib;
-import org.godotengine.godot.GodotRenderView;
+import org.godotengine.godot.GodotView;
 
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 /**
- * Handles gesture input related events for the {@link GodotRenderView} view.
+ * Handles gesture input related events for the {@link GodotView} view.
  * https://developer.android.com/reference/android/view/GestureDetector.SimpleOnGestureListener
  */
 public class GodotGestureHandler extends GestureDetector.SimpleOnGestureListener {
-	private final GodotRenderView mRenderView;
 
-	public GodotGestureHandler(GodotRenderView godotView) {
-		mRenderView = godotView;
+	private final GodotView godotView;
+
+	public GodotGestureHandler(GodotView godotView) {
+		this.godotView = godotView;
 	}
 
 	private void queueEvent(Runnable task) {
-		mRenderView.queueOnRenderThread(task);
+		godotView.queueEvent(task);
 	}
 
 	@Override
@@ -74,11 +76,10 @@ public class GodotGestureHandler extends GestureDetector.SimpleOnGestureListener
 		//Log.i("GodotGesture", "onDoubleTap");
 		final int x = Math.round(event.getX());
 		final int y = Math.round(event.getY());
-		final int buttonMask = event.getButtonState();
 		queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				GodotLib.doubleTap(buttonMask, x, y);
+				GodotLib.doubletap(x, y);
 			}
 		});
 		return true;

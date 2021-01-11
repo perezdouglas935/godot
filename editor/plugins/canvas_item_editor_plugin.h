@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,24 +33,25 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
+#include "scene/2d/canvas_item.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/label.h"
 #include "scene/gui/panel_container.h"
 #include "scene/gui/spin_box.h"
-#include "scene/main/canvas_item.h"
 
 class CanvasItemEditorViewport;
 
 class CanvasItemEditorSelectedItem : public Object {
+
 	GDCLASS(CanvasItemEditorSelectedItem, Object);
 
 public:
 	Transform2D prev_xform;
-	float prev_rot = 0;
+	float prev_rot;
 	Rect2 prev_rect;
 	Vector2 prev_pivot;
-	float prev_anchors[4] = { 0.0f };
+	float prev_anchors[4];
 
 	Transform2D pre_drag_xform;
 	Rect2 pre_drag_rect;
@@ -60,10 +61,14 @@ public:
 
 	Dictionary undo_state;
 
-	CanvasItemEditorSelectedItem() {}
+	CanvasItemEditorSelectedItem() :
+			prev_anchors() {
+		prev_rot = 0;
+	}
 };
 
 class CanvasItemEditor : public VBoxContainer {
+
 	GDCLASS(CanvasItemEditor, VBoxContainer);
 
 public:
@@ -114,28 +119,27 @@ private:
 		SHOW_ORIGIN,
 		SHOW_VIEWPORT,
 		SHOW_EDIT_LOCKS,
-		SHOW_TRANSFORMATION_GIZMOS,
 		LOCK_SELECTED,
 		UNLOCK_SELECTED,
 		GROUP_SELECTED,
 		UNGROUP_SELECTED,
-		ANCHORS_AND_OFFSETS_PRESET_TOP_LEFT,
-		ANCHORS_AND_OFFSETS_PRESET_TOP_RIGHT,
-		ANCHORS_AND_OFFSETS_PRESET_BOTTOM_LEFT,
-		ANCHORS_AND_OFFSETS_PRESET_BOTTOM_RIGHT,
-		ANCHORS_AND_OFFSETS_PRESET_CENTER_LEFT,
-		ANCHORS_AND_OFFSETS_PRESET_CENTER_RIGHT,
-		ANCHORS_AND_OFFSETS_PRESET_CENTER_TOP,
-		ANCHORS_AND_OFFSETS_PRESET_CENTER_BOTTOM,
-		ANCHORS_AND_OFFSETS_PRESET_CENTER,
-		ANCHORS_AND_OFFSETS_PRESET_TOP_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_LEFT_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_RIGHT_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_BOTTOM_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_VCENTER_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_HCENTER_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_WIDE,
-		ANCHORS_AND_OFFSETS_PRESET_KEEP_RATIO,
+		ANCHORS_AND_MARGINS_PRESET_TOP_LEFT,
+		ANCHORS_AND_MARGINS_PRESET_TOP_RIGHT,
+		ANCHORS_AND_MARGINS_PRESET_BOTTOM_LEFT,
+		ANCHORS_AND_MARGINS_PRESET_BOTTOM_RIGHT,
+		ANCHORS_AND_MARGINS_PRESET_CENTER_LEFT,
+		ANCHORS_AND_MARGINS_PRESET_CENTER_RIGHT,
+		ANCHORS_AND_MARGINS_PRESET_CENTER_TOP,
+		ANCHORS_AND_MARGINS_PRESET_CENTER_BOTTOM,
+		ANCHORS_AND_MARGINS_PRESET_CENTER,
+		ANCHORS_AND_MARGINS_PRESET_TOP_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_LEFT_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_RIGHT_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_BOTTOM_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_VCENTER_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_HCENTER_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_WIDE,
+		ANCHORS_AND_MARGINS_PRESET_KEEP_RATIO,
 		ANCHORS_PRESET_TOP_LEFT,
 		ANCHORS_PRESET_TOP_RIGHT,
 		ANCHORS_PRESET_BOTTOM_LEFT,
@@ -152,22 +156,22 @@ private:
 		ANCHORS_PRESET_VCENTER_WIDE,
 		ANCHORS_PRESET_HCENTER_WIDE,
 		ANCHORS_PRESET_WIDE,
-		OFFSETS_PRESET_TOP_LEFT,
-		OFFSETS_PRESET_TOP_RIGHT,
-		OFFSETS_PRESET_BOTTOM_LEFT,
-		OFFSETS_PRESET_BOTTOM_RIGHT,
-		OFFSETS_PRESET_CENTER_LEFT,
-		OFFSETS_PRESET_CENTER_RIGHT,
-		OFFSETS_PRESET_CENTER_TOP,
-		OFFSETS_PRESET_CENTER_BOTTOM,
-		OFFSETS_PRESET_CENTER,
-		OFFSETS_PRESET_TOP_WIDE,
-		OFFSETS_PRESET_LEFT_WIDE,
-		OFFSETS_PRESET_RIGHT_WIDE,
-		OFFSETS_PRESET_BOTTOM_WIDE,
-		OFFSETS_PRESET_VCENTER_WIDE,
-		OFFSETS_PRESET_HCENTER_WIDE,
-		OFFSETS_PRESET_WIDE,
+		MARGINS_PRESET_TOP_LEFT,
+		MARGINS_PRESET_TOP_RIGHT,
+		MARGINS_PRESET_BOTTOM_LEFT,
+		MARGINS_PRESET_BOTTOM_RIGHT,
+		MARGINS_PRESET_CENTER_LEFT,
+		MARGINS_PRESET_CENTER_RIGHT,
+		MARGINS_PRESET_CENTER_TOP,
+		MARGINS_PRESET_CENTER_BOTTOM,
+		MARGINS_PRESET_CENTER,
+		MARGINS_PRESET_TOP_WIDE,
+		MARGINS_PRESET_LEFT_WIDE,
+		MARGINS_PRESET_RIGHT_WIDE,
+		MARGINS_PRESET_BOTTOM_WIDE,
+		MARGINS_PRESET_VCENTER_WIDE,
+		MARGINS_PRESET_HCENTER_WIDE,
+		MARGINS_PRESET_WIDE,
 		ANIM_INSERT_KEY,
 		ANIM_INSERT_KEY_EXISTING,
 		ANIM_INSERT_POS,
@@ -185,6 +189,7 @@ private:
 		SKELETON_SHOW_BONES,
 		SKELETON_SET_IK_CHAIN,
 		SKELETON_CLEAR_IK_CHAIN
+
 	};
 
 	enum DragType {
@@ -204,8 +209,6 @@ private:
 		DRAG_ANCHOR_BOTTOM_LEFT,
 		DRAG_ANCHOR_ALL,
 		DRAG_MOVE,
-		DRAG_MOVE_X,
-		DRAG_MOVE_Y,
 		DRAG_SCALE_X,
 		DRAG_SCALE_Y,
 		DRAG_SCALE_BOTH,
@@ -228,9 +231,9 @@ private:
 	VScrollBar *v_scroll;
 	HBoxContainer *hb;
 
-	Button *zoom_minus;
-	Button *zoom_reset;
-	Button *zoom_plus;
+	ToolButton *zoom_minus;
+	ToolButton *zoom_reset;
+	ToolButton *zoom_plus;
 
 	Map<Control *, Timer *> popup_temporarily_timers;
 
@@ -245,8 +248,6 @@ private:
 	bool show_viewport;
 	bool show_helpers;
 	bool show_edit_locks;
-	bool show_transformation_gizmos;
-
 	float zoom;
 	Point2 view_offset;
 	Point2 previous_update_view_offset;
@@ -288,9 +289,10 @@ private:
 	MenuOption last_option;
 
 	struct _SelectResult {
-		CanvasItem *item = nullptr;
-		float z_index = 0;
-		bool has_z = true;
+
+		CanvasItem *item;
+		float z_index;
+		bool has_z;
 		_FORCE_INLINE_ bool operator<(const _SelectResult &p_rr) const {
 			return has_z && p_rr.has_z ? p_rr.z_index < z_index : p_rr.has_z;
 		}
@@ -298,16 +300,22 @@ private:
 	Vector<_SelectResult> selection_results;
 
 	struct _HoverResult {
+
 		Point2 position;
-		Ref<Texture2D> icon;
+		Ref<Texture> icon;
 		String name;
 	};
 	Vector<_HoverResult> hovering_results;
 
 	struct BoneList {
+
 		Transform2D xform;
-		float length = 0.f;
-		uint64_t last_pass = 0;
+		float length;
+		uint64_t last_pass;
+
+		BoneList() :
+				length(0.f),
+				last_pass(0) {}
 	};
 
 	uint64_t bone_last_frame;
@@ -316,11 +324,10 @@ private:
 		ObjectID from;
 		ObjectID to;
 		_FORCE_INLINE_ bool operator<(const BoneKey &p_key) const {
-			if (from == p_key.from) {
+			if (from == p_key.from)
 				return to < p_key.to;
-			} else {
+			else
 				return from < p_key.from;
-			}
 		}
 	};
 
@@ -329,36 +336,36 @@ private:
 	struct PoseClipboard {
 		Vector2 pos;
 		Vector2 scale;
-		float rot = 0;
+		float rot;
 		ObjectID id;
 	};
 	List<PoseClipboard> pose_clipboard;
 
-	Button *select_button;
+	ToolButton *select_button;
 
-	Button *move_button;
-	Button *scale_button;
-	Button *rotate_button;
+	ToolButton *move_button;
+	ToolButton *scale_button;
+	ToolButton *rotate_button;
 
-	Button *list_select_button;
-	Button *pivot_button;
-	Button *pan_button;
+	ToolButton *list_select_button;
+	ToolButton *pivot_button;
+	ToolButton *pan_button;
 
-	Button *ruler_button;
+	ToolButton *ruler_button;
 
-	Button *smart_snap_button;
-	Button *grid_snap_button;
+	ToolButton *smart_snap_button;
+	ToolButton *grid_snap_button;
 	MenuButton *snap_config_menu;
 	PopupMenu *smartsnap_config_popup;
 
-	Button *lock_button;
-	Button *unlock_button;
+	ToolButton *lock_button;
+	ToolButton *unlock_button;
 
-	Button *group_button;
-	Button *ungroup_button;
+	ToolButton *group_button;
+	ToolButton *ungroup_button;
 
 	MenuButton *skeleton_menu;
-	Button *override_camera_button;
+	ToolButton *override_camera_button;
 	MenuButton *view_menu;
 	HBoxContainer *animation_hb;
 	MenuButton *animation_menu;
@@ -367,7 +374,7 @@ private:
 	PopupMenu *anchors_and_margins_popup;
 	PopupMenu *anchors_popup;
 
-	Button *anchor_mode_button;
+	ToolButton *anchor_mode_button;
 
 	Button *key_loc_button;
 	Button *key_rot_button;
@@ -395,19 +402,19 @@ private:
 	Point2 box_selecting_to;
 
 	Ref<StyleBoxTexture> select_sb;
-	Ref<Texture2D> select_handle;
-	Ref<Texture2D> anchor_handle;
+	Ref<Texture> select_handle;
+	Ref<Texture> anchor_handle;
 
-	Ref<Shortcut> drag_pivot_shortcut;
-	Ref<Shortcut> set_pivot_shortcut;
-	Ref<Shortcut> multiply_grid_step_shortcut;
-	Ref<Shortcut> divide_grid_step_shortcut;
-	Ref<Shortcut> pan_view_shortcut;
+	Ref<ShortCut> drag_pivot_shortcut;
+	Ref<ShortCut> set_pivot_shortcut;
+	Ref<ShortCut> multiply_grid_step_shortcut;
+	Ref<ShortCut> divide_grid_step_shortcut;
+	Ref<ShortCut> pan_view_shortcut;
 
 	bool _is_node_locked(const Node *p_node);
 	bool _is_node_movable(const Node *p_node, bool p_popup_warning = false);
 	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, Vector<_SelectResult> &r_items, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
-	void _get_canvas_items_at_pos(const Point2 &p_pos, Vector<_SelectResult> &r_items, bool p_allow_locked = false);
+	void _get_canvas_items_at_pos(const Point2 &p_pos, Vector<_SelectResult> &r_items);
 	void _get_bones_at_pos(const Point2 &p_pos, Vector<_SelectResult> &r_items);
 
 	void _find_canvas_items_in_rect(const Rect2 &p_rect, Node *p_node, List<CanvasItem *> *r_items, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
@@ -454,9 +461,9 @@ private:
 
 	void _unhandled_key_input(const Ref<InputEvent> &p_ev);
 
-	void _draw_text_at_position(Point2 p_position, String p_string, Side p_side);
-	void _draw_margin_at_position(int p_value, Point2 p_position, Side p_side);
-	void _draw_percentage_at_position(float p_value, Point2 p_position, Side p_side);
+	void _draw_text_at_position(Point2 p_position, String p_string, Margin p_side);
+	void _draw_margin_at_position(int p_value, Point2 p_position, Margin p_side);
+	void _draw_percentage_at_position(float p_value, Point2 p_position, Margin p_side);
 	void _draw_straight_line(Point2 p_from, Point2 p_to, Color p_color);
 
 	void _draw_smart_snapping();
@@ -490,7 +497,6 @@ private:
 	bool _gui_input_hover(const Ref<InputEvent> &p_event);
 
 	void _gui_input_viewport(const Ref<InputEvent> &p_event);
-	void _update_cursor();
 
 	void _selection_changed();
 
@@ -519,9 +525,9 @@ private:
 			const Node *p_current);
 
 	void _set_anchors_preset(Control::LayoutPreset p_preset);
-	void _set_offsets_preset(Control::LayoutPreset p_preset);
-	void _set_anchors_and_offsets_preset(Control::LayoutPreset p_preset);
-	void _set_anchors_and_offsets_to_keep_ratio();
+	void _set_margins_preset(Control::LayoutPreset p_preset);
+	void _set_anchors_and_margins_preset(Control::LayoutPreset p_preset);
+	void _set_anchors_and_margins_to_keep_ratio();
 
 	void _button_toggle_anchor_mode(bool p_status);
 
@@ -604,7 +610,7 @@ public:
 		SNAP_DEFAULT = SNAP_GRID | SNAP_GUIDES | SNAP_PIXEL,
 	};
 
-	Point2 snap_point(Point2 p_target, unsigned int p_modes = SNAP_DEFAULT, unsigned int p_forced_modes = 0, const CanvasItem *p_self_canvas_item = nullptr, List<CanvasItem *> p_other_nodes_exceptions = List<CanvasItem *>());
+	Point2 snap_point(Point2 p_target, unsigned int p_modes = SNAP_DEFAULT, unsigned int p_forced_modes = 0, const CanvasItem *p_self_canvas_item = NULL, List<CanvasItem *> p_other_nodes_exceptions = List<CanvasItem *>());
 	float snap_angle(float p_target, float p_start = 0) const;
 
 	Transform2D get_canvas_transform() const { return transform; }
@@ -642,19 +648,20 @@ public:
 };
 
 class CanvasItemEditorPlugin : public EditorPlugin {
+
 	GDCLASS(CanvasItemEditorPlugin, EditorPlugin);
 
 	CanvasItemEditor *canvas_item_editor;
 	EditorNode *editor;
 
 public:
-	virtual String get_name() const override { return "2D"; }
-	bool has_main_screen() const override { return true; }
-	virtual void edit(Object *p_object) override;
-	virtual bool handles(Object *p_object) const override;
-	virtual void make_visible(bool p_visible) override;
-	virtual Dictionary get_state() const override;
-	virtual void set_state(const Dictionary &p_state) override;
+	virtual String get_name() const { return "2D"; }
+	bool has_main_screen() const { return true; }
+	virtual void edit(Object *p_object);
+	virtual bool handles(Object *p_object) const;
+	virtual void make_visible(bool p_visible);
+	virtual Dictionary get_state() const;
+	virtual void set_state(const Dictionary &p_state);
 
 	CanvasItemEditor *get_canvas_item_editor() { return canvas_item_editor; }
 
@@ -677,7 +684,7 @@ class CanvasItemEditorViewport : public Control {
 	CanvasItemEditor *canvas_item_editor;
 	Node2D *preview_node;
 	AcceptDialog *accept;
-	AcceptDialog *selector;
+	WindowDialog *selector;
 	Label *selector_label;
 	Label *label;
 	Label *label_desc;
@@ -705,8 +712,8 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual bool can_drop_data(const Point2 &p_point, const Variant &p_data) const override;
-	virtual void drop_data(const Point2 &p_point, const Variant &p_data) override;
+	virtual bool can_drop_data(const Point2 &p_point, const Variant &p_data) const;
+	virtual void drop_data(const Point2 &p_point, const Variant &p_data);
 
 	CanvasItemEditorViewport(EditorNode *p_node, CanvasItemEditor *p_canvas_item_editor);
 	~CanvasItemEditorViewport();

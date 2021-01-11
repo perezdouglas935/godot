@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,7 +32,6 @@ package org.godotengine.godot.plugin;
 
 import org.godotengine.godot.Godot;
 
-import android.app.Activity;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -52,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Registry used to load and access the registered Godot Android plugins.
  */
 public final class GodotPluginRegistry {
+
 	private static final String TAG = GodotPluginRegistry.class.getSimpleName();
 
 	private static final String GODOT_PLUGIN_V1_NAME_PREFIX = "org.godotengine.plugin.v1.";
@@ -122,11 +122,9 @@ public final class GodotPluginRegistry {
 
 	private void loadPlugins(Godot godot) {
 		try {
-			final Activity activity = godot.getActivity();
-			ApplicationInfo appInfo = activity
+			ApplicationInfo appInfo = godot
 											  .getPackageManager()
-											  .getApplicationInfo(activity.getPackageName(),
-													  PackageManager.GET_META_DATA);
+											  .getApplicationInfo(godot.getPackageName(), PackageManager.GET_META_DATA);
 			Bundle metaData = appInfo.metaData;
 			if (metaData == null || metaData.isEmpty()) {
 				return;

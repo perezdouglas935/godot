@@ -28,7 +28,7 @@
 #include "gxvalid.h"
 #include "gxvcommn.h"
 
-#include <freetype/ftsnames.h>
+#include FT_SFNT_NAMES_H
 
 
   /**************************************************************************

@@ -26,7 +26,7 @@ namespace GodotTools.Ides.MonoDevelop
 
             string command;
 
-            if (OS.IsMacOS)
+            if (OS.IsOSX)
             {
                 string bundleId = BundleIds[editorId];
 
@@ -85,7 +85,7 @@ namespace GodotTools.Ides.MonoDevelop
 
         public Instance(string solutionFile, EditorId editorId)
         {
-            if (editorId == EditorId.VisualStudioForMac && !OS.IsMacOS)
+            if (editorId == EditorId.VisualStudioForMac && !OS.IsOSX)
                 throw new InvalidOperationException($"{nameof(EditorId.VisualStudioForMac)} not supported on this platform");
 
             this.solutionFile = solutionFile;
@@ -103,7 +103,7 @@ namespace GodotTools.Ides.MonoDevelop
 
         static Instance()
         {
-            if (OS.IsMacOS)
+            if (OS.IsOSX)
             {
                 ExecutableNames = new Dictionary<EditorId, string>
                 {

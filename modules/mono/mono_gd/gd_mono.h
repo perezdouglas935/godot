@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -48,9 +48,9 @@ enum Type {
 };
 
 struct Version {
-	uint64_t godot_api_hash = 0;
-	uint32_t bindings_version = 0;
-	uint32_t cs_glue_version = 0;
+	uint64_t godot_api_hash;
+	uint32_t bindings_version;
+	uint32_t cs_glue_version;
 
 	bool operator==(const Version &p_other) const {
 		return godot_api_hash == p_other.godot_api_hash &&
@@ -58,7 +58,11 @@ struct Version {
 			   cs_glue_version == p_other.cs_glue_version;
 	}
 
-	Version() {}
+	Version() :
+			godot_api_hash(0),
+			bindings_version(0),
+			cs_glue_version(0) {
+	}
 
 	Version(uint64_t p_godot_api_hash,
 			uint32_t p_bindings_version,
@@ -75,6 +79,7 @@ String to_string(Type p_type);
 } // namespace ApiAssemblyInfo
 
 class GDMono {
+
 public:
 	enum UnhandledExceptionPolicy {
 		POLICY_TERMINATE_APP,
@@ -82,10 +87,13 @@ public:
 	};
 
 	struct LoadedApiAssembly {
-		GDMonoAssembly *assembly = nullptr;
-		bool out_of_sync = false;
+		GDMonoAssembly *assembly;
+		bool out_of_sync;
 
-		LoadedApiAssembly() {}
+		LoadedApiAssembly() :
+				assembly(NULL),
+				out_of_sync(false) {
+		}
 	};
 
 private:
@@ -97,7 +105,7 @@ private:
 	MonoDomain *root_domain;
 	MonoDomain *scripts_domain;
 
-	HashMap<int32_t, HashMap<String, GDMonoAssembly *>> assemblies;
+	HashMap<uint32_t, HashMap<String, GDMonoAssembly *> > assemblies;
 
 	GDMonoAssembly *corlib_assembly;
 	GDMonoAssembly *project_assembly;
@@ -141,7 +149,7 @@ private:
 	Error _unload_scripts_domain();
 #endif
 
-	void _domain_assemblies_cleanup(int32_t p_domain_id);
+	void _domain_assemblies_cleanup(uint32_t p_domain_id);
 
 	uint64_t api_core_hash;
 #ifdef TOOLS_ENABLED
@@ -165,16 +173,14 @@ protected:
 public:
 #ifdef DEBUG_METHODS_ENABLED
 	uint64_t get_api_core_hash() {
-		if (api_core_hash == 0) {
+		if (api_core_hash == 0)
 			api_core_hash = ClassDB::get_api_hash(ClassDB::API_CORE);
-		}
 		return api_core_hash;
 	}
 #ifdef TOOLS_ENABLED
 	uint64_t get_api_editor_hash() {
-		if (api_editor_hash == 0) {
+		if (api_editor_hash == 0)
 			api_editor_hash = ClassDB::get_api_hash(ClassDB::API_EDITOR);
-		}
 		return api_editor_hash;
 	}
 #endif // TOOLS_ENABLED
@@ -194,17 +200,17 @@ public:
 
 #ifdef TOOLS_ENABLED
 	bool copy_prebuilt_api_assembly(ApiAssemblyInfo::Type p_api_type, const String &p_config);
-	String update_api_assemblies_from_prebuilt(const String &p_config, const bool *p_core_api_out_of_sync = nullptr, const bool *p_editor_api_out_of_sync = nullptr);
+	String update_api_assemblies_from_prebuilt(const String &p_config, const bool *p_core_api_out_of_sync = NULL, const bool *p_editor_api_out_of_sync = NULL);
 #endif
 
 	static GDMono *get_singleton() { return singleton; }
 
-	[[noreturn]] static void unhandled_exception_hook(MonoObject *p_exc, void *p_user_data);
+	GD_NORETURN static void unhandled_exception_hook(MonoObject *p_exc, void *p_user_data);
 
 	UnhandledExceptionPolicy get_unhandled_exception_policy() const { return unhandled_exception_policy; }
 
 	// Do not use these, unless you know what you're doing
-	void add_assembly(int32_t p_domain_id, GDMonoAssembly *p_assembly);
+	void add_assembly(uint32_t p_domain_id, GDMonoAssembly *p_assembly);
 	GDMonoAssembly *get_loaded_assembly(const String &p_name);
 
 	_FORCE_INLINE_ bool is_runtime_initialized() const { return runtime_initialized && !mono_runtime_is_shutting_down() /* stays true after shutdown finished */; }
@@ -250,22 +256,23 @@ public:
 namespace gdmono {
 
 class ScopeDomain {
+
 	MonoDomain *prev_domain;
 
 public:
 	ScopeDomain(MonoDomain *p_domain) {
-		prev_domain = mono_domain_get();
+		MonoDomain *prev_domain = mono_domain_get();
 		if (prev_domain != p_domain) {
+			this->prev_domain = prev_domain;
 			mono_domain_set(p_domain, false);
 		} else {
-			prev_domain = nullptr;
+			this->prev_domain = NULL;
 		}
 	}
 
 	~ScopeDomain() {
-		if (prev_domain) {
+		if (prev_domain)
 			mono_domain_set(prev_domain, false);
-		}
 	}
 };
 
@@ -278,11 +285,11 @@ public:
 	}
 
 	~ScopeExitDomainUnload() {
-		if (domain) {
+		if (domain)
 			GDMono::get_singleton()->finalize_and_unload_domain(domain);
-		}
 	}
 };
+
 } // namespace gdmono
 
 #define _GDMONO_SCOPE_DOMAIN_(m_mono_domain)                      \
@@ -299,6 +306,9 @@ class _GodotSharp : public Object {
 	friend class GDMono;
 
 	bool _is_domain_finalizing_for_unload(int32_t p_domain_id);
+
+	List<NodePath *> np_delete_queue;
+	List<RID *> rid_delete_queue;
 
 	void _reload_assemblies(bool p_soft_reload);
 
@@ -317,6 +327,7 @@ public:
 
 	bool is_scripts_domain_loaded();
 
+	bool is_domain_finalizing_for_unload();
 	bool is_domain_finalizing_for_unload(int32_t p_domain_id);
 	bool is_domain_finalizing_for_unload(MonoDomain *p_domain);
 

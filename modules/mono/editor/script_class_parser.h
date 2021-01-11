@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,11 +31,12 @@
 #ifndef SCRIPT_CLASS_PARSER_H
 #define SCRIPT_CLASS_PARSER_H
 
-#include "core/string/ustring.h"
-#include "core/templates/vector.h"
-#include "core/variant/variant.h"
+#include "core/ustring.h"
+#include "core/variant.h"
+#include "core/vector.h"
 
 class ScriptClassParser {
+
 public:
 	struct NameDecl {
 		enum Type {
@@ -45,22 +46,23 @@ public:
 		};
 
 		String name;
-		Type type = NAMESPACE_DECL;
+		Type type;
 	};
 
 	struct ClassDecl {
 		String name;
 		String namespace_;
 		Vector<String> base;
-		bool nested = false;
+		bool nested;
+		bool has_script_attr;
 	};
 
 private:
 	String code;
-	int idx = 0;
-	int line = 0;
+	int idx;
+	int line;
 	String error_str;
-	bool error = false;
+	bool error;
 	Variant value;
 
 	Vector<ClassDecl> classes;

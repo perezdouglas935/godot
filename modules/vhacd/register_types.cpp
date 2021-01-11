@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,7 +32,8 @@
 #include "scene/resources/mesh.h"
 #include "thirdparty/vhacd/public/VHACD.h"
 
-static Vector<Vector<Face3>> convex_decompose(const Vector<Face3> &p_faces) {
+static Vector<Vector<Face3> > convex_decompose(const Vector<Face3> &p_faces) {
+
 	Vector<float> vertices;
 	vertices.resize(p_faces.size() * 9);
 	Vector<uint32_t> indices;
@@ -53,7 +54,7 @@ static Vector<Vector<Face3>> convex_decompose(const Vector<Face3> &p_faces) {
 
 	int hull_count = decomposer->GetNConvexHulls();
 
-	Vector<Vector<Face3>> ret;
+	Vector<Vector<Face3> > ret;
 
 	for (int i = 0; i < hull_count; i++) {
 		Vector<Face3> triangles;
@@ -83,5 +84,5 @@ void register_vhacd_types() {
 }
 
 void unregister_vhacd_types() {
-	Mesh::convex_composition_function = nullptr;
+	Mesh::convex_composition_function = NULL;
 }

@@ -1,8 +1,8 @@
 using System;
-using System.IO;
 using Godot;
 using GodotTools.Core;
 using JetBrains.Annotations;
+using Path = System.IO.Path;
 
 namespace GodotTools.Utils
 {

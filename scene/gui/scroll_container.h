@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,6 +36,7 @@
 #include "scroll_bar.h"
 
 class ScrollContainer : public Container {
+
 	GDCLASS(ScrollContainer, Container);
 
 	HScrollBar *h_scroll;
@@ -60,22 +61,22 @@ class ScrollContainer : public Container {
 	bool scroll_h;
 	bool scroll_v;
 
+	bool disabled;
+
 	int deadzone;
 	bool follow_focus;
 
 	void _cancel_drag();
 
 protected:
-	Size2 get_minimum_size() const override;
+	Size2 get_minimum_size() const;
 
 	void _gui_input(const Ref<InputEvent> &p_gui_input);
-	void _update_dimensions();
 	void _notification(int p_what);
 
 	void _scroll_moved(float);
 	static void _bind_methods();
 
-	bool _updating_scrollbars = false;
 	void _update_scrollbar_position();
 	void _ensure_focused_visible(Control *p_node);
 
@@ -95,15 +96,20 @@ public:
 	int get_deadzone() const;
 	void set_deadzone(int p_deadzone);
 
+	bool get_disabled() const;
+	void set_disabled(bool p_disabled);
+
 	bool is_following_focus() const;
 	void set_follow_focus(bool p_follow);
+
+	bool is_h_bottom() const;
 
 	HScrollBar *get_h_scrollbar();
 	VScrollBar *get_v_scrollbar();
 
-	virtual bool clips_input() const override;
+	virtual bool clips_input() const;
 
-	virtual String get_configuration_warning() const override;
+	virtual String get_configuration_warning() const;
 
 	ScrollContainer();
 };

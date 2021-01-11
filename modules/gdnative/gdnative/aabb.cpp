@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #include "gdnative/aabb.h"
 
 #include "core/math/aabb.h"
-#include "core/variant/variant.h"
+#include "core/variant.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,13 +79,6 @@ godot_string GDAPI godot_aabb_as_string(const godot_aabb *p_self) {
 	const AABB *self = (const AABB *)p_self;
 	memnew_placement(&ret, String(*self));
 	return ret;
-}
-
-godot_aabb GDAPI godot_aabb_abs(const godot_aabb *p_self) {
-	godot_aabb dest;
-	const AABB *self = (const AABB *)p_self;
-	*((AABB *)&dest) = self->abs();
-	return dest;
 }
 
 godot_real GDAPI godot_aabb_get_area(const godot_aabb *p_self) {

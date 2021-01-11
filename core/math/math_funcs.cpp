@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,9 +30,11 @@
 
 #include "math_funcs.h"
 
-#include "core/error/error_macros.h"
+#include "core/error_macros.h"
 
 RandomPCG Math::default_rand(RandomPCG::DEFAULT_SEED, RandomPCG::DEFAULT_INC);
+
+#define PHI 0x9e3779b9
 
 uint32_t Math::rand_from_seed(uint64_t *seed) {
 	RandomPCG rng = RandomPCG(*seed, RandomPCG::DEFAULT_INC);
@@ -92,18 +94,16 @@ double Math::dectime(double p_value, double p_amount, double p_step) {
 	double sgn = p_value < 0 ? -1.0 : 1.0;
 	double val = Math::abs(p_value);
 	val -= p_amount * p_step;
-	if (val < 0.0) {
+	if (val < 0.0)
 		val = 0.0;
-	}
 	return val * sgn;
 }
 
 double Math::ease(double p_x, double p_c) {
-	if (p_x < 0) {
+	if (p_x < 0)
 		p_x = 0;
-	} else if (p_x > 1.0) {
+	else if (p_x > 1.0)
 		p_x = 1.0;
-	}
 	if (p_c > 0) {
 		if (p_c < 1.0) {
 			return 1.0 - Math::pow(1.0 - p_x, 1.0 / p_c);
@@ -118,12 +118,11 @@ double Math::ease(double p_x, double p_c) {
 		} else {
 			return (1.0 - Math::pow(1.0 - (p_x - 0.5) * 2.0, -p_c)) * 0.5 + 0.5;
 		}
-	} else {
+	} else
 		return 0; // no ease (raw)
-	}
 }
 
-double Math::snapped(double p_value, double p_step) {
+double Math::stepify(double p_value, double p_step) {
 	if (p_step != 0) {
 		p_value = Math::floor(p_value / p_step + 0.5) * p_step;
 	}
@@ -131,6 +130,7 @@ double Math::snapped(double p_value, double p_step) {
 }
 
 uint32_t Math::larger_prime(uint32_t p_val) {
+
 	static const uint32_t primes[] = {
 		5,
 		13,
@@ -166,10 +166,10 @@ uint32_t Math::larger_prime(uint32_t p_val) {
 
 	int idx = 0;
 	while (true) {
+
 		ERR_FAIL_COND_V(primes[idx] == 0, 0);
-		if (primes[idx] > p_val) {
+		if (primes[idx] > p_val)
 			return primes[idx];
-		}
 		idx++;
 	}
 }
@@ -179,9 +179,5 @@ double Math::random(double from, double to) {
 }
 
 float Math::random(float from, float to) {
-	return default_rand.random(from, to);
-}
-
-int Math::random(int from, int to) {
 	return default_rand.random(from, to);
 }

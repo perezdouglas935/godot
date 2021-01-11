@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,20 +32,21 @@
 
 #ifdef TOOLS_ENABLED
 
-#include "core/config/engine.h"
-#include "core/core_constants.h"
-#include "core/object/class_db.h"
+#include "core/class_db.h"
+#include "core/engine.h"
+#include "core/global_constants.h"
 #include "core/os/file_access.h"
-#include "core/templates/pair.h"
+#include "core/pair.h"
 
 // helper stuff
 
 static Error save_file(const String &p_path, const List<String> &p_content) {
+
 	FileAccessRef file = FileAccess::open(p_path, FileAccess::WRITE);
 
 	ERR_FAIL_COND_V(!file, ERR_FILE_CANT_WRITE);
 
-	for (const List<String>::Element *e = p_content.front(); e != nullptr; e = e->next()) {
+	for (const List<String>::Element *e = p_content.front(); e != NULL; e = e->next()) {
 		file->store_string(e->get());
 	}
 
@@ -97,7 +98,7 @@ struct SignalAPI {
 
 struct EnumAPI {
 	String name;
-	List<Pair<int, String>> values;
+	List<Pair<int, String> > values;
 };
 
 struct ClassAPI {
@@ -145,6 +146,7 @@ static String get_type_name(const PropertyInfo &info) {
 struct MethodInfoComparator {
 	StringName::AlphCompare compare;
 	bool operator()(const MethodInfo &p_a, const MethodInfo &p_b) const {
+
 		return compare(p_a.name, p_b.name);
 	}
 };
@@ -152,6 +154,7 @@ struct MethodInfoComparator {
 struct PropertyInfoComparator {
 	StringName::AlphCompare compare;
 	bool operator()(const PropertyInfo &p_a, const PropertyInfo &p_b) const {
+
 		return compare(p_a.name, p_b.name);
 	}
 };
@@ -159,6 +162,7 @@ struct PropertyInfoComparator {
 struct ConstantAPIComparator {
 	NoCaseComparator compare;
 	bool operator()(const ConstantAPI &p_a, const ConstantAPI &p_b) const {
+
 		return compare(p_a.constant_name, p_b.constant_name);
 	}
 };
@@ -167,32 +171,33 @@ struct ConstantAPIComparator {
  * Reads the entire Godot API to a list
  */
 List<ClassAPI> generate_c_api_classes() {
+
 	List<ClassAPI> api;
 
 	List<StringName> classes;
 	ClassDB::get_class_list(&classes);
 	classes.sort_custom<StringName::AlphCompare>();
 
-	// Register global constants as a fake CoreConstants singleton class
+	// Register global constants as a fake GlobalConstants singleton class
 	{
 		ClassAPI global_constants_api;
-		global_constants_api.class_name = "CoreConstants";
+		global_constants_api.class_name = L"GlobalConstants";
 		global_constants_api.api_type = ClassDB::API_CORE;
 		global_constants_api.is_singleton = true;
-		global_constants_api.singleton_name = "CoreConstants";
+		global_constants_api.singleton_name = L"GlobalConstants";
 		global_constants_api.is_instanciable = false;
-		const int constants_count = CoreConstants::get_global_constant_count();
+		const int constants_count = GlobalConstants::get_global_constant_count();
 		for (int i = 0; i < constants_count; ++i) {
 			ConstantAPI constant_api;
-			constant_api.constant_name = CoreConstants::get_global_constant_name(i);
-			constant_api.constant_value = CoreConstants::get_global_constant_value(i);
+			constant_api.constant_name = GlobalConstants::get_global_constant_name(i);
+			constant_api.constant_value = GlobalConstants::get_global_constant_value(i);
 			global_constants_api.constants.push_back(constant_api);
 		}
 		global_constants_api.constants.sort_custom<ConstantAPIComparator>();
 		api.push_back(global_constants_api);
 	}
 
-	for (List<StringName>::Element *e = classes.front(); e != nullptr; e = e->next()) {
+	for (List<StringName>::Element *e = classes.front(); e != NULL; e = e->next()) {
 		StringName class_name = e->get();
 
 		ClassAPI class_api;
@@ -224,7 +229,7 @@ List<ClassAPI> generate_c_api_classes() {
 			List<String> constant;
 			ClassDB::get_integer_constant_list(class_name, &constant, true);
 			constant.sort_custom<NoCaseComparator>();
-			for (List<String>::Element *c = constant.front(); c != nullptr; c = c->next()) {
+			for (List<String>::Element *c = constant.front(); c != NULL; c = c->next()) {
 				ConstantAPI constant_api;
 				constant_api.constant_name = c->get();
 				constant_api.constant_value = ClassDB::get_integer_constant(class_name, c->get());
@@ -279,7 +284,7 @@ List<ClassAPI> generate_c_api_classes() {
 			ClassDB::get_property_list(class_name, &properties, true);
 			properties.sort_custom<PropertyInfoComparator>();
 
-			for (List<PropertyInfo>::Element *p = properties.front(); p != nullptr; p = p->next()) {
+			for (List<PropertyInfo>::Element *p = properties.front(); p != NULL; p = p->next()) {
 				PropertyAPI property_api;
 
 				property_api.name = p->get().name;
@@ -295,7 +300,7 @@ List<ClassAPI> generate_c_api_classes() {
 
 				property_api.index = ClassDB::get_property_index(class_name, p->get().name);
 
-				if (!property_api.setter.is_empty() || !property_api.getter.is_empty()) {
+				if (!property_api.setter.empty() || !property_api.getter.empty()) {
 					class_api.properties.push_back(property_api);
 				}
 			}
@@ -307,7 +312,7 @@ List<ClassAPI> generate_c_api_classes() {
 			ClassDB::get_method_list(class_name, &methods, true);
 			methods.sort_custom<MethodInfoComparator>();
 
-			for (List<MethodInfo>::Element *m = methods.front(); m != nullptr; m = m->next()) {
+			for (List<MethodInfo>::Element *m = methods.front(); m != NULL; m = m->next()) {
 				MethodAPI method_api;
 				MethodBind *method_bind = ClassDB::get_method(class_name, m->get().name);
 				MethodInfo &method_info = m->get();
@@ -387,10 +392,10 @@ List<ClassAPI> generate_c_api_classes() {
 				enum_api.name = E->get();
 				ClassDB::get_enum_constants(class_name, E->get(), &value_names, true);
 				for (List<StringName>::Element *val_e = value_names.front(); val_e; val_e = val_e->next()) {
-					int int_val = ClassDB::get_integer_constant(class_name, val_e->get(), nullptr);
+					int int_val = ClassDB::get_integer_constant(class_name, val_e->get(), NULL);
 					enum_api.values.push_back(Pair<int, String>(int_val, val_e->get()));
 				}
-				enum_api.values.sort_custom<PairSort<int, String>>();
+				enum_api.values.sort_custom<PairSort<int, String> >();
 				class_api.enums.push_back(enum_api);
 			}
 		}
@@ -405,13 +410,14 @@ List<ClassAPI> generate_c_api_classes() {
  * Generates the JSON source from the API in p_api
  */
 static List<String> generate_c_api_json(const List<ClassAPI> &p_api) {
+
 	// I'm sorry for the \t mess
 
 	List<String> source;
 
 	source.push_back("[\n");
 
-	for (const List<ClassAPI>::Element *c = p_api.front(); c != nullptr; c = c->next()) {
+	for (const List<ClassAPI>::Element *c = p_api.front(); c != NULL; c = c->next()) {
 		ClassAPI api = c->get();
 
 		source.push_back("\t{\n");
@@ -492,7 +498,7 @@ static List<String> generate_c_api_json(const List<ClassAPI> &p_api) {
 			source.push_back("\t\t\t{\n");
 			source.push_back("\t\t\t\t\"name\": \"" + e->get().name + "\",\n");
 			source.push_back("\t\t\t\t\"values\": {\n");
-			for (List<Pair<int, String>>::Element *val_e = e->get().values.front(); val_e; val_e = val_e->next()) {
+			for (List<Pair<int, String> >::Element *val_e = e->get().values.front(); val_e; val_e = val_e->next()) {
 				source.push_back("\t\t\t\t\t\"" + val_e->get().second + "\": " + itos(val_e->get().first));
 				source.push_back(String((val_e->next() ? "," : "")) + "\n");
 			}
@@ -515,6 +521,7 @@ static List<String> generate_c_api_json(const List<ClassAPI> &p_api) {
  *  p_path
  */
 Error generate_c_api(const String &p_path) {
+
 #ifndef TOOLS_ENABLED
 	return ERR_BUG;
 #else

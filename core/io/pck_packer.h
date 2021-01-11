@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,38 +31,34 @@
 #ifndef PCK_PACKER_H
 #define PCK_PACKER_H
 
-#include "core/object/reference.h"
+#include "core/reference.h"
 
 class FileAccess;
 
 class PCKPacker : public Reference {
+
 	GDCLASS(PCKPacker, Reference);
 
-	FileAccess *file = nullptr;
-	int alignment = 0;
-	uint64_t ofs = 0;
-
-	Vector<uint8_t> key;
-	bool enc_dir = false;
+	FileAccess *file;
+	int alignment;
 
 	static void _bind_methods();
 
 	struct File {
+
 		String path;
 		String src_path;
-		uint64_t ofs = 0;
-		uint64_t size = 0;
-		bool encrypted = false;
-		Vector<uint8_t> md5;
+		int size;
+		uint64_t offset_offset;
 	};
 	Vector<File> files;
 
 public:
-	Error pck_start(const String &p_file, int p_alignment = 0, const String &p_key = String(), bool p_encrypt_directory = false);
-	Error add_file(const String &p_file, const String &p_src, bool p_encrypt = false);
+	Error pck_start(const String &p_file, int p_alignment = 0);
+	Error add_file(const String &p_file, const String &p_src);
 	Error flush(bool p_verbose = false);
 
-	PCKPacker() {}
+	PCKPacker();
 	~PCKPacker();
 };
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,9 +31,11 @@
 #ifndef IOS_H
 #define IOS_H
 
-#include "core/object/class_db.h"
+#include "core/object.h"
+
 
 class iOS : public Object {
+
 	GDCLASS(iOS, Object);
 
 	static void _bind_methods();
@@ -43,7 +45,10 @@ public:
 
 	String get_model() const;
 	String get_rate_url(int p_app_id) const;
+	String get_app_version();
 
+	void share_data(const String &title, const String &subject, const String &text);
+	int get_interface_orientation() const;
 	iOS();
 };
 

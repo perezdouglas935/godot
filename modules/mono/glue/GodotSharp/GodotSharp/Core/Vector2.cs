@@ -194,16 +194,15 @@ namespace Godot
         /// <param name="b">The destination vector.</param>
         /// <param name="preA">A vector before this vector.</param>
         /// <param name="postB">A vector after `b`.</param>
-        /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
+        /// <param name="t">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The interpolated vector.</returns>
-        public Vector2 CubicInterpolate(Vector2 b, Vector2 preA, Vector2 postB, real_t weight)
+        public Vector2 CubicInterpolate(Vector2 b, Vector2 preA, Vector2 postB, real_t t)
         {
             Vector2 p0 = preA;
             Vector2 p1 = this;
             Vector2 p2 = b;
             Vector2 p3 = postB;
 
-            real_t t = weight;
             real_t t2 = t * t;
             real_t t3 = t2 * t;
 
@@ -309,7 +308,7 @@ namespace Godot
         /// <param name="to">The destination vector for interpolation.</param>
         /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting vector of the interpolation.</returns>
-        public Vector2 Lerp(Vector2 to, real_t weight)
+        public Vector2 LinearInterpolate(Vector2 to, real_t weight)
         {
             return new Vector2
             (
@@ -325,7 +324,7 @@ namespace Godot
         /// <param name="to">The destination vector for interpolation.</param>
         /// <param name="weight">A vector with components on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting vector of the interpolation.</returns>
-        public Vector2 Lerp(Vector2 to, Vector2 weight)
+        public Vector2 LinearInterpolate(Vector2 to, Vector2 weight)
         {
             return new Vector2
             (
@@ -380,6 +379,16 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns a perpendicular vector rotated 90 degrees counter-clockwise
+        /// compared to the original, with the same length.
+        /// </summary>
+        /// <returns>The perpendicular vector.</returns>
+        public Vector2 Perpendicular()
+        {
+            return new Vector2(y, -x);
+        }
+
+        /// <summary>
         /// Returns a vector composed of the <see cref="Mathf.PosMod(real_t, real_t)"/> of this vector's components and `mod`.
         /// </summary>
         /// <param name="mod">A value representing the divisor of the operation.</param>
@@ -406,7 +415,7 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns this vector projected onto another vector `b`.
+        /// Returns this vector projected onto another vector.
         /// </summary>
         /// <param name="onNormal">The vector to project onto.</param>
         /// <returns>The projected vector.</returns>
@@ -438,11 +447,8 @@ namespace Godot
         /// <returns>The rotated vector.</returns>
         public Vector2 Rotated(real_t phi)
         {
-            real_t sine = Mathf.Sin(phi);
-            real_t cosi = Mathf.Cos(phi);
-            return new Vector2(
-                x * cosi - y * sine,
-                x * sine + y * cosi);
+            real_t rads = Angle() + phi;
+            return new Vector2(Mathf.Cos(rads), Mathf.Sin(rads)) * Length();
         }
 
         /// <summary>
@@ -453,6 +459,19 @@ namespace Godot
         public Vector2 Round()
         {
             return new Vector2(Mathf.Round(x), Mathf.Round(y));
+        }
+
+        [Obsolete("Set is deprecated. Use the Vector2(" + nameof(real_t) + ", " + nameof(real_t) + ") constructor instead.", error: true)]
+        public void Set(real_t x, real_t y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+        [Obsolete("Set is deprecated. Use the Vector2(" + nameof(Vector2) + ") constructor instead.", error: true)]
+        public void Set(Vector2 v)
+        {
+            x = v.x;
+            y = v.y;
         }
 
         /// <summary>
@@ -511,15 +530,16 @@ namespace Godot
         /// <returns>The snapped vector.</returns>
         public Vector2 Snapped(Vector2 step)
         {
-            return new Vector2(Mathf.Snapped(x, step.x), Mathf.Snapped(y, step.y));
+            return new Vector2(Mathf.Stepify(x, step.x), Mathf.Stepify(y, step.y));
         }
 
         /// <summary>
         /// Returns a perpendicular vector rotated 90 degrees counter-clockwise
         /// compared to the original, with the same length.
+        /// Deprecated, will be replaced by <see cref="Perpendicular"/> in 4.0.
         /// </summary>
         /// <returns>The perpendicular vector.</returns>
-        public Vector2 Perpendicular()
+        public Vector2 Tangent()
         {
             return new Vector2(y, -x);
         }
@@ -527,6 +547,7 @@ namespace Godot
         // Constants
         private static readonly Vector2 _zero = new Vector2(0, 0);
         private static readonly Vector2 _one = new Vector2(1, 1);
+        private static readonly Vector2 _negOne = new Vector2(-1, -1);
         private static readonly Vector2 _inf = new Vector2(Mathf.Inf, Mathf.Inf);
 
         private static readonly Vector2 _up = new Vector2(0, -1);
@@ -539,6 +560,11 @@ namespace Godot
         /// </summary>
         /// <value>Equivalent to `new Vector2(0, 0)`</value>
         public static Vector2 Zero { get { return _zero; } }
+        /// <summary>
+        /// Deprecated, please use a negative sign with <see cref="One"/> instead.
+        /// </summary>
+        /// <value>Equivalent to `new Vector2(-1, -1)`</value>
+        public static Vector2 NegOne { get { return _negOne; } }
         /// <summary>
         /// One vector, a vector with all components set to `1`.
         /// </summary>
@@ -674,37 +700,41 @@ namespace Godot
 
         public static bool operator <(Vector2 left, Vector2 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
                 return left.y < right.y;
             }
+
             return left.x < right.x;
         }
 
         public static bool operator >(Vector2 left, Vector2 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
                 return left.y > right.y;
             }
+
             return left.x > right.x;
         }
 
         public static bool operator <=(Vector2 left, Vector2 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
                 return left.y <= right.y;
             }
+
             return left.x <= right.x;
         }
 
         public static bool operator >=(Vector2 left, Vector2 right)
         {
-            if (left.x == right.x)
+            if (Mathf.IsEqualApprox(left.x, right.x))
             {
                 return left.y >= right.y;
             }
+
             return left.x >= right.x;
         }
 
@@ -714,6 +744,7 @@ namespace Godot
             {
                 return Equals((Vector2)obj);
             }
+
             return false;
         }
 

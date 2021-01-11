@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,9 +39,9 @@
 
 #ifndef SAFE_RELEASE // when Windows Media Device M? is not present
 #define SAFE_RELEASE(x) \
-	if (x != nullptr) { \
+	if (x != NULL) {    \
 		x->Release();   \
-		x = nullptr;    \
+		x = NULL;       \
 	}
 #endif
 
@@ -52,7 +52,7 @@
 class JoypadWindows {
 public:
 	JoypadWindows();
-	JoypadWindows(HWND *hwnd);
+	JoypadWindows(InputDefault *_input, HWND *hwnd);
 	~JoypadWindows();
 
 	void probe_joypads();
@@ -70,6 +70,7 @@ private:
 	};
 
 	struct dinput_gamepad {
+
 		int id;
 		bool attached;
 		bool confirmed;
@@ -77,7 +78,7 @@ private:
 		DWORD last_pad;
 
 		LPDIRECTINPUTDEVICE8 di_joy;
-		List<LONG> joy_axis;
+		List<DWORD> joy_axis;
 		GUID guid;
 
 		dinput_gamepad() {
@@ -92,13 +93,22 @@ private:
 	};
 
 	struct xinput_gamepad {
-		int id = 0;
-		bool attached = false;
-		bool vibrating = false;
-		DWORD last_packet = 0;
+
+		int id;
+		bool attached;
+		bool vibrating;
+		DWORD last_packet;
 		XINPUT_STATE state;
-		uint64_t ff_timestamp = 0;
-		uint64_t ff_end_timestamp = 0;
+		uint64_t ff_timestamp;
+		uint64_t ff_end_timestamp;
+
+		xinput_gamepad() {
+			attached = false;
+			vibrating = false;
+			ff_timestamp = 0;
+			ff_end_timestamp = 0;
+			last_packet = 0;
+		}
 	};
 
 	typedef DWORD(WINAPI *XInputGetState_t)(DWORD dwUserIndex, XINPUT_STATE *pState);
@@ -107,7 +117,7 @@ private:
 	HWND *hWnd;
 	HANDLE xinput_dll;
 	LPDIRECTINPUT8 dinput;
-	Input *input;
+	InputDefault *input;
 
 	int id_to_change;
 	int slider_count;
@@ -132,7 +142,7 @@ private:
 	void joypad_vibration_start_xinput(int p_device, float p_weak_magnitude, float p_strong_magnitude, float p_duration, uint64_t p_timestamp);
 	void joypad_vibration_stop_xinput(int p_device, uint64_t p_timestamp);
 
-	Input::JoyAxis axis_correct(int p_val, bool p_xinput = false, bool p_trigger = false, bool p_negate = false) const;
+	InputDefault::JoyAxis axis_correct(int p_val, bool p_xinput = false, bool p_trigger = false, bool p_negate = false) const;
 	XInputGetState_t xinput_get_state;
 	XInputSetState_t xinput_set_state;
 };

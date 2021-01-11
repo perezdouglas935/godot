@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,11 +42,10 @@ import javax.microedition.khronos.egl.EGLDisplay;
  * Used to select the egl config for pancake games.
  */
 public class RegularConfigChooser implements GLSurfaceView.EGLConfigChooser {
+
 	private static final String TAG = RegularConfigChooser.class.getSimpleName();
 
 	private int[] mValue = new int[1];
-
-	// FIXME: Add support for Vulkan.
 
 	/* This EGL config specification is used to specify 2.0 rendering.
 	 * We use a minimum size of 4 bits for red/green/blue, but will
@@ -62,6 +61,15 @@ public class RegularConfigChooser implements GLSurfaceView.EGLConfigChooser {
 		EGL10.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL10.EGL_NONE
 	};
+	private static int[] s_configAttribs3 = {
+		EGL10.EGL_RED_SIZE, 4,
+		EGL10.EGL_GREEN_SIZE, 4,
+		EGL10.EGL_BLUE_SIZE, 4,
+		// EGL10.EGL_DEPTH_SIZE,     16,
+		//  EGL10.EGL_STENCIL_SIZE,   EGL10.EGL_DONT_CARE,
+		EGL10.EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, //apparently there is no EGL_OPENGL_ES3_BIT
+		EGL10.EGL_NONE
+	};
 
 	public RegularConfigChooser(int r, int g, int b, int a, int depth, int stencil) {
 		mRedSize = r;
@@ -73,10 +81,11 @@ public class RegularConfigChooser implements GLSurfaceView.EGLConfigChooser {
 	}
 
 	public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
+
 		/* Get the number of minimally matching EGL configurations
 		 */
 		int[] num_config = new int[1];
-		egl.eglChooseConfig(display, s_configAttribs2, null, 0, num_config);
+		egl.eglChooseConfig(display, GLUtils.use_gl3 ? s_configAttribs3 : s_configAttribs2, null, 0, num_config);
 
 		int numConfigs = num_config[0];
 
@@ -87,7 +96,7 @@ public class RegularConfigChooser implements GLSurfaceView.EGLConfigChooser {
 		/* Allocate then read the array of minimally matching EGL configs
 		 */
 		EGLConfig[] configs = new EGLConfig[numConfigs];
-		egl.eglChooseConfig(display, s_configAttribs2, configs, numConfigs, num_config);
+		egl.eglChooseConfig(display, GLUtils.use_gl3 ? s_configAttribs3 : s_configAttribs2, configs, numConfigs, num_config);
 
 		if (GLUtils.DEBUG) {
 			GLUtils.printConfigs(egl, display, configs);
@@ -127,6 +136,7 @@ public class RegularConfigChooser implements GLSurfaceView.EGLConfigChooser {
 
 	private int findConfigAttrib(EGL10 egl, EGLDisplay display,
 			EGLConfig config, int attribute, int defaultValue) {
+
 		if (egl.eglGetConfigAttrib(display, config, attribute, mValue)) {
 			return mValue[0];
 		}

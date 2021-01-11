@@ -21,8 +21,9 @@
 #define WINFNT_H_
 
 
-#include <freetype/ftwinfnt.h>
-#include <freetype/internal/ftdrv.h>
+#include <ft2build.h>
+#include FT_WINFONTS_H
+#include FT_INTERNAL_DRIVER_H
 
 
 FT_BEGIN_HEADER

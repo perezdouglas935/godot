@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-EnsureSConsVersion(3, 0, 0)
-EnsurePythonVersion(3, 5)
+EnsureSConsVersion(0, 98, 1)
 
 # System
 import glob
@@ -12,9 +11,10 @@ from collections import OrderedDict
 
 # Local
 import methods
-import glsl_builders
+import gles_builders
+from platform_methods import run_in_subprocess
 
-# Scan possible build platforms
+# scan possible build platforms
 
 platform_list = []  # list of platforms
 platform_opts = {}  # options for each platform
@@ -67,6 +67,7 @@ if "TERM" in os.environ:
 env_base.AppendENVPath("PATH", os.getenv("PATH"))
 env_base.AppendENVPath("PKG_CONFIG_PATH", os.getenv("PKG_CONFIG_PATH"))
 env_base.disabled_modules = []
+env_base.use_ptrcall = False
 env_base.module_version_string = ""
 env_base.msvc = False
 
@@ -76,14 +77,13 @@ env_base.__class__.add_module_version_string = methods.add_module_version_string
 
 env_base.__class__.add_source_files = methods.add_source_files
 env_base.__class__.use_windows_spawn_fix = methods.use_windows_spawn_fix
+env_base.__class__.split_lib = methods.split_lib
 
 env_base.__class__.add_shared_library = methods.add_shared_library
 env_base.__class__.add_library = methods.add_library
 env_base.__class__.add_program = methods.add_program
 env_base.__class__.CommandNoCache = methods.CommandNoCache
-env_base.__class__.Run = methods.Run
 env_base.__class__.disable_warnings = methods.disable_warnings
-env_base.__class__.module_check_dependencies = methods.module_check_dependencies
 
 env_base["x86_libtheora_opt_gcc"] = False
 env_base["x86_libtheora_opt_vc"] = False
@@ -111,13 +111,13 @@ opts.Add("p", "Platform (alias for 'platform')", "")
 opts.Add("platform", "Target platform (%s)" % ("|".join(platform_list),), "")
 opts.Add(EnumVariable("target", "Compilation target", "debug", ("debug", "release_debug", "release")))
 opts.Add(EnumVariable("optimize", "Optimization type", "speed", ("speed", "size")))
-
 opts.Add(BoolVariable("tools", "Build the tools (a.k.a. the Godot editor)", True))
-opts.Add(BoolVariable("tests", "Build the unit tests", False))
 opts.Add(BoolVariable("use_lto", "Use link-time optimization", False))
+opts.Add(BoolVariable("use_precise_math_checks", "Math checks use very precise epsilon (debug option)", False))
 
 # Components
 opts.Add(BoolVariable("deprecated", "Enable deprecated features", True))
+opts.Add(BoolVariable("gdscript", "Enable GDScript support", True))
 opts.Add(BoolVariable("minizip", "Enable ZIP archive support using minizip", True))
 opts.Add(BoolVariable("xaudio2", "Enable the XAudio2 audio driver", False))
 opts.Add("custom_modules", "A list of comma-separated directory paths containing custom modules to build.", "")
@@ -130,21 +130,25 @@ opts.Add(BoolVariable("werror", "Treat compiler warnings as errors", False))
 opts.Add(BoolVariable("dev", "If yes, alias for verbose=yes warnings=extra werror=yes", False))
 opts.Add("extra_suffix", "Custom extra suffix added to the base filename of all generated binary files", "")
 opts.Add(BoolVariable("vsproj", "Generate a Visual Studio solution", False))
+opts.Add(EnumVariable("macports_clang", "Build using Clang from MacPorts", "no", ("no", "5.0", "devel")))
+opts.Add(
+    BoolVariable(
+        "split_libmodules",
+        "Split intermediate libmodules.a in smaller chunks to prevent exceeding linker command line size (forced to True when using MinGW)",
+        False,
+    )
+)
 opts.Add(BoolVariable("disable_3d", "Disable 3D nodes for a smaller executable", False))
 opts.Add(BoolVariable("disable_advanced_gui", "Disable advanced GUI nodes and behaviors", False))
 opts.Add(BoolVariable("no_editor_splash", "Don't use the custom splash screen for the editor", False))
 opts.Add("system_certs_path", "Use this path as SSL certificates default for editor (for package maintainers)", "")
-opts.Add(BoolVariable("use_precise_math_checks", "Math checks use very precise epsilon (debug option)", False))
 
 # Thirdparty libraries
+# opts.Add(BoolVariable('builtin_assimp', "Use the built-in Assimp library", True))
 opts.Add(BoolVariable("builtin_bullet", "Use the built-in Bullet library", True))
 opts.Add(BoolVariable("builtin_certs", "Use the built-in SSL certificates bundles", True))
 opts.Add(BoolVariable("builtin_enet", "Use the built-in ENet library", True))
 opts.Add(BoolVariable("builtin_freetype", "Use the built-in FreeType library", True))
-opts.Add(BoolVariable("builtin_glslang", "Use the built-in glslang library", True))
-opts.Add(BoolVariable("builtin_graphite", "Use the built-in Graphite library", True))
-opts.Add(BoolVariable("builtin_harfbuzz", "Use the built-in HarfBuzz library", True))
-opts.Add(BoolVariable("builtin_icu", "Use the built-in ICU library", True))
 opts.Add(BoolVariable("builtin_libogg", "Use the built-in libogg library", True))
 opts.Add(BoolVariable("builtin_libpng", "Use the built-in libpng library", True))
 opts.Add(BoolVariable("builtin_libtheora", "Use the built-in libtheora library", True))
@@ -158,9 +162,7 @@ opts.Add(BoolVariable("builtin_opus", "Use the built-in Opus library", True))
 opts.Add(BoolVariable("builtin_pcre2", "Use the built-in PCRE2 library", True))
 opts.Add(BoolVariable("builtin_pcre2_with_jit", "Use JIT compiler for the built-in PCRE2 library", True))
 opts.Add(BoolVariable("builtin_recast", "Use the built-in Recast library", True))
-opts.Add(BoolVariable("builtin_rvo2", "Use the built-in RVO2 library", True))
 opts.Add(BoolVariable("builtin_squish", "Use the built-in squish library", True))
-opts.Add(BoolVariable("builtin_vulkan", "Use the built-in Vulkan loader library and headers", True))
 opts.Add(BoolVariable("builtin_xatlas", "Use the built-in xatlas library", True))
 opts.Add(BoolVariable("builtin_zlib", "Use the built-in zlib library", True))
 opts.Add(BoolVariable("builtin_zstd", "Use the built-in Zstd library", True))
@@ -174,54 +176,16 @@ opts.Add("CFLAGS", "Custom flags for the C compiler")
 opts.Add("CXXFLAGS", "Custom flags for the C++ compiler")
 opts.Add("LINKFLAGS", "Custom flags for the linker")
 
-# Update the environment to have all above options defined
-# in following code (especially platform and custom_modules).
+# add platform specific options
+
+for k in platform_opts.keys():
+    opt_list = platform_opts[k]
+    for o in opt_list:
+        opts.Add(o)
+
+# Update the environment now as the "custom_modules" option may be
+# defined in a file rather than specified via the command line.
 opts.Update(env_base)
-
-# Platform selection: validate input, and add options.
-
-selected_platform = ""
-
-if env_base["platform"] != "":
-    selected_platform = env_base["platform"]
-elif env_base["p"] != "":
-    selected_platform = env_base["p"]
-else:
-    # Missing `platform` argument, try to detect platform automatically
-    if sys.platform.startswith("linux"):
-        selected_platform = "linuxbsd"
-    elif sys.platform == "darwin":
-        selected_platform = "osx"
-    elif sys.platform == "win32":
-        selected_platform = "windows"
-    else:
-        print("Could not detect platform automatically. Supported platforms:")
-        for x in platform_list:
-            print("\t" + x)
-        print("\nPlease run SCons again and select a valid platform: platform=<string>")
-
-    if selected_platform != "":
-        print("Automatically detected platform: " + selected_platform)
-
-if selected_platform in ["linux", "bsd", "x11"]:
-    if selected_platform == "x11":
-        # Deprecated alias kept for compatibility.
-        print('Platform "x11" has been renamed to "linuxbsd" in Godot 4.0. Building for platform "linuxbsd".')
-    # Alias for convenience.
-    selected_platform = "linuxbsd"
-
-# Make sure to update this to the found, valid platform as it's used through the buildsystem as the reference.
-# It should always be re-set after calling `opts.Update()` otherwise it uses the original input value.
-env_base["platform"] = selected_platform
-
-# Add platform-specific options.
-if selected_platform in platform_opts:
-    for opt in platform_opts[selected_platform]:
-        opts.Add(opt)
-
-# Update the environment to take platform-specific options into account.
-opts.Update(env_base)
-env_base["platform"] = selected_platform  # Must always be re-set after calling opts.Update().
 
 # Detect modules.
 modules_detected = OrderedDict()
@@ -234,7 +198,7 @@ if env_base["custom_modules"]:
             module_search_paths.append(methods.convert_custom_modules_path(p))
         except ValueError as e:
             print(e)
-            Exit(255)
+            sys.exit(255)
 
 for path in module_search_paths:
     # Note: custom modules can override built-in ones.
@@ -243,7 +207,7 @@ for path in module_search_paths:
     if include_path:
         env_base.Prepend(CPPPATH=[include_path])
 
-# Add module options.
+# Add module options
 for name, path in modules_detected.items():
     enabled = True
     sys.path.insert(0, path)
@@ -261,7 +225,6 @@ methods.write_modules(modules_detected)
 
 # Update the environment again after all the module options are added.
 opts.Update(env_base)
-env_base["platform"] = selected_platform  # Must always be re-set after calling opts.Update().
 Help(opts.GenerateHelpText(env_base))
 
 # add default include paths
@@ -288,15 +251,46 @@ if env_base["target"] == "debug":
     # http://scons.org/doc/production/HTML/scons-user/ch06s04.html
     env_base.SetOption("implicit_cache", 1)
 
-if not env_base["tools"]:
-    # Export templates can't run unit test tool.
-    env_base["tests"] = False
-
 if env_base["no_editor_splash"]:
     env_base.Append(CPPDEFINES=["NO_EDITOR_SPLASH"])
 
 if not env_base["deprecated"]:
     env_base.Append(CPPDEFINES=["DISABLE_DEPRECATED"])
+
+env_base.platforms = {}
+
+selected_platform = ""
+
+if env_base["platform"] != "":
+    selected_platform = env_base["platform"]
+elif env_base["p"] != "":
+    selected_platform = env_base["p"]
+    env_base["platform"] = selected_platform
+else:
+    # Missing `platform` argument, try to detect platform automatically
+    if sys.platform.startswith("linux"):
+        selected_platform = "x11"
+    elif sys.platform == "darwin":
+        selected_platform = "osx"
+    elif sys.platform == "win32":
+        selected_platform = "windows"
+    else:
+        print("Could not detect platform automatically. Supported platforms:")
+        for x in platform_list:
+            print("\t" + x)
+        print("\nPlease run SCons again and select a valid platform: platform=<string>")
+
+    if selected_platform != "":
+        print("Automatically detected platform: " + selected_platform)
+        env_base["platform"] = selected_platform
+
+if selected_platform in ["linux", "bsd", "linuxbsd"]:
+    if selected_platform == "linuxbsd":
+        # Alias for forward compatibility.
+        print('Platform "linuxbsd" is still called "x11" in Godot 3.2.x. Building for platform "x11".')
+    # Alias for convenience.
+    selected_platform = "x11"
+    env_base["platform"] = selected_platform
 
 if selected_platform in platform_list:
     tmppath = "./platform/" + selected_platform
@@ -321,8 +315,31 @@ if selected_platform in platform_list:
         env["verbose"] = True
         env["warnings"] = "extra"
         env["werror"] = True
-        if env["tools"]:
-            env["tests"] = True
+
+    if env["vsproj"]:
+        env.vs_incs = []
+        env.vs_srcs = []
+
+        def AddToVSProject(sources):
+            for x in sources:
+                if type(x) == type(""):
+                    fname = env.File(x).path
+                else:
+                    fname = env.File(x)[0].path
+                pieces = fname.split(".")
+                if len(pieces) > 0:
+                    basename = pieces[0]
+                    basename = basename.replace("\\\\", "/")
+                    if os.path.isfile(basename + ".h"):
+                        env.vs_incs = env.vs_incs + [basename + ".h"]
+                    elif os.path.isfile(basename + ".hpp"):
+                        env.vs_incs = env.vs_incs + [basename + ".hpp"]
+                    if os.path.isfile(basename + ".c"):
+                        env.vs_srcs = env.vs_srcs + [basename + ".c"]
+                    elif os.path.isfile(basename + ".cpp"):
+                        env.vs_srcs = env.vs_srcs + [basename + ".cpp"]
+
+        env.AddToVSProject = AddToVSProject
 
     env.extra_suffix = ""
 
@@ -356,69 +373,21 @@ if selected_platform in platform_list:
     detect.configure(env)
 
     # Set our C and C++ standard requirements.
-    # C++17 is required as we need guaranteed copy elision as per GH-36436.
-    # Prepending to make it possible to override.
+    # Prepending to make it possible to override
     # This needs to come after `configure`, otherwise we don't have env.msvc.
     if not env.msvc:
         # Specifying GNU extensions support explicitly, which are supported by
-        # both GCC and Clang. Both currently default to gnu11 and gnu++14.
+        # both GCC and Clang. This mirrors GCC and Clang's current default
+        # compile flags if no -std is specified.
         env.Prepend(CFLAGS=["-std=gnu11"])
-        env.Prepend(CXXFLAGS=["-std=gnu++17"])
+        env.Prepend(CXXFLAGS=["-std=gnu++14"])
     else:
         # MSVC doesn't have clear C standard support, /std only covers C++.
         # We apply it to CCFLAGS (both C and C++ code) in case it impacts C features.
-        env.Prepend(CCFLAGS=["/std:c++17"])
-
-    # Enforce our minimal compiler version requirements
-    cc_version = methods.get_compiler_version(env) or [-1, -1]
-    cc_version_major = cc_version[0]
-    cc_version_minor = cc_version[1]
-
-    if methods.using_gcc(env):
-        # GCC 8 before 8.4 has a regression in the support of guaranteed copy elision
-        # which causes a build failure: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86521
-        if cc_version_major == 8 and cc_version_minor < 4:
-            print(
-                "Detected GCC 8 version < 8.4, which is not supported due to a "
-                "regression in its C++17 guaranteed copy elision support. Use a "
-                'newer GCC version, or Clang 6 or later by passing "use_llvm=yes" '
-                "to the SCons command line."
-            )
-            Exit(255)
-        elif cc_version_major < 7:
-            print(
-                "Detected GCC version older than 7, which does not fully support "
-                "C++17. Supported versions are GCC 7, 9 and later. Use a newer GCC "
-                'version, or Clang 6 or later by passing "use_llvm=yes" to the '
-                "SCons command line."
-            )
-            Exit(255)
-    elif methods.using_clang(env):
-        # Apple LLVM versions differ from upstream LLVM version \o/, compare
-        # in https://en.wikipedia.org/wiki/Xcode#Toolchain_versions
-        if env["platform"] == "osx" or env["platform"] == "iphone":
-            vanilla = methods.is_vanilla_clang(env)
-            if vanilla and cc_version_major < 6:
-                print(
-                    "Detected Clang version older than 6, which does not fully support "
-                    "C++17. Supported versions are Clang 6 and later."
-                )
-                Exit(255)
-            elif not vanilla and cc_version_major < 10:
-                print(
-                    "Detected Apple Clang version older than 10, which does not fully "
-                    "support C++17. Supported versions are Apple Clang 10 and later."
-                )
-                Exit(255)
-        elif cc_version_major < 6:
-            print(
-                "Detected Clang version older than 6, which does not fully support "
-                "C++17. Supported versions are Clang 6 and later."
-            )
-            Exit(255)
+        env.Prepend(CCFLAGS=["/std:c++14"])
 
     # Configure compiler warnings
-    if env.msvc:  # MSVC
+    if env.msvc:
         # Truncations, narrowing conversions, signed/unsigned comparisons...
         disable_nonessential_warnings = ["/wd4267", "/wd4244", "/wd4305", "/wd4018", "/wd4800"]
         if env["warnings"] == "extra":
@@ -431,17 +400,25 @@ if selected_platform in platform_list:
             env.Append(CCFLAGS=["/w"])
         # Set exception handling model to avoid warnings caused by Windows system headers.
         env.Append(CCFLAGS=["/EHsc"])
-
         if env["werror"]:
             env.Append(CCFLAGS=["/WX"])
-    else:  # GCC, Clang
-        gcc_common_warnings = []
+        # Force to use Unicode encoding
+        env.Append(MSVC_FLAGS=["/utf8"])
+    else:  # Rest of the world
+        version = methods.get_compiler_version(env) or [-1, -1]
+
+        shadow_local_warning = []
+        all_plus_warnings = ["-Wwrite-strings"]
 
         if methods.using_gcc(env):
-            gcc_common_warnings += ["-Wshadow-local", "-Wno-misleading-indentation"]
+            env.Append(CCFLAGS=["-Wno-misleading-indentation"])
+            if version[0] >= 7:
+                shadow_local_warning = ["-Wshadow-local"]
 
         if env["warnings"] == "extra":
-            env.Append(CCFLAGS=["-Wall", "-Wextra", "-Wwrite-strings", "-Wno-unused-parameter"] + gcc_common_warnings)
+            # Note: enable -Wimplicit-fallthrough for Clang (already part of -Wextra for GCC)
+            # once we switch to C++11 or later (necessary for our FALLTHROUGH macro).
+            env.Append(CCFLAGS=["-Wall", "-Wextra", "-Wno-unused-parameter"] + all_plus_warnings + shadow_local_warning)
             env.Append(CXXFLAGS=["-Wctor-dtor-privacy", "-Wnon-virtual-dtor"])
             if methods.using_gcc(env):
                 env.Append(
@@ -453,28 +430,17 @@ if selected_platform in platform_list:
                         "-Wlogical-op",
                     ]
                 )
-                # -Wnoexcept was removed temporarily due to GH-36325.
-                env.Append(CXXFLAGS=["-Wplacement-new=1"])
-                if cc_version_major >= 9:
+                env.Append(CXXFLAGS=["-Wnoexcept", "-Wplacement-new=1"])
+                if version[0] >= 9:
                     env.Append(CCFLAGS=["-Wattribute-alias=2"])
-            elif methods.using_clang(env):
-                env.Append(CCFLAGS=["-Wimplicit-fallthrough"])
         elif env["warnings"] == "all":
-            env.Append(CCFLAGS=["-Wall"] + gcc_common_warnings)
+            env.Append(CCFLAGS=["-Wall"] + shadow_local_warning)
         elif env["warnings"] == "moderate":
-            env.Append(CCFLAGS=["-Wall", "-Wno-unused"] + gcc_common_warnings)
+            env.Append(CCFLAGS=["-Wall", "-Wno-unused"] + shadow_local_warning)
         else:  # 'no'
             env.Append(CCFLAGS=["-w"])
-
         if env["werror"]:
             env.Append(CCFLAGS=["-Werror"])
-            # FIXME: Temporary workaround after the Vulkan merge, remove once warnings are fixed.
-            if methods.using_gcc(env):
-                env.Append(CXXFLAGS=["-Wno-error=cpp"])
-                if cc_version_major == 7:  # Bogus warning fixed in 8+.
-                    env.Append(CCFLAGS=["-Wno-error=strict-overflow"])
-            else:
-                env.Append(CXXFLAGS=["-Wno-error=#warnings"])
         else:  # always enable those errors
             env.Append(CCFLAGS=["-Werror=return-type"])
 
@@ -486,7 +452,7 @@ if selected_platform in platform_list:
     if env["target"] == "release":
         if env["tools"]:
             print("Tools can only be built with targets 'debug' and 'release_debug'.")
-            Exit(255)
+            sys.exit(255)
         suffix += ".opt"
         env.Append(CPPDEFINES=["NDEBUG"])
 
@@ -524,7 +490,19 @@ if selected_platform in platform_list:
         env.current_module = name
         import config
 
-        if config.can_build(env, selected_platform):
+        # can_build changed number of arguments between 3.0 (1) and 3.1 (2),
+        # so try both to preserve compatibility for 3.0 modules
+        can_build = False
+        try:
+            can_build = config.can_build(env, selected_platform)
+        except TypeError:
+            print(
+                "Warning: module '%s' uses a deprecated `can_build` "
+                "signature in its config.py file, it should be "
+                "`can_build(env, platform)`." % x
+            )
+            can_build = config.can_build(selected_platform)
+        if can_build:
             config.configure(env)
             # Get doc classes paths (if present)
             try:
@@ -532,13 +510,13 @@ if selected_platform in platform_list:
                 doc_path = config.get_doc_path()
                 for c in doc_classes:
                     env.doc_class_path[c] = path + "/" + doc_path
-            except Exception:
+            except:
                 pass
             # Get icon paths (if present)
             try:
                 icons_path = config.get_icons_path()
                 env.module_icons_paths.append(path + "/" + icons_path)
-            except Exception:
+            except:
                 # Default path for module icons
                 env.module_icons_paths.append(path + "/" + "icons")
             modules_enabled[name] = path
@@ -565,6 +543,8 @@ if selected_platform in platform_list:
     env["LIBSUFFIX"] = suffix + env["LIBSUFFIX"]
     env["SHLIBSUFFIX"] = suffix + env["SHLIBSUFFIX"]
 
+    if env.use_ptrcall:
+        env.Append(CPPDEFINES=["PTRCALL_ENABLED"])
     if env["tools"]:
         env.Append(CPPDEFINES=["TOOLS_ENABLED"])
     if env["disable_3d"]:
@@ -573,60 +553,61 @@ if selected_platform in platform_list:
                 "Build option 'disable_3d=yes' cannot be used with 'tools=yes' (editor), "
                 "only with 'tools=no' (export template)."
             )
-            Exit(255)
+            sys.exit(255)
         else:
             env.Append(CPPDEFINES=["_3D_DISABLED"])
+    if env["gdscript"]:
+        env.Append(CPPDEFINES=["GDSCRIPT_ENABLED"])
     if env["disable_advanced_gui"]:
         if env["tools"]:
             print(
                 "Build option 'disable_advanced_gui=yes' cannot be used with 'tools=yes' (editor), "
                 "only with 'tools=no' (export template)."
             )
-            Exit(255)
+            sys.exit(255)
         else:
             env.Append(CPPDEFINES=["ADVANCED_GUI_DISABLED"])
     if env["minizip"]:
         env.Append(CPPDEFINES=["MINIZIP_ENABLED"])
 
     editor_module_list = ["regex"]
-    if env["tools"] and not env.module_check_dependencies("tools", editor_module_list):
-        print(
-            "Build option 'module_"
-            + x
-            + "_enabled=no' cannot be used with 'tools=yes' (editor), only with 'tools=no' (export template)."
-        )
-        Exit(255)
+    for x in editor_module_list:
+        if not env["module_" + x + "_enabled"]:
+            if env["tools"]:
+                print(
+                    "Build option 'module_" + x + "_enabled=no' cannot be used with 'tools=yes' (editor), "
+                    "only with 'tools=no' (export template)."
+                )
+                sys.exit(255)
 
     if not env["verbose"]:
         methods.no_verbose(sys, env)
 
-    if not env["platform"] == "server":
-        GLSL_BUILDERS = {
-            "RD_GLSL": env.Builder(
-                action=env.Run(glsl_builders.build_rd_headers, 'Building RD_GLSL header: "$TARGET"'),
-                suffix="glsl.gen.h",
-                src_suffix=".glsl",
-            ),
-            "GLSL_HEADER": env.Builder(
-                action=env.Run(glsl_builders.build_raw_headers, 'Building GLSL header: "$TARGET"'),
-                suffix="glsl.gen.h",
-                src_suffix=".glsl",
-            ),
-        }
-        env.Append(BUILDERS=GLSL_BUILDERS)
+    if not env["platform"] == "server":  # FIXME: detect GLES3
+        env.Append(
+            BUILDERS={
+                "GLES3_GLSL": env.Builder(
+                    action=run_in_subprocess(gles_builders.build_gles3_headers), suffix="glsl.gen.h", src_suffix=".glsl"
+                )
+            }
+        )
+        env.Append(
+            BUILDERS={
+                "GLES2_GLSL": env.Builder(
+                    action=run_in_subprocess(gles_builders.build_gles2_headers), suffix="glsl.gen.h", src_suffix=".glsl"
+                )
+            }
+        )
 
     scons_cache_path = os.environ.get("SCONS_CACHE")
     if scons_cache_path != None:
         CacheDir(scons_cache_path)
         print("Scons cache enabled... (path: '" + scons_cache_path + "')")
 
-    if env["vsproj"]:
-        env.vs_incs = []
-        env.vs_srcs = []
-
     Export("env")
 
-    # Build subdirs, the build order is dependent on link order.
+    # build subdirs, the build order is dependent on link order.
+
     SConscript("core/SCsub")
     SConscript("servers/SCsub")
     SConscript("scene/SCsub")
@@ -635,11 +616,9 @@ if selected_platform in platform_list:
 
     SConscript("platform/SCsub")
     SConscript("modules/SCsub")
-    if env["tests"]:
-        SConscript("tests/SCsub")
     SConscript("main/SCsub")
 
-    SConscript("platform/" + selected_platform + "/SCsub")  # Build selected platform.
+    SConscript("platform/" + selected_platform + "/SCsub")  # build selected platform
 
     # Microsoft Visual Studio Project Generation
     if env["vsproj"]:
@@ -668,9 +647,9 @@ elif selected_platform != "":
 
     if selected_platform == "list":
         # Exit early to suppress the rest of the built-in SCons messages
-        Exit()
+        sys.exit(0)
     else:
-        Exit(255)
+        sys.exit(255)
 
 # The following only makes sense when the 'env' is defined, and assumes it is.
 if "env" in locals():

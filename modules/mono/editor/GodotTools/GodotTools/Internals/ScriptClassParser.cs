@@ -13,13 +13,13 @@ namespace GodotTools.Internals
             public string Name { get; }
             public string Namespace { get; }
             public bool Nested { get; }
-            public long BaseCount { get; }
+            public int BaseCount { get; }
 
             public string SearchName => Nested ?
                 Name.Substring(Name.LastIndexOf(".", StringComparison.Ordinal) + 1) :
                 Name;
 
-            public ClassDecl(string name, string @namespace, bool nested, long baseCount)
+            public ClassDecl(string name, string @namespace, bool nested, int baseCount)
             {
                 Name = name;
                 Namespace = @namespace;
@@ -49,7 +49,7 @@ namespace GodotTools.Internals
                     (string)classDeclDict["name"],
                     (string)classDeclDict["namespace"],
                     (bool)classDeclDict["nested"],
-                    (long)classDeclDict["base_count"]
+                    (int)classDeclDict["base_count"]
                 ));
             }
 

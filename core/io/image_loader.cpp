@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,15 +30,16 @@
 
 #include "image_loader.h"
 
-#include "core/string/print_string.h"
+#include "core/print_string.h"
 
 bool ImageFormatLoader::recognize(const String &p_extension) const {
+
 	List<String> extensions;
 	get_recognized_extensions(&extensions);
 	for (List<String>::Element *E = extensions.front(); E; E = E->next()) {
-		if (E->get().nocasecmp_to(p_extension) == 0) {
+
+		if (E->get().nocasecmp_to(p_extension) == 0)
 			return true;
-		}
 	}
 
 	return false;
@@ -52,7 +53,7 @@ Error ImageLoader::load_image(String p_file, Ref<Image> p_image, FileAccess *p_c
 		Error err;
 		f = FileAccess::open(p_file, FileAccess::READ, &err);
 		if (!f) {
-			ERR_PRINT("Error opening file '" + p_file + "'.");
+			ERR_PRINTS("Error opening file '" + p_file + "'.");
 			return err;
 		}
 	}
@@ -60,61 +61,67 @@ Error ImageLoader::load_image(String p_file, Ref<Image> p_image, FileAccess *p_c
 	String extension = p_file.get_extension();
 
 	for (int i = 0; i < loader.size(); i++) {
-		if (!loader[i]->recognize(extension)) {
+
+		if (!loader[i]->recognize(extension))
 			continue;
-		}
 		Error err = loader[i]->load_image(p_image, f, p_force_linear, p_scale);
 		if (err != OK) {
-			ERR_PRINT("Error loading image: " + p_file);
+			ERR_PRINTS("Error loading image: " + p_file);
 		}
 
 		if (err != ERR_FILE_UNRECOGNIZED) {
-			if (!p_custom) {
+
+			if (!p_custom)
 				memdelete(f);
-			}
 
 			return err;
 		}
 	}
 
-	if (!p_custom) {
+	if (!p_custom)
 		memdelete(f);
-	}
 
 	return ERR_FILE_UNRECOGNIZED;
 }
 
 void ImageLoader::get_recognized_extensions(List<String> *p_extensions) {
+
 	for (int i = 0; i < loader.size(); i++) {
+
 		loader[i]->get_recognized_extensions(p_extensions);
 	}
 }
 
 ImageFormatLoader *ImageLoader::recognize(const String &p_extension) {
+
 	for (int i = 0; i < loader.size(); i++) {
-		if (loader[i]->recognize(p_extension)) {
+
+		if (loader[i]->recognize(p_extension))
 			return loader[i];
-		}
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 Vector<ImageFormatLoader *> ImageLoader::loader;
 
 void ImageLoader::add_image_format_loader(ImageFormatLoader *p_loader) {
+
 	loader.push_back(p_loader);
 }
 
 void ImageLoader::remove_image_format_loader(ImageFormatLoader *p_loader) {
+
 	loader.erase(p_loader);
 }
 
 const Vector<ImageFormatLoader *> &ImageLoader::get_image_format_loaders() {
+
 	return loader;
 }
 
 void ImageLoader::cleanup() {
+
 	while (loader.size()) {
 		remove_image_format_loader(loader[0]);
 	}
@@ -122,7 +129,8 @@ void ImageLoader::cleanup() {
 
 /////////////////
 
-RES ResourceFormatLoaderImage::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES ResourceFormatLoaderImage::load(const String &p_path, const String &p_original_path, Error *r_error) {
+
 	FileAccess *f = FileAccess::open(p_path, FileAccess::READ);
 	if (!f) {
 		if (r_error) {
@@ -184,13 +192,16 @@ RES ResourceFormatLoaderImage::load(const String &p_path, const String &p_origin
 }
 
 void ResourceFormatLoaderImage::get_recognized_extensions(List<String> *p_extensions) const {
+
 	p_extensions->push_back("image");
 }
 
 bool ResourceFormatLoaderImage::handles_type(const String &p_type) const {
+
 	return p_type == "Image";
 }
 
 String ResourceFormatLoaderImage::get_resource_type(const String &p_path) const {
+
 	return p_path.get_extension().to_lower() == "image" ? "Image" : String();
 }

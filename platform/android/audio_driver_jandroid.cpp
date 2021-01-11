@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,11 +30,11 @@
 
 #include "audio_driver_jandroid.h"
 
-#include "core/config/project_settings.h"
 #include "core/os/os.h"
+#include "core/project_settings.h"
 #include "thread_jandroid.h"
 
-AudioDriverAndroid *AudioDriverAndroid::s_ad = nullptr;
+AudioDriverAndroid *AudioDriverAndroid::s_ad = NULL;
 
 jobject AudioDriverAndroid::io;
 jmethodID AudioDriverAndroid::_init_audio;
@@ -46,16 +46,19 @@ jclass AudioDriverAndroid::cls;
 int AudioDriverAndroid::audioBufferFrames = 0;
 int AudioDriverAndroid::mix_rate = 44100;
 bool AudioDriverAndroid::quit = false;
-jobject AudioDriverAndroid::audioBuffer = nullptr;
-void *AudioDriverAndroid::audioBufferPinned = nullptr;
-Mutex AudioDriverAndroid::mutex;
-int32_t *AudioDriverAndroid::audioBuffer32 = nullptr;
+jobject AudioDriverAndroid::audioBuffer = NULL;
+void *AudioDriverAndroid::audioBufferPinned = NULL;
+Mutex *AudioDriverAndroid::mutex = NULL;
+int32_t *AudioDriverAndroid::audioBuffer32 = NULL;
 
 const char *AudioDriverAndroid::get_name() const {
+
 	return "Android";
 }
 
 Error AudioDriverAndroid::init() {
+
+	mutex = Mutex::create();
 	/*
 	// TODO: pass in/return a (Java) device ID, also whether we're opening for input or output
 	   this->spec.samples = Android_JNI_OpenAudioDevice(this->spec.freq, this->spec.format == AUDIO_U8 ? 0 : 1, this->spec.channels, this->spec.samples);
@@ -81,7 +84,7 @@ Error AudioDriverAndroid::init() {
 
 	audioBuffer = env->CallObjectMethod(io, _init_audio, mix_rate, buffer_size);
 
-	ERR_FAIL_COND_V(audioBuffer == nullptr, ERR_INVALID_PARAMETER);
+	ERR_FAIL_COND_V(audioBuffer == NULL, ERR_INVALID_PARAMETER);
 
 	audioBuffer = env->NewGlobalRef(audioBuffer);
 
@@ -98,6 +101,7 @@ void AudioDriverAndroid::start() {
 }
 
 void AudioDriverAndroid::setup(jobject p_io) {
+
 	JNIEnv *env = ThreadAndroid::get_env();
 	io = p_io;
 
@@ -111,8 +115,10 @@ void AudioDriverAndroid::setup(jobject p_io) {
 }
 
 void AudioDriverAndroid::thread_func(JNIEnv *env) {
+
 	jclass cls = env->FindClass("org/godotengine/godot/Godot");
 	if (cls) {
+
 		cls = (jclass)env->NewGlobalRef(cls);
 	}
 	jfieldID fid = env->GetStaticFieldID(cls, "io", "Lorg/godotengine/godot/GodotIO;");
@@ -123,20 +129,24 @@ void AudioDriverAndroid::thread_func(JNIEnv *env) {
 	_write_buffer = env->GetMethodID(lcls, "audioWriteShortBuffer", "([S)V");
 
 	while (!quit) {
+
 		int16_t *ptr = (int16_t *)audioBufferPinned;
 		int fc = audioBufferFrames;
 
-		if (!s_ad->active || mutex.try_lock() != OK) {
+		if (!s_ad->active || mutex->try_lock() != OK) {
+
 			for (int i = 0; i < fc; i++) {
 				ptr[i] = 0;
 			}
 
 		} else {
+
 			s_ad->audio_server_process(fc / 2, audioBuffer32);
 
-			mutex.unlock();
+			mutex->unlock();
 
 			for (int i = 0; i < fc; i++) {
+
 				ptr[i] = audioBuffer32[i] >> 16;
 			}
 		}
@@ -146,40 +156,49 @@ void AudioDriverAndroid::thread_func(JNIEnv *env) {
 }
 
 int AudioDriverAndroid::get_mix_rate() const {
+
 	return mix_rate;
 }
 
 AudioDriver::SpeakerMode AudioDriverAndroid::get_speaker_mode() const {
+
 	return SPEAKER_MODE_STEREO;
 }
 
 void AudioDriverAndroid::lock() {
-	mutex.lock();
+
+	if (mutex)
+		mutex->lock();
 }
 
 void AudioDriverAndroid::unlock() {
-	mutex.unlock();
+
+	if (mutex)
+		mutex->unlock();
 }
 
 void AudioDriverAndroid::finish() {
+
 	JNIEnv *env = ThreadAndroid::get_env();
 	env->CallVoidMethod(io, _quit);
 
 	if (audioBuffer) {
 		env->DeleteGlobalRef(audioBuffer);
-		audioBuffer = nullptr;
-		audioBufferPinned = nullptr;
+		audioBuffer = NULL;
+		audioBufferPinned = NULL;
 	}
 
 	active = false;
 }
 
 void AudioDriverAndroid::set_pause(bool p_pause) {
+
 	JNIEnv *env = ThreadAndroid::get_env();
 	env->CallVoidMethod(io, _pause, p_pause);
 }
 
 AudioDriverAndroid::AudioDriverAndroid() {
+
 	s_ad = this;
 	active = false;
 }

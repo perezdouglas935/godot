@@ -107,13 +107,8 @@ libvpx_sources_intrin_x86_sse2 = [
     "vpx_dsp/x86/inv_txfm_sse2.c",
     "vpx_dsp/x86/loopfilter_sse2.c",
 ]
-libvpx_sources_intrin_x86_ssse3 = [
-    "vpx_dsp/x86/vpx_subpixel_8t_intrin_ssse3.c",
-]
-libvpx_sources_intrin_x86_avx2 = [
-    "vpx_dsp/x86/loopfilter_avx2.c",
-    "vpx_dsp/x86/vpx_subpixel_8t_intrin_avx2.c",
-]
+libvpx_sources_intrin_x86_ssse3 = ["vpx_dsp/x86/vpx_subpixel_8t_intrin_ssse3.c"]
+libvpx_sources_intrin_x86_avx2 = ["vpx_dsp/x86/loopfilter_avx2.c", "vpx_dsp/x86/vpx_subpixel_8t_intrin_avx2.c"]
 libvpx_sources_x86asm = [
     "vp8/common/x86/copy_sse2.asm",
     "vp8/common/x86/copy_sse3.asm",
@@ -139,10 +134,7 @@ libvpx_sources_x86asm = [
     "vpx_dsp/x86/vpx_subpixel_bilinear_ssse3.asm",
     "vpx_ports/emms.asm",
 ]
-libvpx_sources_x86_64asm = [
-    "vp8/common/x86/loopfilter_block_sse2_x86_64.asm",
-    "vpx_dsp/x86/inv_txfm_ssse3_x86_64.asm",
-]
+libvpx_sources_x86_64asm = ["vp8/common/x86/loopfilter_block_sse2_x86_64.asm", "vpx_dsp/x86/inv_txfm_ssse3_x86_64.asm"]
 
 libvpx_sources_arm = [
     "vpx_ports/arm_cpudetect.c",
@@ -235,7 +227,7 @@ if env["platform"] == "uwp":
 else:
     import platform
 
-    is_x11_or_server_arm = (env["platform"] == "linuxbsd" or env["platform"] == "server") and (
+    is_x11_or_server_arm = (env["platform"] == "x11" or env["platform"] == "server") and (
         platform.machine().startswith("arm") or platform.machine().startswith("aarch")
     )
     is_macos_x86 = env["platform"] == "osx" and ("arch" in env and (env["arch"] != "arm64"))
@@ -248,7 +240,7 @@ else:
         and (cpu_bits == "32" or cpu_bits == "64")
         and (
             env["platform"] == "windows"
-            or env["platform"] == "linuxbsd"
+            or env["platform"] == "x11"
             or env["platform"] == "haiku"
             or is_macos_x86
             or is_android_x86
@@ -278,7 +270,7 @@ if webm_cpu_x86:
         try:
             yasm_found = True
             subprocess.Popen([yasm_path, "--version"], stdout=devnull, stderr=devnull).communicate()
-        except Exception:
+        except:
             yasm_found = False
         if yasm_found:
             break
@@ -317,7 +309,7 @@ if webm_cpu_arm:
     elif (
         env["platform"] == "android"
         and env["android_arch"] == "armv7"
-        or env["platform"] == "linuxbsd"
+        or env["platform"] == "x11"
         or env["platform"] == "server"
     ):
         env_libvpx["ASFLAGS"] = "-mfpu=neon"

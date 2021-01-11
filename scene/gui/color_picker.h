@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -41,8 +41,10 @@
 #include "scene/gui/slider.h"
 #include "scene/gui/spin_box.h"
 #include "scene/gui/texture_rect.h"
+#include "scene/gui/tool_button.h"
 
 class ColorPicker : public BoxContainer {
+
 	GDCLASS(ColorPicker, BoxContainer);
 
 private:
@@ -56,7 +58,7 @@ private:
 	HSeparator *preset_separator;
 	Button *bt_add_preset;
 	List<Color> presets;
-	Button *btn_pick;
+	ToolButton *btn_pick;
 	CheckButton *btn_hsv;
 	CheckButton *btn_raw;
 	HSlider *scroll[4];
@@ -114,7 +116,7 @@ public:
 
 	void add_preset(const Color &p_color);
 	void erase_preset(const Color &p_color);
-	PackedColorArray get_presets() const;
+	PoolColorArray get_presets() const;
 
 	void set_hsv_mode(bool p_enabled);
 	bool is_hsv_mode() const;
@@ -137,6 +139,7 @@ public:
 };
 
 class ColorPickerButton : public Button {
+
 	GDCLASS(ColorPickerButton, Button);
 
 	PopupPanel *popup;
@@ -147,7 +150,7 @@ class ColorPickerButton : public Button {
 	void _color_changed(const Color &p_color);
 	void _modal_closed();
 
-	virtual void pressed() override;
+	virtual void pressed();
 
 	void _update_picker();
 

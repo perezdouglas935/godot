@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/gui/range.h"
 
 class Slider : public Range {
+
 	GDCLASS(Slider, Range);
 
 	struct Grab {
@@ -56,7 +57,7 @@ protected:
 	bool ticks_on_borders;
 
 public:
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 
 	void set_custom_step(float p_custom_step);
 	float get_custom_step() const;
@@ -77,6 +78,7 @@ public:
 };
 
 class HSlider : public Slider {
+
 	GDCLASS(HSlider, Slider);
 
 public:
@@ -85,6 +87,7 @@ public:
 };
 
 class VSlider : public Slider {
+
 	GDCLASS(VSlider, Slider);
 
 public:

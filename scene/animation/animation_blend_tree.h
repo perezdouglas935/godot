@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/animation/animation_tree.h"
 
 class AnimationNodeAnimation : public AnimationRootNode {
+
 	GDCLASS(AnimationNodeAnimation, AnimationRootNode);
 
 	StringName animation;
@@ -43,17 +44,17 @@ class AnimationNodeAnimation : public AnimationRootNode {
 	bool skip;
 
 protected:
-	void _validate_property(PropertyInfo &property) const override;
+	void _validate_property(PropertyInfo &property) const;
 
 	static void _bind_methods();
 
 public:
-	void get_parameter_list(List<PropertyInfo> *r_list) const override;
+	void get_parameter_list(List<PropertyInfo> *r_list) const;
 
 	static Vector<String> (*get_editable_animation_list)();
 
-	virtual String get_caption() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual String get_caption() const;
+	virtual float process(float p_time, bool p_seek);
 
 	void set_animation(const StringName &p_name);
 	StringName get_animation() const;
@@ -96,10 +97,10 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
 	void set_fadein_time(float p_time);
 	void set_fadeout_time(float p_time);
@@ -121,8 +122,8 @@ public:
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
 
-	virtual bool has_filter() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual bool has_filter() const;
+	virtual float process(float p_time, bool p_seek);
 
 	AnimationNodeOneShot();
 };
@@ -139,16 +140,16 @@ protected:
 	static void _bind_methods();
 
 public:
-	void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
 
-	virtual bool has_filter() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual bool has_filter() const;
+	virtual float process(float p_time, bool p_seek);
 
 	AnimationNodeAdd2();
 };
@@ -163,16 +164,16 @@ protected:
 	static void _bind_methods();
 
 public:
-	void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
 
-	virtual bool has_filter() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual bool has_filter() const;
+	virtual float process(float p_time, bool p_seek);
 
 	AnimationNodeAdd3();
 };
@@ -187,16 +188,16 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual String get_caption() const;
+	virtual float process(float p_time, bool p_seek);
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
 
-	virtual bool has_filter() const override;
+	virtual bool has_filter() const;
 	AnimationNodeBlend2();
 };
 
@@ -210,15 +211,15 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
 
-	float process(float p_time, bool p_seek) override;
+	float process(float p_time, bool p_seek);
 	AnimationNodeBlend3();
 };
 
@@ -231,12 +232,12 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
-	float process(float p_time, bool p_seek) override;
+	float process(float p_time, bool p_seek);
 
 	AnimationNodeTimeScale();
 };
@@ -250,12 +251,12 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
-	float process(float p_time, bool p_seek) override;
+	float process(float p_time, bool p_seek);
 
 	AnimationNodeTimeSeek();
 };
@@ -267,6 +268,7 @@ class AnimationNodeTransition : public AnimationNode {
 		MAX_INPUTS = 32
 	};
 	struct InputData {
+
 		String name;
 		bool auto_advance;
 		InputData() { auto_advance = false; }
@@ -294,13 +296,13 @@ class AnimationNodeTransition : public AnimationNode {
 
 protected:
 	static void _bind_methods();
-	void _validate_property(PropertyInfo &property) const override;
+	void _validate_property(PropertyInfo &property) const;
 
 public:
-	virtual void get_parameter_list(List<PropertyInfo> *r_list) const override;
-	virtual Variant get_parameter_default_value(const StringName &p_parameter) const override;
+	virtual void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
 
-	virtual String get_caption() const override;
+	virtual String get_caption() const;
 
 	void set_enabled_inputs(int p_inputs);
 	int get_enabled_inputs();
@@ -314,7 +316,7 @@ public:
 	void set_cross_fade_time(float p_fade);
 	float get_cross_fade_time() const;
 
-	float process(float p_time, bool p_seek) override;
+	float process(float p_time, bool p_seek);
 
 	AnimationNodeTransition();
 };
@@ -323,8 +325,8 @@ class AnimationNodeOutput : public AnimationNode {
 	GDCLASS(AnimationNodeOutput, AnimationNode);
 
 public:
-	virtual String get_caption() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual String get_caption() const;
+	virtual float process(float p_time, bool p_seek);
 	AnimationNodeOutput();
 };
 
@@ -374,7 +376,7 @@ public:
 	void set_node_position(const StringName &p_node, const Vector2 &p_position);
 	Vector2 get_node_position(const StringName &p_node) const;
 
-	virtual void get_child_nodes(List<ChildNode> *r_child_nodes) override;
+	virtual void get_child_nodes(List<ChildNode> *r_child_nodes);
 
 	void connect_node(const StringName &p_input_node, int p_input_index, const StringName &p_output_node);
 	void disconnect_node(const StringName &p_node, int p_input_index);
@@ -388,15 +390,15 @@ public:
 	ConnectionError can_connect_node(const StringName &p_input_node, int p_input_index, const StringName &p_output_node) const;
 	void get_node_connections(List<NodeConnection> *r_connections) const;
 
-	virtual String get_caption() const override;
-	virtual float process(float p_time, bool p_seek) override;
+	virtual String get_caption() const;
+	virtual float process(float p_time, bool p_seek);
 
 	void get_node_list(List<StringName> *r_list);
 
 	void set_graph_offset(const Vector2 &p_graph_offset);
 	Vector2 get_graph_offset() const;
 
-	virtual Ref<AnimationNode> get_child_by_name(const StringName &p_name) override;
+	virtual Ref<AnimationNode> get_child_by_name(const StringName &p_name);
 
 	AnimationNodeBlendTree();
 	~AnimationNodeBlendTree();

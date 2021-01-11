@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include "core/string/ustring.h"
+#include "core/ustring.h"
 
 /*
 	Special Key:
@@ -294,9 +294,11 @@ enum KeyList {
 
 	KEY_DIVISION = 0x00F7,
 	KEY_YDIAERESIS = 0x00FF,
+
 };
 
 enum KeyModifierMask {
+
 	KEY_CODE_MASK = ((1 << 25) - 1), ///< Apply this mask to any keycode to remove modifiers.
 	KEY_MODIFIER_MASK = (0xFF << 24), ///< Apply this mask to isolate modifiers.
 	KEY_MASK_SHIFT = (1 << 25),
@@ -312,6 +314,7 @@ enum KeyModifierMask {
 	KEY_MASK_KPAD = (1 << 29),
 	KEY_MASK_GROUP_SWITCH = (1 << 30)
 	// bit 31 can't be used because variant uses regular 32 bits int as datatype
+
 };
 
 String keycode_get_string(uint32_t p_code);
@@ -322,4 +325,4 @@ int keycode_get_count();
 int keycode_get_value_by_index(int p_index);
 const char *keycode_get_name_by_index(int p_index);
 
-#endif // KEYBOARD_H
+#endif

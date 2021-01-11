@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -57,7 +57,7 @@
 	virtual RID m_type##_create() {                                                        \
 		if (Thread::get_caller_id() != server_thread) {                                    \
 			RID rid;                                                                       \
-			MutexLock lock(alloc_mutex);                                                   \
+			alloc_mutex->lock();                                                           \
 			if (m_type##_id_pool.size() == 0) {                                            \
 				int ret;                                                                   \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, &ret); \
@@ -65,6 +65,7 @@
 			}                                                                              \
 			rid = m_type##_id_pool.front()->get();                                         \
 			m_type##_id_pool.pop_front();                                                  \
+			alloc_mutex->unlock();                                                         \
 			return rid;                                                                    \
 		} else {                                                                           \
 			return server_name->m_type##_create();                                         \
@@ -87,7 +88,7 @@
 	virtual RID m_type##_create(m_arg1 p1) {                                                   \
 		if (Thread::get_caller_id() != server_thread) {                                        \
 			RID rid;                                                                           \
-			MutexLock lock(alloc_mutex);                                                       \
+			alloc_mutex->lock();                                                               \
 			if (m_type##_id_pool.size() == 0) {                                                \
 				int ret;                                                                       \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, p1, &ret); \
@@ -95,6 +96,7 @@
 			}                                                                                  \
 			rid = m_type##_id_pool.front()->get();                                             \
 			m_type##_id_pool.pop_front();                                                      \
+			alloc_mutex->unlock();                                                             \
 			return rid;                                                                        \
 		} else {                                                                               \
 			return server_name->m_type##_create(p1);                                           \
@@ -117,7 +119,7 @@
 	virtual RID m_type##_create(m_arg1 p1, m_arg2 p2) {                                            \
 		if (Thread::get_caller_id() != server_thread) {                                            \
 			RID rid;                                                                               \
-			MutexLock lock(alloc_mutex);                                                           \
+			alloc_mutex->lock();                                                                   \
 			if (m_type##_id_pool.size() == 0) {                                                    \
 				int ret;                                                                           \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, p1, p2, &ret); \
@@ -125,6 +127,7 @@
 			}                                                                                      \
 			rid = m_type##_id_pool.front()->get();                                                 \
 			m_type##_id_pool.pop_front();                                                          \
+			alloc_mutex->unlock();                                                                 \
 			return rid;                                                                            \
 		} else {                                                                                   \
 			return server_name->m_type##_create(p1, p2);                                           \
@@ -147,7 +150,7 @@
 	virtual RID m_type##_create(m_arg1 p1, m_arg2 p2, m_arg3 p3) {                                     \
 		if (Thread::get_caller_id() != server_thread) {                                                \
 			RID rid;                                                                                   \
-			MutexLock lock(alloc_mutex);                                                               \
+			alloc_mutex->lock();                                                                       \
 			if (m_type##_id_pool.size() == 0) {                                                        \
 				int ret;                                                                               \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, p1, p2, p3, &ret); \
@@ -155,6 +158,7 @@
 			}                                                                                          \
 			rid = m_type##_id_pool.front()->get();                                                     \
 			m_type##_id_pool.pop_front();                                                              \
+			alloc_mutex->unlock();                                                                     \
 			return rid;                                                                                \
 		} else {                                                                                       \
 			return server_name->m_type##_create(p1, p2, p3);                                           \
@@ -177,7 +181,7 @@
 	virtual RID m_type##_create(m_arg1 p1, m_arg2 p2, m_arg3 p3, m_arg4 p4) {                              \
 		if (Thread::get_caller_id() != server_thread) {                                                    \
 			RID rid;                                                                                       \
-			MutexLock lock(alloc_mutex);                                                                   \
+			alloc_mutex->lock();                                                                           \
 			if (m_type##_id_pool.size() == 0) {                                                            \
 				int ret;                                                                                   \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, p1, p2, p3, p4, &ret); \
@@ -185,6 +189,7 @@
 			}                                                                                              \
 			rid = m_type##_id_pool.front()->get();                                                         \
 			m_type##_id_pool.pop_front();                                                                  \
+			alloc_mutex->unlock();                                                                         \
 			return rid;                                                                                    \
 		} else {                                                                                           \
 			return server_name->m_type##_create(p1, p2, p3, p4);                                           \
@@ -208,7 +213,7 @@
 	virtual RID m_type##_create(m_arg1 p1, m_arg2 p2, m_arg3 p3, m_arg4 p4, m_arg5 p5) {                       \
 		if (Thread::get_caller_id() != server_thread) {                                                        \
 			RID rid;                                                                                           \
-			MutexLock lock(alloc_mutex);                                                                       \
+			alloc_mutex->lock();                                                                               \
 			if (m_type##_id_pool.size() == 0) {                                                                \
 				int ret;                                                                                       \
 				command_queue.push_and_ret(this, &ServerNameWrapMT::m_type##allocn, p1, p2, p3, p4, p5, &ret); \
@@ -216,6 +221,7 @@
 			}                                                                                                  \
 			rid = m_type##_id_pool.front()->get();                                                             \
 			m_type##_id_pool.pop_front();                                                                      \
+			alloc_mutex->unlock();                                                                             \
 			return rid;                                                                                        \
 		} else {                                                                                               \
 			return server_name->m_type##_create(p1, p2, p3, p4, p5);                                           \
@@ -813,22 +819,4 @@
 		} else {                                                                                                                                                                 \
 			server_name->m_type(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13);                                                                                         \
 		}                                                                                                                                                                        \
-	}
-
-#define FUNC14(m_type, m_arg1, m_arg2, m_arg3, m_arg4, m_arg5, m_arg6, m_arg7, m_arg8, m_arg9, m_arg10, m_arg11, m_arg12, m_arg13, m_arg14)                                                   \
-	virtual void m_type(m_arg1 p1, m_arg2 p2, m_arg3 p3, m_arg4 p4, m_arg5 p5, m_arg6 p6, m_arg7 p7, m_arg8 p8, m_arg9 p9, m_arg10 p10, m_arg11 p11, m_arg12 p12, m_arg13 p13, m_arg14 p14) { \
-		if (Thread::get_caller_id() != server_thread) {                                                                                                                                       \
-			command_queue.push(server_name, &ServerName::m_type, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);                                                                \
-		} else {                                                                                                                                                                              \
-			server_name->m_type(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14);                                                                                                 \
-		}                                                                                                                                                                                     \
-	}
-
-#define FUNC15(m_type, m_arg1, m_arg2, m_arg3, m_arg4, m_arg5, m_arg6, m_arg7, m_arg8, m_arg9, m_arg10, m_arg11, m_arg12, m_arg13, m_arg14, m_arg15)                                                       \
-	virtual void m_type(m_arg1 p1, m_arg2 p2, m_arg3 p3, m_arg4 p4, m_arg5 p5, m_arg6 p6, m_arg7 p7, m_arg8 p8, m_arg9 p9, m_arg10 p10, m_arg11 p11, m_arg12 p12, m_arg13 p13, m_arg14 p14, m_arg15 p15) { \
-		if (Thread::get_caller_id() != server_thread) {                                                                                                                                                    \
-			command_queue.push(server_name, &ServerName::m_type, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15);                                                                        \
-		} else {                                                                                                                                                                                           \
-			server_name->m_type(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15);                                                                                                         \
-		}                                                                                                                                                                                                  \
 	}

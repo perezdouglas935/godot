@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,10 +35,12 @@
 #include "visual_script_builtin_funcs.h"
 
 class VisualScriptExpression : public VisualScriptNode {
+
 	GDCLASS(VisualScriptExpression, VisualScriptNode);
 	friend class VisualScriptNodeInstanceExpression;
 
 	struct Input {
+
 		Variant::Type type;
 		String name;
 
@@ -99,14 +101,14 @@ class VisualScriptExpression : public VisualScriptNode {
 
 	static const char *token_name[TK_MAX];
 	struct Token {
+
 		TokenType type;
 		Variant value;
 	};
 
 	void _set_error(const String &p_err) {
-		if (error_set) {
+		if (error_set)
 			return;
-		}
 		error_str = p_err;
 		error_set = true;
 	}
@@ -117,6 +119,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	bool error_set;
 
 	struct ENode {
+
 		enum Type {
 			TYPE_INPUT,
 			TYPE_CONSTANT,
@@ -135,7 +138,7 @@ class VisualScriptExpression : public VisualScriptNode {
 
 		Type type;
 
-		ENode() { next = nullptr; }
+		ENode() { next = NULL; }
 		virtual ~ENode() {
 			if (next) {
 				memdelete(next);
@@ -144,6 +147,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	};
 
 	struct Expression {
+
 		bool is_op;
 		union {
 			Variant::Operator op;
@@ -154,6 +158,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	ENode *_parse_expression();
 
 	struct InputNode : public ENode {
+
 		int index;
 		InputNode() {
 			type = TYPE_INPUT;
@@ -161,6 +166,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	};
 
 	struct ConstantNode : public ENode {
+
 		Variant value;
 		ConstantNode() {
 			type = TYPE_CONSTANT;
@@ -168,6 +174,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	};
 
 	struct OperatorNode : public ENode {
+
 		Variant::Operator op;
 
 		ENode *nodes[2];
@@ -178,6 +185,7 @@ class VisualScriptExpression : public VisualScriptNode {
 	};
 
 	struct SelfNode : public ENode {
+
 		SelfNode() {
 			type = TYPE_SELF;
 		}
@@ -259,22 +267,22 @@ protected:
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 
 public:
-	virtual int get_output_sequence_port_count() const override;
-	virtual bool has_input_sequence_port() const override;
+	virtual int get_output_sequence_port_count() const;
+	virtual bool has_input_sequence_port() const;
 
-	virtual String get_output_sequence_port_text(int p_port) const override;
+	virtual String get_output_sequence_port_text(int p_port) const;
 
-	virtual int get_input_value_port_count() const override;
-	virtual int get_output_value_port_count() const override;
+	virtual int get_input_value_port_count() const;
+	virtual int get_output_value_port_count() const;
 
-	virtual PropertyInfo get_input_value_port_info(int p_idx) const override;
-	virtual PropertyInfo get_output_value_port_info(int p_idx) const override;
+	virtual PropertyInfo get_input_value_port_info(int p_idx) const;
+	virtual PropertyInfo get_output_value_port_info(int p_idx) const;
 
-	virtual String get_caption() const override;
-	virtual String get_text() const override;
-	virtual String get_category() const override { return "operators"; }
+	virtual String get_caption() const;
+	virtual String get_text() const;
+	virtual String get_category() const { return "operators"; }
 
-	virtual VisualScriptNodeInstance *instance(VisualScriptInstance *p_instance) override;
+	virtual VisualScriptNodeInstance *instance(VisualScriptInstance *p_instance);
 
 	VisualScriptExpression();
 	~VisualScriptExpression();

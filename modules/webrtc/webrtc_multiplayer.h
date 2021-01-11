@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,6 +35,7 @@
 #include "webrtc_peer_connection.h"
 
 class WebRTCMultiplayer : public NetworkedMultiplayerPeer {
+
 	GDCLASS(WebRTCMultiplayer, NetworkedMultiplayerPeer);
 
 protected:
@@ -49,16 +50,16 @@ private:
 	};
 
 	class ConnectedPeer : public Reference {
+
 	public:
 		Ref<WebRTCPeerConnection> connection;
-		List<Ref<WebRTCDataChannel>> channels;
+		List<Ref<WebRTCDataChannel> > channels;
 		bool connected;
 
 		ConnectedPeer() {
 			connected = false;
-			for (int i = 0; i < CH_RESERVED_MAX; i++) {
+			for (int i = 0; i < CH_RESERVED_MAX; i++)
 				channels.push_front(Ref<WebRTCDataChannel>());
-			}
 		}
 	};
 
@@ -71,7 +72,7 @@ private:
 	int next_packet_peer;
 	bool server_compat;
 
-	Map<int, Ref<ConnectedPeer>> peer_map;
+	Map<int, Ref<ConnectedPeer> > peer_map;
 
 	void _peer_to_dict(Ref<ConnectedPeer> p_connected_peer, Dictionary &r_dict);
 	void _find_next_peer();
@@ -89,27 +90,27 @@ public:
 	void close();
 
 	// PacketPeer
-	Error get_packet(const uint8_t **r_buffer, int &r_buffer_size) override; ///< buffer is GONE after next get_packet
-	Error put_packet(const uint8_t *p_buffer, int p_buffer_size) override;
-	int get_available_packet_count() const override;
-	int get_max_packet_size() const override;
+	Error get_packet(const uint8_t **r_buffer, int &r_buffer_size); ///< buffer is GONE after next get_packet
+	Error put_packet(const uint8_t *p_buffer, int p_buffer_size);
+	int get_available_packet_count() const;
+	int get_max_packet_size() const;
 
 	// NetworkedMultiplayerPeer
-	void set_transfer_mode(TransferMode p_mode) override;
-	TransferMode get_transfer_mode() const override;
-	void set_target_peer(int p_peer_id) override;
+	void set_transfer_mode(TransferMode p_mode);
+	TransferMode get_transfer_mode() const;
+	void set_target_peer(int p_peer_id);
 
-	int get_unique_id() const override;
-	int get_packet_peer() const override;
+	int get_unique_id() const;
+	int get_packet_peer() const;
 
-	bool is_server() const override;
+	bool is_server() const;
 
-	void poll() override;
+	void poll();
 
-	void set_refuse_new_connections(bool p_enable) override;
-	bool is_refusing_new_connections() const override;
+	void set_refuse_new_connections(bool p_enable);
+	bool is_refusing_new_connections() const;
 
-	ConnectionStatus get_connection_status() const override;
+	ConnectionStatus get_connection_status() const;
 };
 
-#endif // WEBRTC_MULTIPLAYER_H
+#endif

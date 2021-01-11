@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Input" inherits="Object" version="4.0">
+<class name="Input" inherits="Object" version="3.2">
 	<brief_description>
 		A singleton that deals with inputs.
 	</brief_description>
@@ -7,15 +7,13 @@
 		A singleton that deals with inputs. This includes key presses, mouse buttons and movement, joypads, and input actions. Actions and their events can be set in the [b]Input Map[/b] tab in the [b]Project &gt; Project Settings[/b], or with the [InputMap] class.
 	</description>
 	<tutorials>
-		<link title="Inputs tutorial index">https://docs.godotengine.org/en/latest/tutorials/inputs/index.html</link>
-		<link title="2D Dodge The Creeps Demo">https://godotengine.org/asset-library/asset/515</link>
-		<link title="3D Voxel Demo">https://godotengine.org/asset-library/asset/676</link>
+		<link>https://docs.godotengine.org/en/latest/tutorials/inputs/index.html</link>
 	</tutorials>
 	<methods>
 		<method name="action_press">
 			<return type="void">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<argument index="1" name="strength" type="float" default="1.0">
 			</argument>
@@ -28,7 +26,7 @@
 		<method name="action_release">
 			<return type="void">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<description>
 				If the specified action is already pressed, this will release it.
@@ -49,39 +47,18 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the acceleration of the device's accelerometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				Returns the acceleration of the device's accelerometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
 				Note this method returns an empty [Vector3] when running from the editor even when your device has an accelerometer. You must export your project to a supported device to read values from the accelerometer.
 				[b]Note:[/b] This method only works on iOS, Android, and UWP. On other platforms, it always returns [constant Vector3.ZERO].
-			</description>
-		</method>
-		<method name="get_action_raw_strength" qualifiers="const">
-			<return type="float">
-			</return>
-			<argument index="0" name="action" type="StringName">
-			</argument>
-			<description>
-				Returns a value between 0 and 1 representing the raw intensity of the given action, ignoring the action's deadzone. In most cases, you should use [method get_action_strength] instead.
 			</description>
 		</method>
 		<method name="get_action_strength" qualifiers="const">
 			<return type="float">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<description>
 				Returns a value between 0 and 1 representing the intensity of the given action. In a joypad, for example, the further away the axis (analog sticks or L2, R2 triggers) is from the dead zone, the closer the value will be to 1. If the action is mapped to a control that has no axis as the keyboard, the value returned will be 0 or 1.
-			</description>
-		</method>
-		<method name="get_axis" qualifiers="const">
-			<return type="float">
-			</return>
-			<argument index="0" name="negative_action" type="StringName">
-			</argument>
-			<argument index="1" name="positive_action" type="StringName">
-			</argument>
-			<description>
-				Get axis input by specifying two actions, one negative and one positive.
-				This is a horthand for writing [code]Input.get_action_strength("positive_action") - Input.get_action_strength("negative_action")[/code].
 			</description>
 		</method>
 		<method name="get_connected_joypads">
@@ -102,7 +79,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the gravity of the device's accelerometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				Returns the gravity of the device's accelerometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
 				[b]Note:[/b] This method only works on Android and iOS. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
@@ -110,8 +87,8 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the rotation rate in rad/s around a device's X, Y, and Z axes of the gyroscope sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
-				[b]Note:[/b] This method only works on Android and iOS. On other platforms, it always returns [constant Vector3.ZERO].
+				Returns the rotation rate in rad/s around a device's X, Y, and Z axes of the gyroscope, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				[b]Note:[/b] This method only works on Android. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
 		<method name="get_joy_axis" qualifiers="const">
@@ -122,7 +99,43 @@
 			<argument index="1" name="axis" type="int">
 			</argument>
 			<description>
-				Returns the current value of the joypad axis at given index (see [enum JoyAxisList]).
+				Returns the current value of the joypad axis at given index (see [enum JoystickList]).
+			</description>
+		</method>
+		<method name="get_joy_axis_index_from_string">
+			<return type="int">
+			</return>
+			<argument index="0" name="axis" type="String">
+			</argument>
+			<description>
+				Returns the index of the provided axis name.
+			</description>
+		</method>
+		<method name="get_joy_axis_string">
+			<return type="String">
+			</return>
+			<argument index="0" name="axis_index" type="int">
+			</argument>
+			<description>
+				Receives a [enum JoystickList] axis and returns its equivalent name as a string.
+			</description>
+		</method>
+		<method name="get_joy_button_index_from_string">
+			<return type="int">
+			</return>
+			<argument index="0" name="button" type="String">
+			</argument>
+			<description>
+				Returns the index of the provided button name.
+			</description>
+		</method>
+		<method name="get_joy_button_string">
+			<return type="String">
+			</return>
+			<argument index="0" name="button_index" type="int">
+			</argument>
+			<description>
+				Receives a gamepad button from [enum JoystickList] and returns its equivalent name as a string.
 			</description>
 		</method>
 		<method name="get_joy_guid" qualifiers="const">
@@ -172,8 +185,8 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the the magnetic field strength in micro-Tesla for all axes of the device's magnetometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
-				[b]Note:[/b] This method only works on Android, iOS and UWP. On other platforms, it always returns [constant Vector3.ZERO].
+				Returns the the magnetic field strength in micro-Tesla for all axes of the device's magnetometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				[b]Note:[/b] This method only works on Android and UWP. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
 		<method name="get_mouse_button_mask" qualifiers="const">
@@ -190,29 +203,10 @@
 				Returns the mouse mode. See the constants for more information.
 			</description>
 		</method>
-		<method name="get_vector" qualifiers="const">
-			<return type="Vector2">
-			</return>
-			<argument index="0" name="negative_x" type="StringName">
-			</argument>
-			<argument index="1" name="positive_x" type="StringName">
-			</argument>
-			<argument index="2" name="negative_y" type="StringName">
-			</argument>
-			<argument index="3" name="positive_y" type="StringName">
-			</argument>
-			<argument index="4" name="deadzone" type="float" default="-1.0">
-			</argument>
-			<description>
-				Get vector input by specifying four actions, two for the X axis and two for the Y axis, negative and positive.
-				This method is useful when getting vector input, such as from a joystick, directional pad, arrows, or WASD. The vector has its length limited to 1 and has a circular deadzone, which is useful for using vector input as movement.
-				By default, the deadzone is automatically calculated from the average of the action deadzones. However, you can override the deadzone to be whatever you want (on the range of 0 to 1).
-			</description>
-		</method>
 		<method name="is_action_just_pressed" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<description>
 				Returns [code]true[/code] when the user starts pressing the action event, meaning it's [code]true[/code] only on the frame that the user pressed down the button.
@@ -222,7 +216,7 @@
 		<method name="is_action_just_released" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<description>
 				Returns [code]true[/code] when the user stops pressing the action event, meaning it's [code]true[/code] only on the frame that the user released the button.
@@ -231,7 +225,7 @@
 		<method name="is_action_pressed" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="action" type="StringName">
+			<argument index="0" name="action" type="String">
 			</argument>
 			<description>
 				Returns [code]true[/code] if you are pressing the action event. Note that if an action has multiple buttons assigned and more than one of them is pressed, releasing one button will release the action, even if some other button assigned to this action is still pressed.
@@ -245,7 +239,7 @@
 			<argument index="1" name="button" type="int">
 			</argument>
 			<description>
-				Returns [code]true[/code] if you are pressing the joypad button (see [enum JoyButtonList]).
+				Returns [code]true[/code] if you are pressing the joypad button (see [enum JoystickList]).
 			</description>
 		</method>
 		<method name="is_joy_known">
@@ -254,16 +248,16 @@
 			<argument index="0" name="device" type="int">
 			</argument>
 			<description>
-				Returns [code]true[/code] if the system knows the specified device. This means that it sets all button and axis indices. Unknown joypads are not expected to match these constants, but you can still retrieve events from them.
+				Returns [code]true[/code] if the system knows the specified device. This means that it sets all button and axis indices exactly as defined in [enum JoystickList]. Unknown joypads are not expected to match these constants, but you can still retrieve events from them.
 			</description>
 		</method>
 		<method name="is_key_pressed" qualifiers="const">
 			<return type="bool">
 			</return>
-			<argument index="0" name="keycode" type="int">
+			<argument index="0" name="scancode" type="int">
 			</argument>
 			<description>
-				Returns [code]true[/code] if you are pressing the key in the current keyboard layout. You can pass a [enum KeyList] constant.
+				Returns [code]true[/code] if you are pressing the key. You can pass a [enum KeyList] constant.
 			</description>
 		</method>
 		<method name="is_mouse_button_pressed" qualifiers="const">
@@ -299,20 +293,12 @@
 			<description>
 				Feeds an [InputEvent] to the game. Can be used to artificially trigger input events from code. Also generates [method Node._input] calls.
 				Example:
-				[codeblocks]
-				[gdscript]
-				var cancel_event = InputEventAction.new()
-				cancel_event.action = "ui_cancel"
-				cancel_event.pressed = true
-				Input.parse_input_event(cancel_event)
-				[/gdscript]
-				[csharp]
-				var cancelEvent = new InputEventAction();
-				cancelEvent.Action = "ui_cancel";
-				cancelEvent.Pressed = true;
-				Input.ParseInputEvent(cancelEvent);
-				[/csharp]
-				[/codeblocks]
+				[codeblock]
+				var a = InputEventAction.new()
+				a.action = "ui_cancel"
+				a.pressed = true
+				Input.parse_input_event(a)
+				[/codeblock]
 			</description>
 		</method>
 		<method name="remove_joy_mapping">
@@ -403,7 +389,7 @@
 			</argument>
 			<description>
 				Vibrate Android and iOS devices.
-				[b]Note:[/b] It needs [code]VIBRATE[/code] permission for Android at export settings. iOS does not support duration.
+				[b]Note:[/b] It needs VIBRATE permission for Android at export settings. iOS does not support duration.
 			</description>
 		</method>
 		<method name="warp_mouse_position">

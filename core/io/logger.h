@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,8 +32,8 @@
 #define LOGGER_H
 
 #include "core/os/file_access.h"
-#include "core/string/ustring.h"
-#include "core/templates/vector.h"
+#include "core/ustring.h"
+#include "core/vector.h"
 
 #include <stdarg.h>
 
@@ -55,16 +55,17 @@ public:
 	void logf(const char *p_format, ...) _PRINTF_FORMAT_ATTRIBUTE_2_3;
 	void logf_error(const char *p_format, ...) _PRINTF_FORMAT_ATTRIBUTE_2_3;
 
-	virtual ~Logger() {}
+	virtual ~Logger();
 };
 
 /**
  * Writes messages to stdout/stderr.
  */
 class StdLogger : public Logger {
+
 public:
 	virtual void logv(const char *p_format, va_list p_list, bool p_err) _PRINTF_FORMAT_ATTRIBUTE_2_0;
-	virtual ~StdLogger() {}
+	virtual ~StdLogger();
 };
 
 /**
@@ -77,7 +78,7 @@ class RotatedFileLogger : public Logger {
 	String base_path;
 	int max_files;
 
-	FileAccess *file = nullptr;
+	FileAccess *file;
 
 	void rotate_file_without_closing();
 	void close_file();
@@ -106,4 +107,4 @@ public:
 	virtual ~CompositeLogger();
 };
 
-#endif // LOGGER_H
+#endif

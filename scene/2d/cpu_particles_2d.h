@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef CPU_PARTICLES_2D_H
 #define CPU_PARTICLES_2D_H
 
-#include "core/templates/rid.h"
+#include "core/rid.h"
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
 
@@ -46,6 +46,7 @@ public:
 	};
 
 	enum Parameter {
+
 		PARAM_INITIAL_LINEAR_VELOCITY,
 		PARAM_ANGULAR_VELOCITY,
 		PARAM_ORBIT_VELOCITY,
@@ -61,11 +62,11 @@ public:
 		PARAM_MAX
 	};
 
-	enum ParticleFlags {
-		PARTICLE_FLAG_ALIGN_Y_TO_VELOCITY,
-		PARTICLE_FLAG_ROTATE_Y, // Unused, but exposed for consistency with 3D.
-		PARTICLE_FLAG_DISABLE_Z, // Unused, but exposed for consistency with 3D.
-		PARTICLE_FLAG_MAX
+	enum Flags {
+		FLAG_ALIGN_Y_TO_VELOCITY,
+		FLAG_ROTATE_Y, // Unused, but exposed for consistency with 3D.
+		FLAG_DISABLE_Z, // Unused, but exposed for consistency with 3D.
+		FLAG_MAX
 	};
 
 	enum EmissionShape {
@@ -80,6 +81,8 @@ public:
 private:
 	bool emitting;
 
+	// warning - beware of adding non-trivial types
+	// to this structure as it is zeroed to initialize in set_amount()
 	struct Particle {
 		Transform2D transform;
 		Color color;
@@ -107,9 +110,9 @@ private:
 	RID mesh;
 	RID multimesh;
 
-	Vector<Particle> particles;
-	Vector<float> particle_data;
-	Vector<int> particle_order;
+	PoolVector<Particle> particles;
+	PoolVector<float> particle_data;
+	PoolVector<int> particle_order;
 
 	struct SortLifetime {
 		const Particle *particles;
@@ -123,6 +126,7 @@ private:
 		const Particle *particles;
 		Vector2 axis;
 		bool operator()(int p_a, int p_b) const {
+
 			return axis.dot(particles[p_a].transform[2]) < axis.dot(particles[p_b].transform[2]);
 		}
 	};
@@ -145,7 +149,8 @@ private:
 
 	DrawOrder draw_order;
 
-	Ref<Texture2D> texture;
+	Ref<Texture> texture;
+	Ref<Texture> normalmap;
 
 	////////
 
@@ -159,14 +164,14 @@ private:
 	Color color;
 	Ref<Gradient> color_ramp;
 
-	bool particle_flags[PARTICLE_FLAG_MAX];
+	bool flags[FLAG_MAX];
 
 	EmissionShape emission_shape;
 	float emission_sphere_radius;
 	Vector2 emission_rect_extents;
-	Vector<Vector2> emission_points;
-	Vector<Vector2> emission_normals;
-	Vector<Color> emission_colors;
+	PoolVector<Vector2> emission_points;
+	PoolVector<Vector2> emission_normals;
+	PoolVector<Color> emission_colors;
 	int emission_point_count;
 
 	Vector2 gravity;
@@ -175,7 +180,7 @@ private:
 	void _particles_process(float p_delta);
 	void _update_particle_data_buffer();
 
-	Mutex update_mutex;
+	Mutex *update_mutex;
 
 	void _update_render_thread();
 
@@ -188,7 +193,7 @@ private:
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
-	virtual void _validate_property(PropertyInfo &property) const override;
+	virtual void _validate_property(PropertyInfo &property) const;
 
 public:
 	void set_emitting(bool p_emitting);
@@ -227,8 +232,11 @@ public:
 	void set_draw_passes(int p_count);
 	int get_draw_passes() const;
 
-	void set_texture(const Ref<Texture2D> &p_texture);
-	Ref<Texture2D> get_texture() const;
+	void set_texture(const Ref<Texture> &p_texture);
+	Ref<Texture> get_texture() const;
+
+	void set_normalmap(const Ref<Texture> &p_normalmap);
+	Ref<Texture> get_normalmap() const;
 
 	///////////////////
 
@@ -253,29 +261,29 @@ public:
 	void set_color_ramp(const Ref<Gradient> &p_ramp);
 	Ref<Gradient> get_color_ramp() const;
 
-	void set_particle_flag(ParticleFlags p_particle_flag, bool p_enable);
-	bool get_particle_flag(ParticleFlags p_particle_flag) const;
+	void set_particle_flag(Flags p_flag, bool p_enable);
+	bool get_particle_flag(Flags p_flag) const;
 
 	void set_emission_shape(EmissionShape p_shape);
 	void set_emission_sphere_radius(float p_radius);
 	void set_emission_rect_extents(Vector2 p_extents);
-	void set_emission_points(const Vector<Vector2> &p_points);
-	void set_emission_normals(const Vector<Vector2> &p_normals);
-	void set_emission_colors(const Vector<Color> &p_colors);
+	void set_emission_points(const PoolVector<Vector2> &p_points);
+	void set_emission_normals(const PoolVector<Vector2> &p_normals);
+	void set_emission_colors(const PoolVector<Color> &p_colors);
 	void set_emission_point_count(int p_count);
 
 	EmissionShape get_emission_shape() const;
 	float get_emission_sphere_radius() const;
 	Vector2 get_emission_rect_extents() const;
-	Vector<Vector2> get_emission_points() const;
-	Vector<Vector2> get_emission_normals() const;
-	Vector<Color> get_emission_colors() const;
+	PoolVector<Vector2> get_emission_points() const;
+	PoolVector<Vector2> get_emission_normals() const;
+	PoolVector<Color> get_emission_colors() const;
 	int get_emission_point_count() const;
 
 	void set_gravity(const Vector2 &p_gravity);
 	Vector2 get_gravity() const;
 
-	virtual String get_configuration_warning() const override;
+	virtual String get_configuration_warning() const;
 
 	void restart();
 
@@ -287,7 +295,7 @@ public:
 
 VARIANT_ENUM_CAST(CPUParticles2D::DrawOrder)
 VARIANT_ENUM_CAST(CPUParticles2D::Parameter)
-VARIANT_ENUM_CAST(CPUParticles2D::ParticleFlags)
+VARIANT_ENUM_CAST(CPUParticles2D::Flags)
 VARIANT_ENUM_CAST(CPUParticles2D::EmissionShape)
 
 #endif // CPU_PARTICLES_2D_H

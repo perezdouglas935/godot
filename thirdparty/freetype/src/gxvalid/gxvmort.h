@@ -31,10 +31,7 @@
 #include "gxvalid.h"
 #include "gxvcommn.h"
 
-#include <freetype/ftsnames.h>
-
-
-FT_BEGIN_HEADER
+#include FT_SFNT_NAMES_H
 
 
   typedef struct  GXV_mort_featureRec_
@@ -90,8 +87,6 @@ FT_BEGIN_HEADER
                                     FT_Bytes       limit,
                                     GXV_Validator  gxvalid );
 
-
-FT_END_HEADER
 
 #endif /* GXVMORT_H_ */
 

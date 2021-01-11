@@ -30,7 +30,8 @@
 #ifndef FTOTVAL_H_
 #define FTOTVAL_H_
 
-#include <freetype/freetype.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifdef FREETYPE_H
 #error "freetype.h of FreeType 1 has been loaded!"

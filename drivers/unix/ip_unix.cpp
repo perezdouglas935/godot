@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -76,6 +76,7 @@
 #endif
 
 static IP_Address _sockaddr2ip(struct sockaddr *p_addr) {
+
 	IP_Address ip;
 
 	if (p_addr->sa_family == AF_INET) {
@@ -90,8 +91,9 @@ static IP_Address _sockaddr2ip(struct sockaddr *p_addr) {
 };
 
 IP_Address IP_Unix::_resolve_hostname(const String &p_hostname, Type p_type) {
+
 	struct addrinfo hints;
-	struct addrinfo *result = nullptr;
+	struct addrinfo *result;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
 	if (p_type == TYPE_IPV4) {
@@ -105,17 +107,16 @@ IP_Address IP_Unix::_resolve_hostname(const String &p_hostname, Type p_type) {
 	};
 	hints.ai_flags &= ~AI_NUMERICHOST;
 
-	int s = getaddrinfo(p_hostname.utf8().get_data(), nullptr, &hints, &result);
+	int s = getaddrinfo(p_hostname.utf8().get_data(), NULL, &hints, &result);
 	if (s != 0) {
 		ERR_PRINT("getaddrinfo failed! Cannot resolve hostname.");
 		return IP_Address();
 	};
 
-	if (result == nullptr || result->ai_addr == nullptr) {
+	if (result == NULL || result->ai_addr == NULL) {
 		ERR_PRINT("Invalid response from getaddrinfo");
-		if (result) {
+		if (result)
 			freeaddrinfo(result);
-		}
 		return IP_Address();
 	};
 
@@ -131,6 +132,7 @@ IP_Address IP_Unix::_resolve_hostname(const String &p_hostname, Type p_type) {
 #if defined(UWP_ENABLED)
 
 void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) const {
+
 	using namespace Windows::Networking;
 	using namespace Windows::Networking::Connectivity;
 
@@ -138,6 +140,7 @@ void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) co
 	auto hostnames = NetworkInformation::GetHostNames();
 
 	for (int i = 0; i < hostnames->Size; i++) {
+
 		auto hostname = hostnames->GetAt(i);
 
 		if (hostname->Type != HostNameType::Ipv4 && hostname->Type != HostNameType::Ipv6)
@@ -164,13 +167,15 @@ void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) co
 #else
 
 void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) const {
+
 	ULONG buf_size = 1024;
 	IP_ADAPTER_ADDRESSES *addrs;
 
 	while (true) {
+
 		addrs = (IP_ADAPTER_ADDRESSES *)memalloc(buf_size);
 		int err = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME,
-				nullptr, addrs, &buf_size);
+				NULL, addrs, &buf_size);
 		if (err == NO_ERROR) {
 			break;
 		};
@@ -184,14 +189,15 @@ void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) co
 
 	IP_ADAPTER_ADDRESSES *adapter = addrs;
 
-	while (adapter != nullptr) {
+	while (adapter != NULL) {
+
 		Interface_Info info;
 		info.name = adapter->AdapterName;
 		info.name_friendly = adapter->FriendlyName;
 		info.index = String::num_uint64(adapter->IfIndex);
 
 		IP_ADAPTER_UNICAST_ADDRESS *address = adapter->FirstUnicastAddress;
-		while (address != nullptr) {
+		while (address != NULL) {
 			int family = address->Address.lpSockaddr->sa_family;
 			if (family != AF_INET && family != AF_INET6)
 				continue;
@@ -212,22 +218,21 @@ void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) co
 #else // UNIX
 
 void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) const {
-	struct ifaddrs *ifAddrStruct = nullptr;
-	struct ifaddrs *ifa = nullptr;
+
+	struct ifaddrs *ifAddrStruct = NULL;
+	struct ifaddrs *ifa = NULL;
 	int family;
 
 	getifaddrs(&ifAddrStruct);
 
-	for (ifa = ifAddrStruct; ifa != nullptr; ifa = ifa->ifa_next) {
-		if (!ifa->ifa_addr) {
+	for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+		if (!ifa->ifa_addr)
 			continue;
-		}
 
 		family = ifa->ifa_addr->sa_family;
 
-		if (family != AF_INET && family != AF_INET6) {
+		if (family != AF_INET && family != AF_INET6)
 			continue;
-		}
 
 		Map<String, Interface_Info>::Element *E = r_interfaces->find(ifa->ifa_name);
 		if (!E) {
@@ -243,17 +248,17 @@ void IP_Unix::get_local_interfaces(Map<String, Interface_Info> *r_interfaces) co
 		info.ip_addresses.push_front(_sockaddr2ip(ifa->ifa_addr));
 	}
 
-	if (ifAddrStruct != nullptr) {
-		freeifaddrs(ifAddrStruct);
-	}
+	if (ifAddrStruct != NULL) freeifaddrs(ifAddrStruct);
 }
 #endif
 
 void IP_Unix::make_default() {
+
 	_create = _create_unix;
 }
 
 IP *IP_Unix::_create_unix() {
+
 	return memnew(IP_Unix);
 }
 

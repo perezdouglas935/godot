@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,13 +35,13 @@
 #include "editor_node.h"
 #include "editor_scale.h"
 #include "scene/gui/center_container.h"
-#include "scene/resources/font.h"
+#include "scene/resources/dynamic_font.h"
 
 void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_file, int p_line, const char *p_error, const char *p_errorexp, ErrorHandlerType p_type) {
+
 	EditorLog *self = (EditorLog *)p_self;
-	if (self->current != Thread::get_caller_id()) {
+	if (self->current != Thread::get_caller_id())
 		return;
-	}
 
 	String err_str;
 	if (p_errorexp && p_errorexp[0]) {
@@ -58,38 +58,32 @@ void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_f
 }
 
 void EditorLog::_notification(int p_what) {
+
 	if (p_what == NOTIFICATION_ENTER_TREE) {
+
 		//button->set_icon(get_icon("Console","EditorIcons"));
-		log->add_theme_font_override("normal_font", get_theme_font("output_source", "EditorFonts"));
-		log->add_theme_font_size_override("normal_font_size", get_theme_font_size("output_source_size", "EditorFonts"));
-		log->add_theme_color_override("selection_color", get_theme_color("accent_color", "Editor") * Color(1, 1, 1, 0.4));
+		log->add_font_override("normal_font", get_font("output_source", "EditorFonts"));
+		log->add_color_override("selection_color", get_color("accent_color", "Editor") * Color(1, 1, 1, 0.4));
 	} else if (p_what == NOTIFICATION_THEME_CHANGED) {
-		Ref<Font> df_output_code = get_theme_font("output_source", "EditorFonts");
+		Ref<DynamicFont> df_output_code = get_font("output_source", "EditorFonts");
 		if (df_output_code.is_valid()) {
-			if (log != nullptr) {
-				log->add_theme_font_override("normal_font", get_theme_font("output_source", "EditorFonts"));
-				log->add_theme_font_size_override("normal_font_size", get_theme_font_size("output_source_size", "EditorFonts"));
-				log->add_theme_color_override("selection_color", get_theme_color("accent_color", "Editor") * Color(1, 1, 1, 0.4));
+			if (log != NULL) {
+				log->add_font_override("normal_font", get_font("output_source", "EditorFonts"));
+				log->add_color_override("selection_color", get_color("accent_color", "Editor") * Color(1, 1, 1, 0.4));
 			}
 		}
 	}
 }
 
 void EditorLog::_clear_request() {
+
 	log->clear();
-	tool_button->set_icon(Ref<Texture2D>());
+	tool_button->set_icon(Ref<Texture>());
 }
 
 void EditorLog::_copy_request() {
-	String text = log->get_selected_text();
 
-	if (text == "") {
-		text = log->get_text();
-	}
-
-	if (text != "") {
-		DisplayServer::get_singleton()->clipboard_set(text);
-	}
+	log->selection_copy();
 }
 
 void EditorLog::clear() {
@@ -101,53 +95,59 @@ void EditorLog::copy() {
 }
 
 void EditorLog::add_message(const String &p_msg, MessageType p_type) {
+
+	log->add_newline();
+
 	bool restore = p_type != MSG_TYPE_STD;
 	switch (p_type) {
 		case MSG_TYPE_STD: {
 		} break;
 		case MSG_TYPE_ERROR: {
-			log->push_color(get_theme_color("error_color", "Editor"));
-			Ref<Texture2D> icon = get_theme_icon("Error", "EditorIcons");
+			log->push_color(get_color("error_color", "Editor"));
+			Ref<Texture> icon = get_icon("Error", "EditorIcons");
 			log->add_image(icon);
 			log->add_text(" ");
 			tool_button->set_icon(icon);
 		} break;
 		case MSG_TYPE_WARNING: {
-			log->push_color(get_theme_color("warning_color", "Editor"));
-			Ref<Texture2D> icon = get_theme_icon("Warning", "EditorIcons");
+			log->push_color(get_color("warning_color", "Editor"));
+			Ref<Texture> icon = get_icon("Warning", "EditorIcons");
 			log->add_image(icon);
 			log->add_text(" ");
 			tool_button->set_icon(icon);
 		} break;
 		case MSG_TYPE_EDITOR: {
 			// Distinguish editor messages from messages printed by the project
-			log->push_color(get_theme_color("font_color", "Editor") * Color(1, 1, 1, 0.6));
+			log->push_color(get_color("font_color", "Editor") * Color(1, 1, 1, 0.6));
 		} break;
 	}
 
 	log->add_text(p_msg);
-	log->add_newline();
 
-	if (restore) {
+	if (restore)
 		log->pop();
-	}
 }
 
-void EditorLog::set_tool_button(Button *p_tool_button) {
+void EditorLog::set_tool_button(ToolButton *p_tool_button) {
 	tool_button = p_tool_button;
 }
 
 void EditorLog::_undo_redo_cbk(void *p_self, const String &p_name) {
+
 	EditorLog *self = (EditorLog *)p_self;
 	self->add_message(p_name, EditorLog::MSG_TYPE_EDITOR);
 }
 
 void EditorLog::_bind_methods() {
+
+	ClassDB::bind_method(D_METHOD("_clear_request"), &EditorLog::_clear_request);
+	ClassDB::bind_method(D_METHOD("_copy_request"), &EditorLog::_copy_request);
 	ADD_SIGNAL(MethodInfo("clear_request"));
 	ADD_SIGNAL(MethodInfo("copy_request"));
 }
 
 EditorLog::EditorLog() {
+
 	VBoxContainer *vb = this;
 
 	HBoxContainer *hb = memnew(HBoxContainer);
@@ -161,15 +161,13 @@ EditorLog::EditorLog() {
 	hb->add_child(copybutton);
 	copybutton->set_text(TTR("Copy"));
 	copybutton->set_shortcut(ED_SHORTCUT("editor/copy_output", TTR("Copy Selection"), KEY_MASK_CMD | KEY_C));
-	copybutton->set_shortcut_context(this);
-	copybutton->connect("pressed", callable_mp(this, &EditorLog::_copy_request));
+	copybutton->connect("pressed", this, "_copy_request");
 
 	clearbutton = memnew(Button);
 	hb->add_child(clearbutton);
 	clearbutton->set_text(TTR("Clear"));
 	clearbutton->set_shortcut(ED_SHORTCUT("editor/clear_output", TTR("Clear Output"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_K));
-	clearbutton->set_shortcut_context(this);
-	clearbutton->connect("pressed", callable_mp(this, &EditorLog::_clear_request));
+	clearbutton->connect("pressed", this, "_clear_request");
 
 	log = memnew(RichTextLabel);
 	log->set_scroll_follow(true);
@@ -179,7 +177,7 @@ EditorLog::EditorLog() {
 	log->set_v_size_flags(SIZE_EXPAND_FILL);
 	log->set_h_size_flags(SIZE_EXPAND_FILL);
 	vb->add_child(log);
-	add_message(VERSION_FULL_NAME " (c) 2007-2021 Juan Linietsky, Ariel Manzur & Godot Contributors.");
+	add_message(VERSION_FULL_NAME " (c) 2007-2020 Juan Linietsky, Ariel Manzur & Godot Contributors.");
 
 	eh.errfunc = _error_handler;
 	eh.userdata = this;
@@ -187,12 +185,13 @@ EditorLog::EditorLog() {
 
 	current = Thread::get_caller_id();
 
-	add_theme_constant_override("separation", get_theme_constant("separation", "VBoxContainer"));
+	add_constant_override("separation", get_constant("separation", "VBoxContainer"));
 
 	EditorNode::get_undo_redo()->set_commit_notify_callback(_undo_redo_cbk, this);
 }
 
 void EditorLog::deinit() {
+
 	remove_error_handler(&eh);
 }
 

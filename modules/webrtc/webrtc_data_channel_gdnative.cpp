@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,94 +39,94 @@ void WebRTCDataChannelGDNative::_bind_methods() {
 }
 
 WebRTCDataChannelGDNative::WebRTCDataChannelGDNative() {
-	interface = nullptr;
+	interface = NULL;
 }
 
 WebRTCDataChannelGDNative::~WebRTCDataChannelGDNative() {
 }
 
 Error WebRTCDataChannelGDNative::poll() {
-	ERR_FAIL_COND_V(interface == nullptr, ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(interface == NULL, ERR_UNCONFIGURED);
 	return (Error)interface->poll(interface->data);
 }
 
 void WebRTCDataChannelGDNative::close() {
-	ERR_FAIL_COND(interface == nullptr);
+	ERR_FAIL_COND(interface == NULL);
 	interface->close(interface->data);
 }
 
 void WebRTCDataChannelGDNative::set_write_mode(WriteMode p_mode) {
-	ERR_FAIL_COND(interface == nullptr);
+	ERR_FAIL_COND(interface == NULL);
 	interface->set_write_mode(interface->data, p_mode);
 }
 
 WebRTCDataChannel::WriteMode WebRTCDataChannelGDNative::get_write_mode() const {
-	ERR_FAIL_COND_V(interface == nullptr, WRITE_MODE_BINARY);
+	ERR_FAIL_COND_V(interface == NULL, WRITE_MODE_BINARY);
 	return (WriteMode)interface->get_write_mode(interface->data);
 }
 
 bool WebRTCDataChannelGDNative::was_string_packet() const {
-	ERR_FAIL_COND_V(interface == nullptr, false);
+	ERR_FAIL_COND_V(interface == NULL, false);
 	return interface->was_string_packet(interface->data);
 }
 
 WebRTCDataChannel::ChannelState WebRTCDataChannelGDNative::get_ready_state() const {
-	ERR_FAIL_COND_V(interface == nullptr, STATE_CLOSED);
+	ERR_FAIL_COND_V(interface == NULL, STATE_CLOSED);
 	return (ChannelState)interface->get_ready_state(interface->data);
 }
 
 String WebRTCDataChannelGDNative::get_label() const {
-	ERR_FAIL_COND_V(interface == nullptr, "");
+	ERR_FAIL_COND_V(interface == NULL, "");
 	return String(interface->get_label(interface->data));
 }
 
 bool WebRTCDataChannelGDNative::is_ordered() const {
-	ERR_FAIL_COND_V(interface == nullptr, false);
+	ERR_FAIL_COND_V(interface == NULL, false);
 	return interface->is_ordered(interface->data);
 }
 
 int WebRTCDataChannelGDNative::get_id() const {
-	ERR_FAIL_COND_V(interface == nullptr, -1);
+	ERR_FAIL_COND_V(interface == NULL, -1);
 	return interface->get_id(interface->data);
 }
 
 int WebRTCDataChannelGDNative::get_max_packet_life_time() const {
-	ERR_FAIL_COND_V(interface == nullptr, -1);
+	ERR_FAIL_COND_V(interface == NULL, -1);
 	return interface->get_max_packet_life_time(interface->data);
 }
 
 int WebRTCDataChannelGDNative::get_max_retransmits() const {
-	ERR_FAIL_COND_V(interface == nullptr, -1);
+	ERR_FAIL_COND_V(interface == NULL, -1);
 	return interface->get_max_retransmits(interface->data);
 }
 
 String WebRTCDataChannelGDNative::get_protocol() const {
-	ERR_FAIL_COND_V(interface == nullptr, "");
+	ERR_FAIL_COND_V(interface == NULL, "");
 	return String(interface->get_protocol(interface->data));
 }
 
 bool WebRTCDataChannelGDNative::is_negotiated() const {
-	ERR_FAIL_COND_V(interface == nullptr, false);
+	ERR_FAIL_COND_V(interface == NULL, false);
 	return interface->is_negotiated(interface->data);
 }
 
 Error WebRTCDataChannelGDNative::get_packet(const uint8_t **r_buffer, int &r_buffer_size) {
-	ERR_FAIL_COND_V(interface == nullptr, ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(interface == NULL, ERR_UNCONFIGURED);
 	return (Error)interface->get_packet(interface->data, r_buffer, &r_buffer_size);
 }
 
 Error WebRTCDataChannelGDNative::put_packet(const uint8_t *p_buffer, int p_buffer_size) {
-	ERR_FAIL_COND_V(interface == nullptr, ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(interface == NULL, ERR_UNCONFIGURED);
 	return (Error)interface->put_packet(interface->data, p_buffer, p_buffer_size);
 }
 
 int WebRTCDataChannelGDNative::get_max_packet_size() const {
-	ERR_FAIL_COND_V(interface == nullptr, 0);
+	ERR_FAIL_COND_V(interface == NULL, 0);
 	return interface->get_max_packet_size(interface->data);
 }
 
 int WebRTCDataChannelGDNative::get_available_packet_count() const {
-	ERR_FAIL_COND_V(interface == nullptr, 0);
+	ERR_FAIL_COND_V(interface == NULL, 0);
 	return interface->get_available_packet_count(interface->data);
 }
 

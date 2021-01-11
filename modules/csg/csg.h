@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,19 +31,21 @@
 #ifndef CSG_H
 #define CSG_H
 
+#include "core/list.h"
+#include "core/map.h"
 #include "core/math/aabb.h"
 #include "core/math/plane.h"
 #include "core/math/transform.h"
 #include "core/math/vector2.h"
 #include "core/math/vector3.h"
-#include "core/object/reference.h"
-#include "core/templates/list.h"
-#include "core/templates/map.h"
-#include "core/templates/oa_hash_map.h"
-#include "core/templates/vector.h"
+#include "core/oa_hash_map.h"
+#include "core/pool_vector.h"
+#include "core/reference.h"
+#include "core/vector.h"
 #include "scene/resources/material.h"
 
 struct CSGBrush {
+
 	struct Face {
 		Vector3 vertices[3];
 		Vector2 uvs[3];
@@ -54,16 +56,17 @@ struct CSGBrush {
 	};
 
 	Vector<Face> faces;
-	Vector<Ref<Material>> materials;
+	Vector<Ref<Material> > materials;
 
 	inline void _regen_face_aabbs();
 
 	// Create a brush from faces.
-	void build_from_faces(const Vector<Vector3> &p_vertices, const Vector<Vector2> &p_uvs, const Vector<bool> &p_smooth, const Vector<Ref<Material>> &p_materials, const Vector<bool> &p_invert_faces);
+	void build_from_faces(const PoolVector<Vector3> &p_vertices, const PoolVector<Vector2> &p_uvs, const PoolVector<bool> &p_smooth, const PoolVector<Ref<Material> > &p_materials, const PoolVector<bool> &p_invert_faces);
 	void copy_from(const CSGBrush &p_brush, const Transform &p_xform);
 };
 
 struct CSGBrushOperation {
+
 	enum Operation {
 		OPERATION_UNION,
 		OPERATION_INTERSECTION,
@@ -73,6 +76,7 @@ struct CSGBrushOperation {
 	void merge_brushes(Operation p_operation, const CSGBrush &p_brush_a, const CSGBrush &p_brush_b, CSGBrush &r_merged_brush, float p_vertex_snap);
 
 	struct MeshMerge {
+
 		struct Face {
 			bool from_b;
 			bool inside;
@@ -153,6 +157,7 @@ struct CSGBrushOperation {
 	};
 
 	struct Build2DFaces {
+
 		struct Vertex2D {
 			Vector2 point;
 			Vector2 uv;

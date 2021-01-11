@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -41,13 +41,13 @@
 #include <math.h>
 
 class Math {
+
 	static RandomPCG default_rand;
 
 public:
 	Math() {} // useless to instance
 
-	// Not using 'RANDOM_MAX' to avoid conflict with system headers on some OSes (at least NetBSD).
-	static const uint64_t RANDOM_32BIT_MAX = 0xFFFFFFFF;
+	static const uint64_t RANDOM_MAX = 0xFFFFFFFF;
 
 	static _ALWAYS_INLINE_ double sin(double p_x) { return ::sin(p_x); }
 	static _ALWAYS_INLINE_ float sin(float p_x) { return ::sinf(p_x); }
@@ -198,23 +198,6 @@ public:
 		value += 0.0;
 		return value;
 	}
-	static _ALWAYS_INLINE_ float fposmodp(float p_x, float p_y) {
-		float value = Math::fmod(p_x, p_y);
-		if (value < 0) {
-			value += p_y;
-		}
-		value += 0.0;
-		return value;
-	}
-	static _ALWAYS_INLINE_ double fposmodp(double p_x, double p_y) {
-		double value = Math::fmod(p_x, p_y);
-		if (value < 0) {
-			value += p_y;
-		}
-		value += 0.0;
-		return value;
-	}
-
 	static _ALWAYS_INLINE_ int posmod(int p_x, int p_y) {
 		int value = p_x % p_y;
 		if ((value < 0 && p_y > 0) || (value > 0 && p_y < 0)) {
@@ -249,19 +232,15 @@ public:
 	static _ALWAYS_INLINE_ double range_lerp(double p_value, double p_istart, double p_istop, double p_ostart, double p_ostop) { return Math::lerp(p_ostart, p_ostop, Math::inverse_lerp(p_istart, p_istop, p_value)); }
 	static _ALWAYS_INLINE_ float range_lerp(float p_value, float p_istart, float p_istop, float p_ostart, float p_ostop) { return Math::lerp(p_ostart, p_ostop, Math::inverse_lerp(p_istart, p_istop, p_value)); }
 
-	static _ALWAYS_INLINE_ double smoothstep(double p_from, double p_to, double p_s) {
-		if (is_equal_approx(p_from, p_to)) {
-			return p_from;
-		}
-		double s = CLAMP((p_s - p_from) / (p_to - p_from), 0.0, 1.0);
-		return s * s * (3.0 - 2.0 * s);
+	static _ALWAYS_INLINE_ double smoothstep(double p_from, double p_to, double p_weight) {
+		if (is_equal_approx(p_from, p_to)) return p_from;
+		double x = CLAMP((p_weight - p_from) / (p_to - p_from), 0.0, 1.0);
+		return x * x * (3.0 - 2.0 * x);
 	}
-	static _ALWAYS_INLINE_ float smoothstep(float p_from, float p_to, float p_s) {
-		if (is_equal_approx(p_from, p_to)) {
-			return p_from;
-		}
-		float s = CLAMP((p_s - p_from) / (p_to - p_from), 0.0f, 1.0f);
-		return s * s * (3.0f - 2.0f * s);
+	static _ALWAYS_INLINE_ float smoothstep(float p_from, float p_to, float p_weight) {
+		if (is_equal_approx(p_from, p_to)) return p_from;
+		float x = CLAMP((p_weight - p_from) / (p_to - p_from), 0.0f, 1.0f);
+		return x * x * (3.0f - 2.0f * x);
 	}
 	static _ALWAYS_INLINE_ double move_toward(double p_from, double p_to, double p_delta) { return abs(p_to - p_from) <= p_delta ? p_to : p_from + SGN(p_to - p_from) * p_delta; }
 	static _ALWAYS_INLINE_ float move_toward(float p_from, float p_to, float p_delta) { return abs(p_to - p_from) <= p_delta ? p_to : p_from + SGN(p_to - p_from) * p_delta; }
@@ -292,7 +271,7 @@ public:
 	static double ease(double p_x, double p_c);
 	static int step_decimals(double p_step);
 	static int range_step_decimals(double p_step);
-	static double snapped(double p_value, double p_step);
+	static double stepify(double p_value, double p_step);
 	static double dectime(double p_value, double p_amount, double p_step);
 
 	static uint32_t larger_prime(uint32_t p_val);
@@ -301,12 +280,24 @@ public:
 	static void randomize();
 	static uint32_t rand_from_seed(uint64_t *seed);
 	static uint32_t rand();
-	static _ALWAYS_INLINE_ double randd() { return (double)rand() / (double)Math::RANDOM_32BIT_MAX; }
-	static _ALWAYS_INLINE_ float randf() { return (float)rand() / (float)Math::RANDOM_32BIT_MAX; }
+	static _ALWAYS_INLINE_ double randd() { return (double)rand() / (double)Math::RANDOM_MAX; }
+	static _ALWAYS_INLINE_ float randf() { return (float)rand() / (float)Math::RANDOM_MAX; }
 
 	static double random(double from, double to);
 	static float random(float from, float to);
-	static int random(int from, int to);
+	static real_t random(int from, int to) { return (real_t)random((real_t)from, (real_t)to); }
+
+	static _ALWAYS_INLINE_ bool is_equal_approx_ratio(real_t a, real_t b, real_t epsilon = CMP_EPSILON, real_t min_epsilon = CMP_EPSILON) {
+		// this is an approximate way to check that numbers are close, as a ratio of their average size
+		// helps compare approximate numbers that may be very big or very small
+		real_t diff = abs(a - b);
+		if (diff == 0.0 || diff < min_epsilon) {
+			return true;
+		}
+		real_t avg_size = (abs(a) + abs(b)) / 2.0;
+		diff /= avg_size;
+		return diff < epsilon;
+	}
 
 	static _ALWAYS_INLINE_ bool is_equal_approx(real_t a, real_t b) {
 		// Check for exact equality first, required to handle "infinity" values.
@@ -335,6 +326,7 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ float absf(float g) {
+
 		union {
 			float f;
 			uint32_t i;
@@ -346,6 +338,7 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ double absd(double g) {
+
 		union {
 			double d;
 			uint64_t i;
@@ -357,6 +350,7 @@ public:
 
 	//this function should be as fast as possible and rounding mode should not matter
 	static _ALWAYS_INLINE_ int fast_ftoi(float a) {
+
 		static int b;
 
 #if (defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0603) || WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP // windows 8 phone?
@@ -411,6 +405,7 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ float halfptr_to_float(const uint16_t *h) {
+
 		union {
 			uint32_t u32;
 			float f32;
@@ -425,6 +420,7 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ uint16_t make_half_float(float f) {
+
 		union {
 			float fv;
 			uint32_t ui;
@@ -455,6 +451,7 @@ public:
 		}
 		// check if exponent is <= -15
 		else if (exp <= 0x38000000) {
+
 			/*// store a denorm half-float value or zero
 		exp = (0x38000000 - exp) >> 23;
 		mantissa >>= (14 + exp);
@@ -472,18 +469,17 @@ public:
 	}
 
 	static _ALWAYS_INLINE_ float snap_scalar(float p_offset, float p_step, float p_target) {
-		return p_step != 0 ? Math::snapped(p_target - p_offset, p_step) + p_offset : p_target;
+		return p_step != 0 ? Math::stepify(p_target - p_offset, p_step) + p_offset : p_target;
 	}
 
 	static _ALWAYS_INLINE_ float snap_scalar_separation(float p_offset, float p_step, float p_target, float p_separation) {
 		if (p_step != 0) {
-			float a = Math::snapped(p_target - p_offset, p_step + p_separation) + p_offset;
+			float a = Math::stepify(p_target - p_offset, p_step + p_separation) + p_offset;
 			float b = a;
-			if (p_target >= 0) {
+			if (p_target >= 0)
 				b -= p_separation;
-			} else {
+			else
 				b += p_step;
-			}
 			return (Math::abs(p_target - a) < Math::abs(p_target - b)) ? a : b;
 		}
 		return p_target;

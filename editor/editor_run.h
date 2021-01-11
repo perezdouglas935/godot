@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,14 +36,17 @@
 class EditorRun {
 public:
 	enum Status {
+
 		STATUS_PLAY,
 		STATUS_PAUSED,
 		STATUS_STOP
 	};
 
-	List<OS::ProcessID> pids;
+	OS::ProcessID pid;
 
 private:
+	bool debug_collisions;
+	bool debug_navigation;
 	Status status;
 	String running_scene;
 
@@ -54,9 +57,13 @@ public:
 	void run_native_notify() { status = STATUS_PLAY; }
 	void stop();
 
-	void stop_child_process(OS::ProcessID p_pid);
-	bool has_child_process(OS::ProcessID p_pid) const;
-	int get_child_process_count() const { return pids.size(); }
+	OS::ProcessID get_pid() const { return pid; }
+
+	void set_debug_collisions(bool p_debug);
+	bool get_debug_collisions() const;
+
+	void set_debug_navigation(bool p_debug);
+	bool get_debug_navigation() const;
 
 	EditorRun();
 };

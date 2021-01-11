@@ -20,8 +20,9 @@
 #define TTBDF_H_
 
 
+#include <ft2build.h>
 #include "ttload.h"
-#include <freetype/ftbdf.h>
+#include FT_BDF_H
 
 
 FT_BEGIN_HEADER

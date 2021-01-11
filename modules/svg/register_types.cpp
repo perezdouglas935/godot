@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,13 +32,15 @@
 
 #include "image_loader_svg.h"
 
-static ImageLoaderSVG *image_loader_svg = nullptr;
+static ImageLoaderSVG *image_loader_svg = NULL;
 
 void register_svg_types() {
+
 	image_loader_svg = memnew(ImageLoaderSVG);
 	ImageLoader::add_image_format_loader(image_loader_svg);
 }
 
 void unregister_svg_types() {
+
 	memdelete(image_loader_svg);
 }

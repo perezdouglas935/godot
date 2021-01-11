@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,6 +36,7 @@
 class AudioFilterSW {
 public:
 	struct Coeffs {
+
 		float a1, a2;
 		float b0, b1, b2;
 
@@ -98,6 +99,7 @@ public:
 /* inline methods */
 
 void AudioFilterSW::Processor::process_one(float &p_sample) {
+
 	float pre = p_sample;
 	p_sample = (p_sample * coeffs.b0 + hb1 * coeffs.b1 + hb2 * coeffs.b2 + ha1 * coeffs.a1 + ha2 * coeffs.a2);
 	ha2 = ha1;
@@ -107,6 +109,7 @@ void AudioFilterSW::Processor::process_one(float &p_sample) {
 }
 
 void AudioFilterSW::Processor::process_one_interp(float &p_sample) {
+
 	float pre = p_sample;
 	p_sample = (p_sample * coeffs.b0 + hb1 * coeffs.b1 + hb2 * coeffs.b2 + ha1 * coeffs.a1 + ha2 * coeffs.a2);
 	ha2 = ha1;

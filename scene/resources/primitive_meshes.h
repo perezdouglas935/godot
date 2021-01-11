@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,15 +42,13 @@
 	This class is set apart that it assumes a single surface is always generated for our mesh.
 */
 class PrimitiveMesh : public Mesh {
+
 	GDCLASS(PrimitiveMesh, Mesh);
 
 private:
 	RID mesh;
 	mutable AABB aabb;
 	AABB custom_aabb;
-
-	mutable int array_len;
-	mutable int index_array_len;
 
 	Ref<Material> material;
 	bool flip_faces;
@@ -67,20 +65,19 @@ protected:
 	void _request_update();
 
 public:
-	virtual int get_surface_count() const override;
-	virtual int surface_get_array_len(int p_idx) const override;
-	virtual int surface_get_array_index_len(int p_idx) const override;
-	virtual Array surface_get_arrays(int p_surface) const override;
-	virtual Array surface_get_blend_shape_arrays(int p_surface) const override;
-	virtual Dictionary surface_get_lods(int p_surface) const override;
-	virtual uint32_t surface_get_format(int p_idx) const override;
-	virtual Mesh::PrimitiveType surface_get_primitive_type(int p_idx) const override;
-	virtual void surface_set_material(int p_idx, const Ref<Material> &p_material) override;
-	virtual Ref<Material> surface_get_material(int p_idx) const override;
-	virtual int get_blend_shape_count() const override;
-	virtual StringName get_blend_shape_name(int p_index) const override;
-	virtual AABB get_aabb() const override;
-	virtual RID get_rid() const override;
+	virtual int get_surface_count() const;
+	virtual int surface_get_array_len(int p_idx) const;
+	virtual int surface_get_array_index_len(int p_idx) const;
+	virtual Array surface_get_arrays(int p_surface) const;
+	virtual Array surface_get_blend_shape_arrays(int p_surface) const;
+	virtual uint32_t surface_get_format(int p_idx) const;
+	virtual Mesh::PrimitiveType surface_get_primitive_type(int p_idx) const;
+	virtual void surface_set_material(int p_idx, const Ref<Material> &p_material);
+	virtual Ref<Material> surface_get_material(int p_idx) const;
+	virtual int get_blend_shape_count() const;
+	virtual StringName get_blend_shape_name(int p_index) const;
+	virtual AABB get_aabb() const;
+	virtual RID get_rid() const;
 
 	void set_material(const Ref<Material> &p_material);
 	Ref<Material> get_material() const;
@@ -111,7 +108,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_radius(const float p_radius);
@@ -130,10 +127,11 @@ public:
 };
 
 /**
-	A box
+	Similar to test cube but with subdivision support and different texture coordinates
 */
-class BoxMesh : public PrimitiveMesh {
-	GDCLASS(BoxMesh, PrimitiveMesh);
+class CubeMesh : public PrimitiveMesh {
+
+	GDCLASS(CubeMesh, PrimitiveMesh);
 
 private:
 	Vector3 size;
@@ -143,7 +141,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_size(const Vector3 &p_size);
@@ -158,7 +156,7 @@ public:
 	void set_subdivide_depth(const int p_divisions);
 	int get_subdivide_depth() const;
 
-	BoxMesh();
+	CubeMesh();
 };
 
 /**
@@ -166,6 +164,7 @@ public:
 */
 
 class CylinderMesh : public PrimitiveMesh {
+
 	GDCLASS(CylinderMesh, PrimitiveMesh);
 
 private:
@@ -177,7 +176,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_top_radius(const float p_radius);
@@ -202,6 +201,7 @@ public:
 	Similar to quadmesh but with tessellation support
 */
 class PlaneMesh : public PrimitiveMesh {
+
 	GDCLASS(PlaneMesh, PrimitiveMesh);
 
 private:
@@ -211,7 +211,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_size(const Size2 &p_size);
@@ -230,6 +230,7 @@ public:
 	A prism shapen, handy for ramps, triangles, etc.
 */
 class PrismMesh : public PrimitiveMesh {
+
 	GDCLASS(PrismMesh, PrimitiveMesh);
 
 private:
@@ -241,7 +242,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_left_to_right(const float p_left_to_right);
@@ -267,6 +268,7 @@ public:
 */
 
 class QuadMesh : public PrimitiveMesh {
+
 	GDCLASS(QuadMesh, PrimitiveMesh);
 
 private:
@@ -274,7 +276,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	QuadMesh();
@@ -287,6 +289,7 @@ public:
 	A sphere..
 */
 class SphereMesh : public PrimitiveMesh {
+
 	GDCLASS(SphereMesh, PrimitiveMesh);
 
 private:
@@ -298,7 +301,7 @@ private:
 
 protected:
 	static void _bind_methods();
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	void set_radius(const float p_radius);
@@ -324,10 +327,11 @@ public:
 */
 
 class PointMesh : public PrimitiveMesh {
+
 	GDCLASS(PointMesh, PrimitiveMesh)
 
 protected:
-	virtual void _create_mesh_array(Array &p_arr) const override;
+	virtual void _create_mesh_array(Array &p_arr) const;
 
 public:
 	PointMesh();

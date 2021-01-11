@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -37,8 +37,7 @@
 #include "editor/project_settings_editor.h"
 #include "scene/gui/grid_container.h"
 
-#include "modules/modules_enabled.gen.h"
-#ifdef MODULE_GDSCRIPT_ENABLED
+#ifdef GDSCRIPT_ENABLED
 #include "modules/gdscript/gdscript.h"
 #endif
 
@@ -52,13 +51,13 @@ void PluginConfigDialog::_clear_fields() {
 }
 
 void PluginConfigDialog::_on_confirmed() {
+
 	String path = "res://addons/" + subfolder_edit->get_text();
 
 	if (!_edit_mode) {
 		DirAccess *d = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-		if (!d || d->make_dir_recursive(path) != OK) {
+		if (!d || d->make_dir_recursive(path) != OK)
 			return;
-		}
 	}
 
 	Ref<ConfigFile> cf = memnew(ConfigFile);
@@ -79,9 +78,7 @@ void PluginConfigDialog::_on_confirmed() {
 		// TODO Use script templates. Right now, this code won't add the 'tool' annotation to other languages.
 		// TODO Better support script languages with named classes (has_named_classes).
 
-		// FIXME: It's hacky to have hardcoded access to the GDScript module here.
-		// The editor code should not have to know what languages are enabled.
-#ifdef MODULE_GDSCRIPT_ENABLED
+#ifdef GDSCRIPT_ENABLED
 		if (lang_name == GDScriptLanguage::get_singleton()->get_name()) {
 			// Hard-coded GDScript template to keep usability until we use script templates.
 			Ref<Script> gdscript = memnew(GDScript);
@@ -108,7 +105,7 @@ void PluginConfigDialog::_on_confirmed() {
 			script = ScriptServer::get_language(lang_idx)->get_template(class_name, "EditorPlugin");
 			script->set_path(script_path);
 			ResourceSaver::save(script_path, script);
-#ifdef MODULE_GDSCRIPT_ENABLED
+#ifdef GDSCRIPT_ENABLED
 		}
 #endif
 
@@ -126,19 +123,18 @@ void PluginConfigDialog::_on_cancelled() {
 void PluginConfigDialog::_on_required_text_changed(const String &) {
 	int lang_idx = script_option_edit->get_selected();
 	String ext = ScriptServer::get_language(lang_idx)->get_extension();
-	get_ok_button()->set_disabled(script_edit->get_text().get_basename().is_empty() || script_edit->get_text().get_extension() != ext || name_edit->get_text().is_empty());
+	get_ok()->set_disabled(script_edit->get_text().get_basename().empty() || script_edit->get_text().get_extension() != ext || name_edit->get_text().empty());
 }
 
 void PluginConfigDialog::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_VISIBILITY_CHANGED: {
-			if (is_visible()) {
-				name_edit->grab_focus();
-			}
-		} break;
 		case NOTIFICATION_READY: {
-			connect("confirmed", callable_mp(this, &PluginConfigDialog::_on_confirmed));
-			get_cancel_button()->connect("pressed", callable_mp(this, &PluginConfigDialog::_on_cancelled));
+			connect("confirmed", this, "_on_confirmed");
+			get_cancel()->connect("pressed", this, "_on_cancelled");
+		} break;
+
+		case NOTIFICATION_POST_POPUP: {
+			name_edit->grab_focus();
 		} break;
 	}
 }
@@ -171,16 +167,19 @@ void PluginConfigDialog::config(const String &p_config_path) {
 		Object::cast_to<Label>(subfolder_edit->get_parent()->get_child(subfolder_edit->get_index() - 1))->show();
 		set_title(TTR("Create a Plugin"));
 	}
-	get_ok_button()->set_disabled(!_edit_mode);
-	get_ok_button()->set_text(_edit_mode ? TTR("Update") : TTR("Create"));
+	get_ok()->set_disabled(!_edit_mode);
+	get_ok()->set_text(_edit_mode ? TTR("Update") : TTR("Create"));
 }
 
 void PluginConfigDialog::_bind_methods() {
+	ClassDB::bind_method("_on_required_text_changed", &PluginConfigDialog::_on_required_text_changed);
+	ClassDB::bind_method("_on_confirmed", &PluginConfigDialog::_on_confirmed);
+	ClassDB::bind_method("_on_cancelled", &PluginConfigDialog::_on_cancelled);
 	ADD_SIGNAL(MethodInfo("plugin_ready", PropertyInfo(Variant::STRING, "script_path", PROPERTY_HINT_NONE, ""), PropertyInfo(Variant::STRING, "activate_name")));
 }
 
 PluginConfigDialog::PluginConfigDialog() {
-	get_ok_button()->set_disabled(true);
+	get_ok()->set_disabled(true);
 	set_hide_on_ok(true);
 
 	GridContainer *grid = memnew(GridContainer);
@@ -192,7 +191,7 @@ PluginConfigDialog::PluginConfigDialog() {
 	grid->add_child(name_lb);
 
 	name_edit = memnew(LineEdit);
-	name_edit->connect("text_changed", callable_mp(this, &PluginConfigDialog::_on_required_text_changed));
+	name_edit->connect("text_changed", this, "_on_required_text_changed");
 	name_edit->set_placeholder("MyPlugin");
 	grid->add_child(name_edit);
 
@@ -237,7 +236,7 @@ PluginConfigDialog::PluginConfigDialog() {
 	for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 		ScriptLanguage *lang = ScriptServer::get_language(i);
 		script_option_edit->add_item(lang->get_name());
-#ifdef MODULE_GDSCRIPT_ENABLED
+#ifdef GDSCRIPT_ENABLED
 		if (lang == GDScriptLanguage::get_singleton()) {
 			default_lang = i;
 		}
@@ -251,7 +250,7 @@ PluginConfigDialog::PluginConfigDialog() {
 	grid->add_child(script_lb);
 
 	script_edit = memnew(LineEdit);
-	script_edit->connect("text_changed", callable_mp(this, &PluginConfigDialog::_on_required_text_changed));
+	script_edit->connect("text_changed", this, "_on_required_text_changed");
 	script_edit->set_placeholder("\"plugin.gd\" -> res://addons/my_plugin/plugin.gd");
 	grid->add_child(script_edit);
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -41,19 +41,20 @@
 #endif
 
 class AudioDriverCoreAudio : public AudioDriver {
-	AudioComponentInstance audio_unit = nullptr;
-	AudioComponentInstance input_unit = nullptr;
 
-	bool active = false;
-	Mutex mutex;
+	AudioComponentInstance audio_unit;
+	AudioComponentInstance input_unit;
 
-	String device_name = "Default";
-	String capture_device_name = "Default";
+	bool active;
+	Mutex *mutex;
 
-	int mix_rate = 0;
-	unsigned int channels = 2;
-	unsigned int capture_channels = 2;
-	unsigned int buffer_frames = 0;
+	String device_name;
+	String capture_device_name;
+
+	int mix_rate;
+	unsigned int channels;
+	unsigned int capture_channels;
+	unsigned int buffer_frames;
 
 	Vector<int32_t> samples_in;
 	Vector<int16_t> input_buf;
@@ -117,7 +118,7 @@ public:
 #endif
 
 	AudioDriverCoreAudio();
-	~AudioDriverCoreAudio() {}
+	~AudioDriverCoreAudio();
 };
 
 #endif

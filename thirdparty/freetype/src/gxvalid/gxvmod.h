@@ -29,7 +29,8 @@
 #ifndef GXVMOD_H_
 #define GXVMOD_H_
 
-#include <freetype/ftmodapi.h>
+#include <ft2build.h>
+#include FT_MODULE_H
 
 
 FT_BEGIN_HEADER

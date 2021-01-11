@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -35,6 +35,7 @@
 
 class Viewport;
 class VisibilityNotifier2D : public Node2D {
+
 	GDCLASS(VisibilityNotifier2D, Node2D);
 
 	Set<Viewport *> viewports;
@@ -55,8 +56,8 @@ protected:
 
 public:
 #ifdef TOOLS_ENABLED
-	virtual Rect2 _edit_get_rect() const override;
-	virtual bool _edit_use_rect() const override;
+	virtual Rect2 _edit_get_rect() const;
+	virtual bool _edit_use_rect() const;
 #endif
 
 	void set_rect(const Rect2 &p_rect);
@@ -68,6 +69,7 @@ public:
 };
 
 class VisibilityEnabler2D : public VisibilityNotifier2D {
+
 	GDCLASS(VisibilityEnabler2D, VisibilityNotifier2D);
 
 public:
@@ -82,8 +84,8 @@ public:
 	};
 
 protected:
-	virtual void _screen_enter() override;
-	virtual void _screen_exit() override;
+	virtual void _screen_enter();
+	virtual void _screen_exit();
 
 	bool visible;
 
@@ -102,7 +104,7 @@ public:
 	void set_enabler(Enabler p_enabler, bool p_enable);
 	bool is_enabler_enabled(Enabler p_enabler) const;
 
-	String get_configuration_warning() const override;
+	String get_configuration_warning() const;
 
 	VisibilityEnabler2D();
 };

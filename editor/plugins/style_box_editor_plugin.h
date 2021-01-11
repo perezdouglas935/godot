@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -38,6 +38,7 @@
 #include "scene/resources/style_box.h"
 
 class StyleBoxPreview : public VBoxContainer {
+
 	GDCLASS(StyleBoxPreview, VBoxContainer);
 
 	Control *preview;
@@ -59,17 +60,18 @@ class EditorInspectorPluginStyleBox : public EditorInspectorPlugin {
 	GDCLASS(EditorInspectorPluginStyleBox, EditorInspectorPlugin);
 
 public:
-	virtual bool can_handle(Object *p_object) override;
-	virtual void parse_begin(Object *p_object) override;
-	virtual bool parse_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage, bool p_wide = false) override;
-	virtual void parse_end() override;
+	virtual bool can_handle(Object *p_object);
+	virtual void parse_begin(Object *p_object);
+	virtual bool parse_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage);
+	virtual void parse_end();
 };
 
 class StyleBoxEditorPlugin : public EditorPlugin {
+
 	GDCLASS(StyleBoxEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "StyleBox"; }
+	virtual String get_name() const { return "StyleBox"; }
 
 	StyleBoxEditorPlugin(EditorNode *p_node);
 };

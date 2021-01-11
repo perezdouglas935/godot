@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,8 +30,8 @@
 
 #include "crash_handler_windows.h"
 
-#include "core/config/project_settings.h"
 #include "core/os/os.h"
+#include "core/project_settings.h"
 #include "main/main.h"
 
 #ifdef CRASH_HANDLER_EXCEPTION
@@ -57,7 +57,7 @@
 struct module_data {
 	std::string image_name;
 	std::string module_name;
-	void *base_address = nullptr;
+	void *base_address;
 	DWORD load_size;
 };
 
@@ -123,7 +123,7 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 	DWORD cbNeeded;
 	std::vector<HMODULE> module_handles(1);
 
-	if (OS::get_singleton() == nullptr || OS::get_singleton()->is_disable_crash_handler() || IsDebuggerPresent()) {
+	if (OS::get_singleton() == NULL || OS::get_singleton()->is_disable_crash_handler() || IsDebuggerPresent()) {
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 
@@ -133,7 +133,7 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
 
 	// Load the symbols:
-	if (!SymInitialize(process, nullptr, false))
+	if (!SymInitialize(process, NULL, false))
 		return EXCEPTION_CONTINUE_SEARCH;
 
 	SymSetOptions(SymGetOptions() | SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
@@ -175,7 +175,7 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 		msg = proj_settings->get("debug/settings/crash_handler/message");
 	}
 
-	fprintf(stderr, "Dumping the backtrace. %s\n", msg.utf8().get_data());
+	fprintf(stderr, "Dumping the backtrace. %ls\n", msg.c_str());
 
 	int n = 0;
 	do {
@@ -195,7 +195,7 @@ DWORD CrashHandlerException(EXCEPTION_POINTERS *ep) {
 			n++;
 		}
 
-		if (!StackWalk64(image_type, process, hThread, &frame, context, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+		if (!StackWalk64(image_type, process, hThread, &frame, context, NULL, SymFunctionTableAccess64, SymGetModuleBase64, NULL))
 			break;
 	} while (frame.AddrReturn.Offset != 0 && n < 256);
 

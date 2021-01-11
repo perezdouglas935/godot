@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -55,7 +55,7 @@ public class GodotEditText extends EditText {
 	// ===========================================================
 	// Fields
 	// ===========================================================
-	private GodotRenderView mRenderView;
+	private GodotView mView;
 	private GodotTextInputWrapper mInputWrapper;
 	private EditHandler sHandler = new EditHandler(this);
 	private String mOriginText;
@@ -82,22 +82,22 @@ public class GodotEditText extends EditText {
 	// ===========================================================
 	public GodotEditText(final Context context) {
 		super(context);
-		initView();
+		this.initView();
 	}
 
 	public GodotEditText(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
-		initView();
+		this.initView();
 	}
 
 	public GodotEditText(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
-		initView();
+		this.initView();
 	}
 
 	protected void initView() {
-		setPadding(0, 0, 0, 0);
-		setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE);
+		this.setPadding(0, 0, 0, 0);
+		this.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_DONE);
 	}
 
 	public boolean isMultiline() {
@@ -129,7 +129,7 @@ public class GodotEditText extends EditText {
 
 					edit.mInputWrapper.setOriginText(text);
 					edit.addTextChangedListener(edit.mInputWrapper);
-					final InputMethodManager imm = (InputMethodManager)mRenderView.getView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+					final InputMethodManager imm = (InputMethodManager)mView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 					imm.showSoftInput(edit, 0);
 				}
 			} break;
@@ -138,9 +138,9 @@ public class GodotEditText extends EditText {
 				GodotEditText edit = (GodotEditText)msg.obj;
 
 				edit.removeTextChangedListener(mInputWrapper);
-				final InputMethodManager imm = (InputMethodManager)mRenderView.getView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+				final InputMethodManager imm = (InputMethodManager)mView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 				imm.hideSoftInputFromWindow(edit.getWindowToken(), 0);
-				edit.mRenderView.getView().requestFocus();
+				edit.mView.requestFocus();
 			} break;
 		}
 	}
@@ -154,12 +154,12 @@ public class GodotEditText extends EditText {
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
-	public void setView(final GodotRenderView view) {
-		mRenderView = view;
+	public void setView(final GodotView view) {
+		this.mView = view;
 		if (mInputWrapper == null)
-			mInputWrapper = new GodotTextInputWrapper(mRenderView, this);
-		setOnEditorActionListener(mInputWrapper);
-		view.getView().requestFocus();
+			mInputWrapper = new GodotTextInputWrapper(mView, this);
+		this.setOnEditorActionListener(mInputWrapper);
+		view.requestFocus();
 	}
 
 	// ===========================================================
@@ -167,35 +167,14 @@ public class GodotEditText extends EditText {
 	// ===========================================================
 	@Override
 	public boolean onKeyDown(final int keyCode, final KeyEvent keyEvent) {
-		/* Let SurfaceView get focus if back key is input. */
+		super.onKeyDown(keyCode, keyEvent);
+
+		/* Let GlSurfaceView get focus if back key is input. */
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			mRenderView.getView().requestFocus();
+			this.mView.requestFocus();
 		}
 
-		// pass event to godot in special cases
-		if (needHandlingInGodot(keyCode, keyEvent) && mRenderView.getInputHandler().onKeyDown(keyCode, keyEvent)) {
-			return true;
-		} else {
-			return super.onKeyDown(keyCode, keyEvent);
-		}
-	}
-
-	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent keyEvent) {
-		if (needHandlingInGodot(keyCode, keyEvent) && mRenderView.getInputHandler().onKeyUp(keyCode, keyEvent)) {
-			return true;
-		} else {
-			return super.onKeyUp(keyCode, keyEvent);
-		}
-	}
-
-	private boolean needHandlingInGodot(int keyCode, KeyEvent keyEvent) {
-		boolean isArrowKey = keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
-							 keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
-		boolean isModifiedKey = keyEvent.isAltPressed() || keyEvent.isCtrlPressed() || keyEvent.isSymPressed() ||
-								keyEvent.isFunctionPressed() || keyEvent.isMetaPressed();
-		return isArrowKey || keyCode == KeyEvent.KEYCODE_TAB || KeyEvent.isModifierKey(keyCode) ||
-				isModifiedKey;
+		return true;
 	}
 
 	// ===========================================================

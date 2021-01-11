@@ -120,13 +120,13 @@ namespace Godot
         /// <param name="b">The destination quaternion.</param>
         /// <param name="preA">A quaternion before this quaternion.</param>
         /// <param name="postB">A quaternion after `b`.</param>
-        /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
+        /// <param name="t">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The interpolated quaternion.</returns>
-        public Quat CubicSlerp(Quat b, Quat preA, Quat postB, real_t weight)
+        public Quat CubicSlerp(Quat b, Quat preA, Quat postB, real_t t)
         {
-            real_t t2 = (1.0f - weight) * weight * 2f;
-            Quat sp = Slerp(b, weight);
-            Quat sq = preA.Slerpni(postB, weight);
+            real_t t2 = (1.0f - t) * t * 2f;
+            Quat sp = Slerp(b, t);
+            Quat sq = preA.Slerpni(postB, t);
             return sp.Slerpni(sq, t2);
         }
 
@@ -190,6 +190,33 @@ namespace Godot
         public Quat Normalized()
         {
             return this / Length;
+        }
+
+        [Obsolete("Set is deprecated. Use the Quat(" + nameof(real_t) + ", " + nameof(real_t) + ", " + nameof(real_t) + ", " + nameof(real_t) + ") constructor instead.", error: true)]
+        public void Set(real_t x, real_t y, real_t z, real_t w)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+        }
+
+        [Obsolete("Set is deprecated. Use the Quat(" + nameof(Quat) + ") constructor instead.", error: true)]
+        public void Set(Quat q)
+        {
+            this = q;
+        }
+
+        [Obsolete("SetAxisAngle is deprecated. Use the Quat(" + nameof(Vector3) + ", " + nameof(real_t) + ") constructor instead.", error: true)]
+        public void SetAxisAngle(Vector3 axis, real_t angle)
+        {
+            this = new Quat(axis, angle);
+        }
+
+        [Obsolete("SetEuler is deprecated. Use the Quat(" + nameof(Vector3) + ") constructor instead.", error: true)]
+        public void SetEuler(Vector3 eulerYXZ)
+        {
+            this = new Quat(eulerYXZ);
         }
 
         /// <summary>

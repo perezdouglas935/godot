@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,7 +36,7 @@
 #include "editor/editor_node.h"
 
 GDScriptLanguageServer::GDScriptLanguageServer() {
-	thread = nullptr;
+	thread = NULL;
 	thread_running = false;
 	started = false;
 
@@ -49,6 +49,7 @@ GDScriptLanguageServer::GDScriptLanguageServer() {
 }
 
 void GDScriptLanguageServer::_notification(int p_what) {
+
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE:
 			start();
@@ -87,7 +88,7 @@ void GDScriptLanguageServer::start() {
 	if (protocol.start(port, IP_Address("127.0.0.1")) == OK) {
 		EditorNode::get_log()->add_message("--- GDScript language server started ---", EditorLog::MSG_TYPE_EDITOR);
 		if (use_thread) {
-			ERR_FAIL_COND(thread != nullptr);
+			ERR_FAIL_COND(thread != NULL);
 			thread_running = true;
 			thread = Thread::create(GDScriptLanguageServer::thread_main, this);
 		}
@@ -98,11 +99,11 @@ void GDScriptLanguageServer::start() {
 
 void GDScriptLanguageServer::stop() {
 	if (use_thread) {
-		ERR_FAIL_COND(nullptr == thread);
+		ERR_FAIL_COND(NULL == thread);
 		thread_running = false;
 		Thread::wait_to_finish(thread);
 		memdelete(thread);
-		thread = nullptr;
+		thread = NULL;
 	}
 	protocol.stop();
 	started = false;

@@ -1,4 +1,4 @@
-supported_platforms = ["windows", "osx", "linuxbsd", "server", "android", "haiku", "javascript", "iphone"]
+supported_platforms = ["windows", "osx", "x11", "server", "android", "haiku", "javascript", "iphone"]
 
 
 def can_build(env, platform):
@@ -11,6 +11,7 @@ def configure(env):
     if platform not in supported_platforms:
         raise RuntimeError("This module does not currently support building for this platform")
 
+    env.use_ptrcall = True
     env.add_module_version_string("mono")
 
     from SCons.Script import BoolVariable, PathVariable, Variables, Help
@@ -22,24 +23,18 @@ def configure(env):
     envvars.Add(
         PathVariable(
             "mono_prefix",
-            "Path to the Mono installation directory for the target platform and architecture",
+            "Path to the mono installation directory for the target platform and architecture",
             "",
             PathVariable.PathAccept,
         )
     )
-    envvars.Add(
-        PathVariable(
-            "mono_bcl",
-            "Path to a custom Mono BCL (Base Class Library) directory for the target platform",
-            "",
-            PathVariable.PathAccept,
-        )
-    )
-    envvars.Add(BoolVariable("mono_static", "Statically link Mono", default_mono_static))
-    envvars.Add(BoolVariable("mono_glue", "Build with the Mono glue sources", True))
+    envvars.Add(BoolVariable("mono_static", "Statically link mono", default_mono_static))
+    envvars.Add(BoolVariable("mono_glue", "Build with the mono glue sources", True))
     envvars.Add(BoolVariable("build_cil", "Build C# solutions", True))
     envvars.Add(
-        BoolVariable("copy_mono_root", "Make a copy of the Mono installation directory to bundle with the editor", True)
+        BoolVariable(
+            "copy_mono_root", "Make a copy of the mono installation directory to bundle with the editor", False
+        )
     )
 
     # TODO: It would be great if this could be detected automatically instead

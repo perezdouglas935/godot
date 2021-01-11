@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef SCENE_TREE_EDITOR_H
 #define SCENE_TREE_EDITOR_H
 
-#include "core/object/undo_redo.h"
+#include "core/undo_redo.h"
 #include "editor_data.h"
 #include "editor_settings.h"
 #include "scene/gui/button.h"
@@ -39,6 +39,7 @@
 #include "scene/gui/tree.h"
 
 class SceneTreeEditor : public Control {
+
 	GDCLASS(SceneTreeEditor, Control);
 
 	EditorSelection *editor_selection;
@@ -138,6 +139,7 @@ public:
 
 	void set_undo_redo(UndoRedo *p_undo_redo) { undo_redo = p_undo_redo; };
 	void set_display_foreign_nodes(bool p_display);
+	bool get_display_foreign_nodes() const;
 
 	void set_marked(const Set<Node *> &p_marked, bool p_selectable = false, bool p_children_selectable = true);
 	void set_marked(Node *p_marked, bool p_selectable = false, bool p_children_selectable = true);
@@ -161,6 +163,7 @@ public:
 };
 
 class SceneTreeDialog : public ConfirmationDialog {
+
 	GDCLASS(SceneTreeDialog, ConfirmationDialog);
 
 	SceneTreeEditor *tree;
@@ -178,7 +181,6 @@ protected:
 	static void _bind_methods();
 
 public:
-	void popup_scenetree_dialog();
 	SceneTreeEditor *get_scene_tree() { return tree; }
 	SceneTreeDialog();
 	~SceneTreeDialog();

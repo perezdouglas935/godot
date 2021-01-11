@@ -21,7 +21,8 @@
  */
 
 
-#include <freetype/ftadvanc.h>
+#include <ft2build.h>
+#include FT_ADVANCES_H
 
 
 #ifdef FT_OPTION_AUTOFIT2

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,13 +34,15 @@
 #include "core/io/ip.h"
 #include "core/io/stream_peer.h"
 #include "core/io/stream_peer_tcp.h"
-#include "core/object/reference.h"
+#include "core/reference.h"
 
 class HTTPClient : public Reference {
+
 	GDCLASS(HTTPClient, Reference);
 
 public:
 	enum ResponseCode {
+
 		// 1xx informational
 		RESPONSE_CONTINUE = 100,
 		RESPONSE_SWITCHING_PROTOCOLS = 101,
@@ -115,6 +117,7 @@ public:
 	};
 
 	enum Method {
+
 		METHOD_GET,
 		METHOD_HEAD,
 		METHOD_POST,
@@ -129,6 +132,7 @@ public:
 	};
 
 	enum Status {
+
 		STATUS_DISCONNECTED,
 		STATUS_RESOLVING, // Resolving hostname (if passed a hostname)
 		STATUS_CANT_RESOLVE,
@@ -147,39 +151,39 @@ private:
 	static const int HOST_MIN_LEN = 4;
 
 	enum Port {
+
 		PORT_HTTP = 80,
 		PORT_HTTPS = 443,
 
 	};
 
 #ifndef JAVASCRIPT_ENABLED
-	Status status = STATUS_DISCONNECTED;
-	IP::ResolverID resolving = IP::RESOLVER_INVALID_ID;
-	int conn_port = -1;
+	Status status;
+	IP::ResolverID resolving;
+	int conn_port;
 	String conn_host;
-	bool ssl = false;
-	bool ssl_verify_host = false;
-	bool blocking = false;
-	bool handshaking = false;
-	bool head_request = false;
+	bool ssl;
+	bool ssl_verify_host;
+	bool blocking;
+	bool handshaking;
+	bool head_request;
 
 	Vector<uint8_t> response_str;
 
-	bool chunked = false;
+	bool chunked;
 	Vector<uint8_t> chunk;
-	int chunk_left = 0;
-	bool chunk_trailer_part = false;
-	int body_size = -1;
-	int body_left = 0;
-	bool read_until_eof = false;
+	int chunk_left;
+	bool chunk_trailer_part;
+	int body_size;
+	int body_left;
+	bool read_until_eof;
 
 	Ref<StreamPeerTCP> tcp_connection;
 	Ref<StreamPeer> connection;
 
-	int response_num = 0;
+	int response_num;
 	Vector<String> response_headers;
-	// 64 KiB by default (favors fast download speeds at the cost of memory usage).
-	int read_chunk_size = 65536;
+	int read_chunk_size;
 
 	Error _get_http_data(uint8_t *p_buffer, int p_bytes, int &r_received);
 
@@ -187,7 +191,7 @@ private:
 #include "platform/javascript/http_client.h.inc"
 #endif
 
-	PackedStringArray _get_response_headers();
+	PoolStringArray _get_response_headers();
 	Dictionary _get_response_headers_as_dictionary();
 
 	static void _bind_methods();
@@ -198,7 +202,7 @@ public:
 	void set_connection(const Ref<StreamPeer> &p_connection);
 	Ref<StreamPeer> get_connection() const;
 
-	Error request_raw(Method p_method, const String &p_url, const Vector<String> &p_headers, const Vector<uint8_t> &p_body);
+	Error request_raw(Method p_method, const String &p_url, const Vector<String> &p_headers, const PoolVector<uint8_t> &p_body);
 	Error request(Method p_method, const String &p_url, const Vector<String> &p_headers, const String &p_body = String());
 
 	void close();
@@ -211,7 +215,7 @@ public:
 	Error get_response_headers(List<String> *r_response);
 	int get_response_body_length() const;
 
-	PackedByteArray read_response_body_chunk(); // Can't get body as partial text because of most encodings UTF8, gzip, etc.
+	PoolByteArray read_response_body_chunk(); // Can't get body as partial text because of most encodings UTF8, gzip, etc.
 
 	void set_blocking_mode(bool p_enable); // Useful mostly if running in a thread
 	bool is_blocking_mode_enabled() const;

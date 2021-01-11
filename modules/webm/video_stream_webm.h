@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -40,30 +40,31 @@ class VPXDecoder;
 class OpusVorbisDecoder;
 
 class VideoStreamPlaybackWebm : public VideoStreamPlayback {
+
 	GDCLASS(VideoStreamPlaybackWebm, VideoStreamPlayback);
 
 	String file_name;
-	int audio_track = 0;
+	int audio_track;
 
-	WebMDemuxer *webm = nullptr;
-	VPXDecoder *video = nullptr;
-	OpusVorbisDecoder *audio = nullptr;
+	WebMDemuxer *webm;
+	VPXDecoder *video;
+	OpusVorbisDecoder *audio;
 
-	WebMFrame **video_frames = nullptr, *audio_frame = nullptr;
-	int video_frames_pos = 0, video_frames_capacity = 0;
+	WebMFrame **video_frames, *audio_frame;
+	int video_frames_pos, video_frames_capacity;
 
-	int num_decoded_samples = 0, samples_offset = -1;
-	AudioMixCallback mix_callback = nullptr;
-	void *mix_udata = nullptr;
+	int num_decoded_samples, samples_offset;
+	AudioMixCallback mix_callback;
+	void *mix_udata;
 
-	bool playing = false, paused = false;
-	double delay_compensation = 0.0;
-	double time = 0.0, video_frame_delay = 0.0, video_pos = 0.0;
+	bool playing, paused;
+	double delay_compensation;
+	double time, video_frame_delay, video_pos;
 
-	Vector<uint8_t> frame_data;
+	PoolVector<uint8_t> frame_data;
 	Ref<ImageTexture> texture;
 
-	float *pcm = nullptr;
+	float *pcm;
 
 public:
 	VideoStreamPlaybackWebm();
@@ -71,30 +72,30 @@ public:
 
 	bool open_file(const String &p_file);
 
-	virtual void stop() override;
-	virtual void play() override;
+	virtual void stop();
+	virtual void play();
 
-	virtual bool is_playing() const override;
+	virtual bool is_playing() const;
 
-	virtual void set_paused(bool p_paused) override;
-	virtual bool is_paused() const override;
+	virtual void set_paused(bool p_paused);
+	virtual bool is_paused() const;
 
-	virtual void set_loop(bool p_enable) override;
-	virtual bool has_loop() const override;
+	virtual void set_loop(bool p_enable);
+	virtual bool has_loop() const;
 
-	virtual float get_length() const override;
+	virtual float get_length() const;
 
-	virtual float get_playback_position() const override;
-	virtual void seek(float p_time) override;
+	virtual float get_playback_position() const;
+	virtual void seek(float p_time);
 
-	virtual void set_audio_track(int p_idx) override;
+	virtual void set_audio_track(int p_idx);
 
-	virtual Ref<Texture2D> get_texture() const override;
-	virtual void update(float p_delta) override;
+	virtual Ref<Texture> get_texture() const;
+	virtual void update(float p_delta);
 
-	virtual void set_mix_callback(AudioMixCallback p_callback, void *p_userdata) override;
-	virtual int get_channels() const override;
-	virtual int get_mix_rate() const override;
+	virtual void set_mix_callback(AudioMixCallback p_callback, void *p_userdata);
+	virtual int get_channels() const;
+	virtual int get_mix_rate() const;
 
 private:
 	inline bool has_enough_video_frames() const;
@@ -106,10 +107,11 @@ private:
 /**/
 
 class VideoStreamWebm : public VideoStream {
+
 	GDCLASS(VideoStreamWebm, VideoStream);
 
 	String file;
-	int audio_track = 0;
+	int audio_track;
 
 protected:
 	static void _bind_methods();
@@ -117,16 +119,16 @@ protected:
 public:
 	VideoStreamWebm();
 
-	virtual Ref<VideoStreamPlayback> instance_playback() override;
+	virtual Ref<VideoStreamPlayback> instance_playback();
 
 	virtual void set_file(const String &p_file);
 	String get_file();
-	virtual void set_audio_track(int p_track) override;
+	virtual void set_audio_track(int p_track);
 };
 
 class ResourceFormatLoaderWebm : public ResourceFormatLoader {
 public:
-	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = nullptr, bool p_use_sub_threads = false, float *r_progress = nullptr, bool p_no_cache = false);
+	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;

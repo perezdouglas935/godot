@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,7 +33,7 @@
 #include "midi_driver_alsamidi.h"
 
 #include "core/os/os.h"
-#include "core/string/print_string.h"
+#include "core/print_string.h"
 
 #include <errno.h>
 
@@ -91,7 +91,7 @@ void MIDIDriverALSAMidi::thread_func(void *p_udata) {
 				ret = snd_rawmidi_read(midi_in, &byte, 1);
 				if (ret < 0) {
 					if (ret != -EAGAIN) {
-						ERR_PRINT("snd_rawmidi_read error: " + String(snd_strerror(ret)));
+						ERR_PRINTS("snd_rawmidi_read error: " + String(snd_strerror(ret)));
 					}
 				} else {
 					if (byte & 0x80) {
@@ -125,30 +125,30 @@ void MIDIDriverALSAMidi::thread_func(void *p_udata) {
 }
 
 Error MIDIDriverALSAMidi::open() {
+
 	void **hints;
 
-	if (snd_device_name_hint(-1, "rawmidi", &hints) < 0) {
+	if (snd_device_name_hint(-1, "rawmidi", &hints) < 0)
 		return ERR_CANT_OPEN;
-	}
 
 	int i = 0;
-	for (void **n = hints; *n != nullptr; n++) {
+	for (void **n = hints; *n != NULL; n++) {
 		char *name = snd_device_name_get_hint(*n, "NAME");
 
-		if (name != nullptr) {
+		if (name != NULL) {
 			snd_rawmidi_t *midi_in;
-			int ret = snd_rawmidi_open(&midi_in, nullptr, name, SND_RAWMIDI_NONBLOCK);
+			int ret = snd_rawmidi_open(&midi_in, NULL, name, SND_RAWMIDI_NONBLOCK);
 			if (ret >= 0) {
 				connected_inputs.insert(i++, midi_in);
 			}
 		}
 
-		if (name != nullptr) {
+		if (name != NULL)
 			free(name);
-		}
 	}
 	snd_device_name_free_hint(hints);
 
+	mutex = Mutex::create();
 	exit_thread = false;
 	thread = Thread::create(MIDIDriverALSAMidi::thread_func, this);
 
@@ -156,12 +156,18 @@ Error MIDIDriverALSAMidi::open() {
 }
 
 void MIDIDriverALSAMidi::close() {
+
 	if (thread) {
 		exit_thread = true;
 		Thread::wait_to_finish(thread);
 
 		memdelete(thread);
-		thread = nullptr;
+		thread = NULL;
+	}
+
+	if (mutex) {
+		memdelete(mutex);
+		mutex = NULL;
 	}
 
 	for (int i = 0; i < connected_inputs.size(); i++) {
@@ -172,15 +178,20 @@ void MIDIDriverALSAMidi::close() {
 }
 
 void MIDIDriverALSAMidi::lock() const {
-	mutex.lock();
+
+	if (mutex)
+		mutex->lock();
 }
 
 void MIDIDriverALSAMidi::unlock() const {
-	mutex.unlock();
+
+	if (mutex)
+		mutex->unlock();
 }
 
-PackedStringArray MIDIDriverALSAMidi::get_connected_inputs() {
-	PackedStringArray list;
+PoolStringArray MIDIDriverALSAMidi::get_connected_inputs() {
+
+	PoolStringArray list;
 
 	lock();
 	for (int i = 0; i < connected_inputs.size(); i++) {
@@ -198,12 +209,15 @@ PackedStringArray MIDIDriverALSAMidi::get_connected_inputs() {
 }
 
 MIDIDriverALSAMidi::MIDIDriverALSAMidi() {
-	thread = nullptr;
+
+	mutex = NULL;
+	thread = NULL;
 
 	exit_thread = false;
 }
 
 MIDIDriverALSAMidi::~MIDIDriverALSAMidi() {
+
 	close();
 }
 

@@ -19,7 +19,8 @@
 #ifndef PFRCMAP_H_
 #define PFRCMAP_H_
 
-#include <freetype/internal/ftobjs.h>
+#include <ft2build.h>
+#include FT_INTERNAL_OBJECTS_H
 #include "pfrtypes.h"
 
 

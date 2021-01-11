@@ -132,8 +132,8 @@ namespace Godot
             Vector3 destinationLocation = transform.origin;
 
             var interpolated = new Transform();
-            interpolated.basis.SetQuatScale(sourceRotation.Slerp(destinationRotation, weight).Normalized(), sourceScale.Lerp(destinationScale, weight));
-            interpolated.origin = sourceLocation.Lerp(destinationLocation, weight);
+            interpolated.basis.SetQuatScale(sourceRotation.Slerp(destinationRotation, weight).Normalized(), sourceScale.LinearInterpolate(destinationScale, weight));
+            interpolated.origin = sourceLocation.LinearInterpolate(destinationLocation, weight);
 
             return interpolated;
         }
@@ -202,7 +202,7 @@ namespace Godot
             return new Transform(basis.Scaled(scale), origin * scale);
         }
 
-        private void SetLookAt(Vector3 eye, Vector3 target, Vector3 up)
+        public void SetLookAt(Vector3 eye, Vector3 target, Vector3 up)
         {
             // Make rotation matrix
             // Z vector

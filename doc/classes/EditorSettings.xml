@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="EditorSettings" inherits="Resource" version="4.0">
+<class name="EditorSettings" inherits="Resource" version="3.2">
 	<brief_description>
 		Object that holds the project-independent editor settings.
 	</brief_description>
@@ -7,24 +7,15 @@
 		Object that holds the project-independent editor settings. These settings are generally visible in the [b]Editor &gt; Editor Settings[/b] menu.
 		Property names use slash delimiters to distinguish sections. Setting values can be of any [Variant] type. It's recommended to use [code]snake_case[/code] for editor settings to be consistent with the Godot editor itself.
 		Accessing the settings can be done using the following methods, such as:
-		[codeblocks]
-		[gdscript]
-		var settings = EditorInterface.get_editor_settings()
-		# `settings.set("some/property", 10)` also works as this class overrides `_set()` internally.
-		settings.set_setting("some/property", 10)
-		# `settings.get("some/property")` also works as this class overrides `_get()` internally.
+		[codeblock]
+		# `settings.set("some/property", value)` also works as this class overrides `_set()` internally.
+		settings.set_setting("some/property",value)
+
+		# `settings.get("some/property", value)` also works as this class overrides `_get()` internally.
 		settings.get_setting("some/property")
+
 		var list_of_settings = settings.get_property_list()
-		[/gdscript]
-		[csharp]
-		EditorSettings settings = GetEditorInterface().GetEditorSettings();
-		// `settings.set("some/property", value)` also works as this class overrides `_set()` internally.
-		settings.SetSetting("some/property", Value);
-		// `settings.get("some/property", value)` also works as this class overrides `_get()` internally.
-		settings.GetSetting("some/property");
-		Godot.Collections.Array listOfSettings = settings.GetPropertyList();
-		[/csharp]
-		[/codeblocks]
+		[/codeblock]
 		[b]Note:[/b] This class shouldn't be instantiated directly. Instead, access the singleton using [method EditorInterface.get_editor_settings].
 	</description>
 	<tutorials>
@@ -41,10 +32,8 @@
 				- [code]type[/code]: [int] (see [enum Variant.Type])
 				- optionally [code]hint[/code]: [int] (see [enum PropertyHint]) and [code]hint_string[/code]: [String]
 				[b]Example:[/b]
-				[codeblocks]
-				[gdscript]
-				var settings = EditorInterface.get_editor_settings()
-				settings.set("category/property_name", 0)
+				[codeblock]
+				editor_settings.set("category/property_name", 0)
 
 				var property_info = {
 				    "name": "category/property_name",
@@ -53,23 +42,8 @@
 				    "hint_string": "one,two,three"
 				}
 
-				settings.add_property_info(property_info)
-				[/gdscript]
-				[csharp]
-				var settings = GetEditorInterface().GetEditorSettings();
-				settings.Set("category/property_name", 0);
-
-				var propertyInfo = new Godot.Collections.Dictionary
-				{
-				    {"name", "category/propertyName"},
-				    {"type", Variant.Type.Int},
-				    {"hint", PropertyHint.Enum},
-				    {"hint_string", "one,two,three"}
-				};
-
-				settings.AddPropertyInfo(propertyInfo);
-				[/csharp]
-				[/codeblocks]
+				editor_settings.add_property_info(property_info)
+				[/codeblock]
 			</description>
 		</method>
 		<method name="erase">
@@ -82,7 +56,7 @@
 			</description>
 		</method>
 		<method name="get_favorites" qualifiers="const">
-			<return type="PackedStringArray">
+			<return type="PoolStringArray">
 			</return>
 			<description>
 				Returns the list of favorite files and directories for this project.
@@ -109,7 +83,7 @@
 			</description>
 		</method>
 		<method name="get_recent_dirs" qualifiers="const">
-			<return type="PackedStringArray">
+			<return type="PoolStringArray">
 			</return>
 			<description>
 				Returns the list of recently visited folders in the file dialog for this project.
@@ -163,7 +137,7 @@
 		<method name="set_favorites">
 			<return type="void">
 			</return>
-			<argument index="0" name="dirs" type="PackedStringArray">
+			<argument index="0" name="dirs" type="PoolStringArray">
 			</argument>
 			<description>
 				Sets the list of favorite files and directories for this project.
@@ -172,7 +146,7 @@
 		<method name="set_initial_value">
 			<return type="void">
 			</return>
-			<argument index="0" name="name" type="StringName">
+			<argument index="0" name="name" type="String">
 			</argument>
 			<argument index="1" name="value" type="Variant">
 			</argument>
@@ -198,7 +172,7 @@
 		<method name="set_recent_dirs">
 			<return type="void">
 			</return>
-			<argument index="0" name="dirs" type="PackedStringArray">
+			<argument index="0" name="dirs" type="PoolStringArray">
 			</argument>
 			<description>
 				Sets the list of recently visited folders in the file dialog for this project.

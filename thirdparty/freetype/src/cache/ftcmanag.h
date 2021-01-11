@@ -63,7 +63,8 @@
 #define FTCMANAG_H_
 
 
-#include <freetype/ftcache.h>
+#include <ft2build.h>
+#include FT_CACHE_H
 #include "ftcmru.h"
 #include "ftccache.h"
 

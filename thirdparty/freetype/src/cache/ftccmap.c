@@ -16,12 +16,13 @@
  */
 
 
-#include <freetype/freetype.h>
-#include <freetype/ftcache.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_CACHE_H
 #include "ftcmanag.h"
-#include <freetype/internal/ftmemory.h>
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/ftdebug.h>
+#include FT_INTERNAL_MEMORY_H
+#include FT_INTERNAL_OBJECTS_H
+#include FT_INTERNAL_DEBUG_H
 
 #include "ftccback.h"
 #include "ftcerror.h"

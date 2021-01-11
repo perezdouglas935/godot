@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef CURVE_H
 #define CURVE_H
 
-#include "core/io/resource.h"
+#include "core/resource.h"
 
 // y(x) curve
 class Curve : public Resource {
@@ -68,6 +68,7 @@ public:
 				real_t p_right = 0,
 				TangentMode p_left_mode = TANGENT_FREE,
 				TangentMode p_right_mode = TANGENT_FREE) {
+
 			pos = p_pos;
 			left_tangent = p_left;
 			right_tangent = p_right;
@@ -148,9 +149,11 @@ private:
 VARIANT_ENUM_CAST(Curve::TangentMode)
 
 class Curve2D : public Resource {
+
 	GDCLASS(Curve2D, Resource);
 
 	struct Point {
+
 		Vector2 in;
 		Vector2 out;
 		Vector2 pos;
@@ -159,12 +162,13 @@ class Curve2D : public Resource {
 	Vector<Point> points;
 
 	struct BakedPoint {
+
 		float ofs;
 		Vector2 point;
 	};
 
 	mutable bool baked_cache_dirty;
-	mutable PackedVector2Array baked_point_cache;
+	mutable PoolVector2Array baked_point_cache;
 	mutable float baked_max_ofs;
 
 	void _bake() const;
@@ -198,19 +202,21 @@ public:
 
 	float get_baked_length() const;
 	Vector2 interpolate_baked(float p_offset, bool p_cubic = false) const;
-	PackedVector2Array get_baked_points() const; //useful for going through
+	PoolVector2Array get_baked_points() const; //useful for going through
 	Vector2 get_closest_point(const Vector2 &p_to_point) const;
 	float get_closest_offset(const Vector2 &p_to_point) const;
 
-	PackedVector2Array tessellate(int p_max_stages = 5, float p_tolerance = 4) const; //useful for display
+	PoolVector2Array tessellate(int p_max_stages = 5, float p_tolerance = 4) const; //useful for display
 
 	Curve2D();
 };
 
 class Curve3D : public Resource {
+
 	GDCLASS(Curve3D, Resource);
 
 	struct Point {
+
 		Vector3 in;
 		Vector3 out;
 		Vector3 pos;
@@ -222,14 +228,15 @@ class Curve3D : public Resource {
 	Vector<Point> points;
 
 	struct BakedPoint {
+
 		float ofs;
 		Vector3 point;
 	};
 
 	mutable bool baked_cache_dirty;
-	mutable PackedVector3Array baked_point_cache;
-	mutable PackedFloat32Array baked_tilt_cache;
-	mutable PackedVector3Array baked_up_vector_cache;
+	mutable PoolVector3Array baked_point_cache;
+	mutable PoolRealArray baked_tilt_cache;
+	mutable PoolVector3Array baked_up_vector_cache;
 	mutable float baked_max_ofs;
 
 	void _bake() const;
@@ -270,13 +277,13 @@ public:
 	Vector3 interpolate_baked(float p_offset, bool p_cubic = false) const;
 	float interpolate_baked_tilt(float p_offset) const;
 	Vector3 interpolate_baked_up_vector(float p_offset, bool p_apply_tilt = false) const;
-	PackedVector3Array get_baked_points() const; //useful for going through
-	PackedFloat32Array get_baked_tilts() const; //useful for going through
-	PackedVector3Array get_baked_up_vectors() const;
+	PoolVector3Array get_baked_points() const; //useful for going through
+	PoolRealArray get_baked_tilts() const; //useful for going through
+	PoolVector3Array get_baked_up_vectors() const;
 	Vector3 get_closest_point(const Vector3 &p_to_point) const;
 	float get_closest_offset(const Vector3 &p_to_point) const;
 
-	PackedVector3Array tessellate(int p_max_stages = 5, float p_tolerance = 4) const; //useful for display
+	PoolVector3Array tessellate(int p_max_stages = 5, float p_tolerance = 4) const; //useful for display
 
 	Curve3D();
 };

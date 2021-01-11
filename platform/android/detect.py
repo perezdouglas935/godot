@@ -25,7 +25,7 @@ def get_opts():
 
     return [
         ("ANDROID_NDK_ROOT", "Path to the Android NDK", os.environ.get("ANDROID_NDK_ROOT", 0)),
-        ("ndk_platform", 'Target platform (android-<api>, e.g. "android-24")', "android-24"),
+        ("ndk_platform", 'Target platform (android-<api>, e.g. "android-18")', "android-18"),
         EnumVariable("android_arch", "Target architecture", "armv7", ("armv7", "arm64v8", "x86", "x86_64")),
         BoolVariable("android_neon", "Enable NEON support (armv7 only)", True),
     ]
@@ -102,7 +102,7 @@ def configure(env):
     neon_text = ""
     if env["android_arch"] == "armv7" and env["android_neon"]:
         neon_text = " (with NEON)"
-    print("Building for Android, platform " + env["ndk_platform"] + " (" + env["android_arch"] + ")" + neon_text)
+    print("Building for Android (" + env["android_arch"] + ")" + neon_text)
 
     can_vectorize = True
     if env["android_arch"] == "x86":
@@ -115,8 +115,7 @@ def configure(env):
     if env["android_arch"] == "x86_64":
         if get_platform(env["ndk_platform"]) < 21:
             print(
-                "WARNING: android_arch=x86_64 is not supported by ndk_platform lower than android-21; setting"
-                " ndk_platform=android-21"
+                "WARNING: android_arch=x86_64 is not supported by ndk_platform lower than android-21; setting ndk_platform=android-21"
             )
             env["ndk_platform"] = "android-21"
         env["ARCH"] = "arch-x86_64"
@@ -137,8 +136,7 @@ def configure(env):
     elif env["android_arch"] == "arm64v8":
         if get_platform(env["ndk_platform"]) < 21:
             print(
-                "WARNING: android_arch=arm64v8 is not supported by ndk_platform lower than android-21; setting"
-                " ndk_platform=android-21"
+                "WARNING: android_arch=arm64v8 is not supported by ndk_platform lower than android-21; setting ndk_platform=android-21"
             )
             env["ndk_platform"] = "android-21"
         env["ARCH"] = "arch-arm64"
@@ -164,9 +162,9 @@ def configure(env):
         if env["target"] == "release_debug":
             env.Append(CPPDEFINES=["DEBUG_ENABLED"])
     elif env["target"] == "debug":
-        env.Append(LINKFLAGS=["-O0"])
+        env.Append(LINKFLAGS=["-O0", "-g"])
         env.Append(CCFLAGS=["-O0", "-g", "-fno-limit-debug-info"])
-        env.Append(CPPDEFINES=["_DEBUG", "DEBUG_ENABLED"])
+        env.Append(CPPDEFINES=["_DEBUG", "DEBUG_ENABLED", "DEBUG_MEMORY_ENABLED"])
         env.Append(CPPFLAGS=["-UNDEBUG"])
 
     # Compiler configuration
@@ -215,7 +213,7 @@ def configure(env):
     env.Append(CPPFLAGS=["-isystem", env["ANDROID_NDK_ROOT"] + "/sources/cxx-stl/llvm-libc++abi/include"])
 
     # Disable exceptions and rtti on non-tools (template) builds
-    if env["tools"] or env["builtin_icu"]:
+    if env["tools"]:
         env.Append(CXXFLAGS=["-frtti"])
     else:
         env.Append(CXXFLAGS=["-fno-rtti", "-fno-exceptions"])
@@ -233,10 +231,7 @@ def configure(env):
     env.Append(CPPDEFINES=[("__ANDROID_API__", str(get_platform(env["ndk_platform"])))])
 
     env.Append(
-        CCFLAGS=(
-            "-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -fvisibility=hidden"
-            " -fno-strict-aliasing".split()
-        )
+        CCFLAGS="-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -fvisibility=hidden -fno-strict-aliasing".split()
     )
     env.Append(CPPDEFINES=["NO_STATVFS", "GLES_ENABLED"])
 
@@ -319,8 +314,8 @@ def configure(env):
     )
 
     env.Prepend(CPPPATH=["#platform/android"])
-    env.Append(CPPDEFINES=["ANDROID_ENABLED", "UNIX_ENABLED", "VULKAN_ENABLED", "NO_FCNTL"])
-    env.Append(LIBS=["OpenSLES", "EGL", "GLESv2", "vulkan", "android", "log", "z", "dl"])
+    env.Append(CPPDEFINES=["ANDROID_ENABLED", "UNIX_ENABLED", "NO_FCNTL"])
+    env.Append(LIBS=["OpenSLES", "EGL", "GLESv3", "GLESv2", "android", "log", "z", "dl"])
 
 
 # Return NDK version string in source.properties (adapted from the Chromium project).
@@ -334,6 +329,6 @@ def get_ndk_version(path):
                 key_value = list(map(lambda x: x.strip(), line.split("=")))
                 if key_value[0] == "Pkg.Revision":
                     return key_value[1]
-    except Exception:
+    except:
         print("Could not read source prop file '%s'" % prop_file_path)
     return None

@@ -14,9 +14,7 @@ subject to the following restrictions:
 */
 
 //#define COMPUTE_IMPULSE_DENOM 1
-#ifdef BT_DEBUG
-#	define BT_ADDITIONAL_DEBUG
-#endif
+//#define BT_ADDITIONAL_DEBUG
 
 //It is not necessary (redundant) to refresh contact manifolds, this refresh has been moved to the collision algorithms.
 
@@ -692,10 +690,8 @@ int btSequentialImpulseConstraintSolver::getOrInitSolverBody(btCollisionObject& 
 {
 #if BT_THREADSAFE
 	int solverBodyId = -1;
-	const bool isRigidBodyType = btRigidBody::upcast(&body) != NULL;
-	const bool isStaticOrKinematic = body.isStaticOrKinematicObject();
-	const bool isKinematic = body.isKinematicObject();
-	if (isRigidBodyType && !isStaticOrKinematic)
+	bool isRigidBodyType = btRigidBody::upcast(&body) != NULL;
+	if (isRigidBodyType && !body.isStaticOrKinematicObject())
 	{
 		// dynamic body
 		// Dynamic bodies can only be in one island, so it's safe to write to the companionId
@@ -708,7 +704,7 @@ int btSequentialImpulseConstraintSolver::getOrInitSolverBody(btCollisionObject& 
 			body.setCompanionId(solverBodyId);
 		}
 	}
-	else if (isRigidBodyType && isKinematic)
+	else if (isRigidBodyType && body.isKinematicObject())
 	{
 		//
 		// NOTE: must test for kinematic before static because some kinematic objects also

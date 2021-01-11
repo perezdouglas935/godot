@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,24 +31,18 @@
 #ifndef REFLECTIONPROBE_H
 #define REFLECTIONPROBE_H
 
-#include "scene/3d/visual_instance_3d.h"
+#include "scene/3d/visual_instance.h"
 #include "scene/resources/sky.h"
 #include "scene/resources/texture.h"
-#include "servers/rendering_server.h"
+#include "servers/visual_server.h"
 
-class ReflectionProbe : public VisualInstance3D {
-	GDCLASS(ReflectionProbe, VisualInstance3D);
+class ReflectionProbe : public VisualInstance {
+	GDCLASS(ReflectionProbe, VisualInstance);
 
 public:
 	enum UpdateMode {
 		UPDATE_ONCE,
 		UPDATE_ALWAYS,
-	};
-
-	enum AmbientMode {
-		AMBIENT_DISABLED,
-		AMBIENT_ENVIRONMENT,
-		AMBIENT_COLOR
 	};
 
 private:
@@ -60,39 +54,32 @@ private:
 	bool box_projection;
 	bool enable_shadows;
 	bool interior;
-	AmbientMode ambient_mode;
-	Color ambient_color;
-	float ambient_color_energy;
-	float lod_threshold;
+	Color interior_ambient;
+	float interior_ambient_energy;
+	float interior_ambient_probe_contribution;
 
 	uint32_t cull_mask;
 	UpdateMode update_mode;
 
 protected:
 	static void _bind_methods();
-	void _validate_property(PropertyInfo &property) const override;
+	void _validate_property(PropertyInfo &property) const;
 
 public:
 	void set_intensity(float p_intensity);
 	float get_intensity() const;
 
-	void set_ambient_mode(AmbientMode p_mode);
-	AmbientMode get_ambient_mode() const;
+	void set_interior_ambient(Color p_ambient);
+	Color get_interior_ambient() const;
 
-	void set_ambient_color(Color p_ambient);
-	Color get_ambient_color() const;
-
-	void set_ambient_color_energy(float p_energy);
-	float get_ambient_color_energy() const;
+	void set_interior_ambient_energy(float p_energy);
+	float get_interior_ambient_energy() const;
 
 	void set_interior_ambient_probe_contribution(float p_contribution);
 	float get_interior_ambient_probe_contribution() const;
 
 	void set_max_distance(float p_distance);
 	float get_max_distance() const;
-
-	void set_lod_threshold(float p_pixels);
-	float get_lod_threshold() const;
 
 	void set_extents(const Vector3 &p_extents);
 	Vector3 get_extents() const;
@@ -115,14 +102,13 @@ public:
 	void set_update_mode(UpdateMode p_mode);
 	UpdateMode get_update_mode() const;
 
-	virtual AABB get_aabb() const override;
-	virtual Vector<Face3> get_faces(uint32_t p_usage_flags) const override;
+	virtual AABB get_aabb() const;
+	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
 
 	ReflectionProbe();
 	~ReflectionProbe();
 };
 
-VARIANT_ENUM_CAST(ReflectionProbe::AmbientMode);
 VARIANT_ENUM_CAST(ReflectionProbe::UpdateMode);
 
 #endif // REFLECTIONPROBE_H

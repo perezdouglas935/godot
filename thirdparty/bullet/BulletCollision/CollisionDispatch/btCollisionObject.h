@@ -127,7 +127,6 @@ public:
 
 	enum CollisionFlags
 	{
-		CF_DYNAMIC_OBJECT = 0,
 		CF_STATIC_OBJECT = 1,
 		CF_KINEMATIC_OBJECT = 2,
 		CF_NO_CONTACT_RESPONSE = 4,
@@ -250,16 +249,6 @@ public:
 			m_objectsWithoutCollisionCheck.remove(co);
 		}
 		m_checkCollideWith = m_objectsWithoutCollisionCheck.size() > 0;
-	}
-
-        int getNumObjectsWithoutCollision() const
-	{
-		return m_objectsWithoutCollisionCheck.size();
-	}
-
-	const btCollisionObject* getObjectWithoutCollision(int index)
-	{
-		return m_objectsWithoutCollisionCheck[index];
 	}
 
 	virtual bool checkCollideWithOverride(const btCollisionObject* co) const

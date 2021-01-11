@@ -21,7 +21,8 @@ btHeightfieldTerrainShape::btHeightfieldTerrainShape(
 	int heightStickWidth, int heightStickLength, const void* heightfieldData,
 	btScalar heightScale, btScalar minHeight, btScalar maxHeight, int upAxis,
 	PHY_ScalarType hdt, bool flipQuadEdges)
-	:m_userValue3(0),
+	:m_userIndex2(-1),
+	m_userValue3(0),
 	m_triangleInfoMap(0)
 {
 	initialize(heightStickWidth, heightStickLength, heightfieldData,
@@ -30,7 +31,8 @@ btHeightfieldTerrainShape::btHeightfieldTerrainShape(
 }
 
 btHeightfieldTerrainShape::btHeightfieldTerrainShape(int heightStickWidth, int heightStickLength, const void* heightfieldData, btScalar maxHeight, int upAxis, bool useFloatData, bool flipQuadEdges)
-	:	m_userValue3(0),
+	:m_userIndex2(-1),
+	m_userValue3(0),
 	m_triangleInfoMap(0)
 {
 	// legacy constructor: support only float or unsigned char,

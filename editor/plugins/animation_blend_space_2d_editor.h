@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -42,23 +42,24 @@
 #include "scene/gui/tree.h"
 
 class AnimationNodeBlendSpace2DEditor : public AnimationTreeNodeEditorPlugin {
+
 	GDCLASS(AnimationNodeBlendSpace2DEditor, AnimationTreeNodeEditorPlugin);
 
 	Ref<AnimationNodeBlendSpace2D> blend_space;
 
 	PanelContainer *panel;
-	Button *tool_blend;
-	Button *tool_select;
-	Button *tool_create;
-	Button *tool_triangle;
+	ToolButton *tool_blend;
+	ToolButton *tool_select;
+	ToolButton *tool_create;
+	ToolButton *tool_triangle;
 	VSeparator *tool_erase_sep;
-	Button *tool_erase;
-	Button *snap;
+	ToolButton *tool_erase;
+	ToolButton *snap;
 	SpinBox *snap_x;
 	SpinBox *snap_y;
 	OptionButton *interpolation;
 
-	Button *auto_triangles;
+	ToolButton *auto_triangles;
 
 	LineEdit *label_x;
 	LineEdit *label_y;
@@ -142,8 +143,8 @@ protected:
 
 public:
 	static AnimationNodeBlendSpace2DEditor *get_singleton() { return singleton; }
-	virtual bool can_edit(const Ref<AnimationNode> &p_node) override;
-	virtual void edit(const Ref<AnimationNode> &p_node) override;
+	virtual bool can_edit(const Ref<AnimationNode> &p_node);
+	virtual void edit(const Ref<AnimationNode> &p_node);
 	AnimationNodeBlendSpace2DEditor();
 };
 

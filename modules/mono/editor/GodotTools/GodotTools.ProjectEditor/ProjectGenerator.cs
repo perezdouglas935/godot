@@ -3,13 +3,14 @@ using System.IO;
 using System.Text;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using GodotTools.Shared;
 
 namespace GodotTools.ProjectEditor
 {
     public static class ProjectGenerator
     {
-        public static string GodotSdkAttrValue => $"Godot.NET.Sdk/{GeneratedGodotNupkgsVersions.GodotNETSdk}";
+        public const string GodotSdkVersionToUse = "3.2.3";
+
+        public static string GodotSdkAttrValue => $"Godot.NET.Sdk/{GodotSdkVersionToUse}";
 
         public static ProjectRootElement GenGameProject(string name)
         {
@@ -21,7 +22,7 @@ namespace GodotTools.ProjectEditor
             root.Sdk = GodotSdkAttrValue;
 
             var mainGroup = root.AddPropertyGroup();
-            mainGroup.AddProperty("TargetFramework", "netstandard2.1");
+            mainGroup.AddProperty("TargetFramework", "net472");
 
             string sanitizedName = IdentifierUtils.SanitizeQualifiedIdentifier(name, allowEmptyIdentifiers: true);
 

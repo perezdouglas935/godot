@@ -82,17 +82,11 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ctr_drbg_context ) );
 
-    ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
-
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_init( &ctx->mutex );
 #endif
 }
 
-/*
- *  This function resets CTR_DRBG context to the state immediately
- *  after initial call of mbedtls_ctr_drbg_init().
- */
 void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
 {
     if( ctx == NULL )
@@ -103,10 +97,6 @@ void mbedtls_ctr_drbg_free( mbedtls_ctr_drbg_context *ctx )
 #endif
     mbedtls_aes_free( &ctx->aes_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ctr_drbg_context ) );
-    ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
-#if defined(MBEDTLS_THREADING_C)
-    mbedtls_mutex_init( &ctx->mutex );
-#endif
 }
 
 void mbedtls_ctr_drbg_set_prediction_resistance( mbedtls_ctr_drbg_context *ctx, int resistance )
@@ -429,6 +419,7 @@ int mbedtls_ctr_drbg_seed( mbedtls_ctr_drbg_context *ctx,
 
     if( ctx->entropy_len == 0 )
         ctx->entropy_len = MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+    ctx->reseed_interval = MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
 
     /*
      * Initialize with an empty key

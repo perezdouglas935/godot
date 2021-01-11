@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,24 +30,26 @@
 
 #include "editor_plugin_settings.h"
 
-#include "core/config/project_settings.h"
 #include "core/io/config_file.h"
 #include "core/os/file_access.h"
 #include "core/os/main_loop.h"
+#include "core/project_settings.h"
 #include "editor_node.h"
 #include "editor_scale.h"
 #include "scene/gui/margin_container.h"
 
 void EditorPluginSettings::_notification(int p_what) {
-	if (p_what == NOTIFICATION_WM_WINDOW_FOCUS_IN) {
+
+	if (p_what == MainLoop::NOTIFICATION_WM_FOCUS_IN) {
 		update_plugins();
 	} else if (p_what == Node::NOTIFICATION_READY) {
-		plugin_config_dialog->connect("plugin_ready", Callable(EditorNode::get_singleton(), "_on_plugin_ready"));
-		plugin_list->connect("button_pressed", callable_mp(this, &EditorPluginSettings::_cell_button_pressed));
+		plugin_config_dialog->connect("plugin_ready", EditorNode::get_singleton(), "_on_plugin_ready");
+		plugin_list->connect("button_pressed", this, "_cell_button_pressed");
 	}
 }
 
 void EditorPluginSettings::update_plugins() {
+
 	plugin_list->clear();
 
 	DirAccess *da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
@@ -68,10 +70,12 @@ void EditorPluginSettings::update_plugins() {
 	Vector<String> plugins;
 
 	while (d != String()) {
+
 		bool dir = da->current_is_dir();
 		String path = "res://addons/" + d + "/plugin.cfg";
 
 		if (dir && FileAccess::exists(path)) {
+
 			plugins.push_back(d);
 		}
 
@@ -84,6 +88,7 @@ void EditorPluginSettings::update_plugins() {
 	plugins.sort();
 
 	for (int i = 0; i < plugins.size(); i++) {
+
 		Ref<ConfigFile> cf;
 		cf.instance();
 		String path = "res://addons/" + plugins[i] + "/plugin.cfg";
@@ -91,28 +96,28 @@ void EditorPluginSettings::update_plugins() {
 		Error err2 = cf->load(path);
 
 		if (err2 != OK) {
-			WARN_PRINT("Can't load plugin config: " + path);
+			WARN_PRINTS("Can't load plugin config: " + path);
 		} else {
 			bool key_missing = false;
 
 			if (!cf->has_section_key("plugin", "name")) {
-				WARN_PRINT("Plugin config misses \"plugin/name\" key: " + path);
+				WARN_PRINTS("Plugin config misses \"plugin/name\" key: " + path);
 				key_missing = true;
 			}
 			if (!cf->has_section_key("plugin", "author")) {
-				WARN_PRINT("Plugin config misses \"plugin/author\" key: " + path);
+				WARN_PRINTS("Plugin config misses \"plugin/author\" key: " + path);
 				key_missing = true;
 			}
 			if (!cf->has_section_key("plugin", "version")) {
-				WARN_PRINT("Plugin config misses \"plugin/version\" key: " + path);
+				WARN_PRINTS("Plugin config misses \"plugin/version\" key: " + path);
 				key_missing = true;
 			}
 			if (!cf->has_section_key("plugin", "description")) {
-				WARN_PRINT("Plugin config misses \"plugin/description\" key: " + path);
+				WARN_PRINTS("Plugin config misses \"plugin/description\" key: " + path);
 				key_missing = true;
 			}
 			if (!cf->has_section_key("plugin", "script")) {
-				WARN_PRINT("Plugin config misses \"plugin/script\" key: " + path);
+				WARN_PRINTS("Plugin config misses \"plugin/script\" key: " + path);
 				key_missing = true;
 			}
 
@@ -137,7 +142,7 @@ void EditorPluginSettings::update_plugins() {
 				bool is_active = EditorNode::get_singleton()->is_addon_plugin_enabled(d2);
 				item->set_checked(3, is_active);
 				item->set_editable(3, true);
-				item->add_button(4, get_theme_icon("Edit", "EditorIcons"), BUTTON_PLUGIN_EDIT, false, TTR("Edit Plugin"));
+				item->add_button(4, get_icon("Edit", "EditorIcons"), BUTTON_PLUGIN_EDIT, false, TTR("Edit Plugin"));
 			}
 		}
 	}
@@ -146,9 +151,9 @@ void EditorPluginSettings::update_plugins() {
 }
 
 void EditorPluginSettings::_plugin_activity_changed() {
-	if (updating) {
+
+	if (updating)
 		return;
-	}
 
 	TreeItem *ti = plugin_list->get_edited();
 	ERR_FAIL_COND(!ti);
@@ -173,9 +178,8 @@ void EditorPluginSettings::_create_clicked() {
 
 void EditorPluginSettings::_cell_button_pressed(Object *p_item, int p_column, int p_id) {
 	TreeItem *item = Object::cast_to<TreeItem>(p_item);
-	if (!item) {
+	if (!item)
 		return;
-	}
 	if (p_id == BUTTON_PLUGIN_EDIT) {
 		if (p_column == 4) {
 			String dir = item->get_metadata(0);
@@ -186,9 +190,15 @@ void EditorPluginSettings::_cell_button_pressed(Object *p_item, int p_column, in
 }
 
 void EditorPluginSettings::_bind_methods() {
+
+	ClassDB::bind_method("update_plugins", &EditorPluginSettings::update_plugins);
+	ClassDB::bind_method("_create_clicked", &EditorPluginSettings::_create_clicked);
+	ClassDB::bind_method("_plugin_activity_changed", &EditorPluginSettings::_plugin_activity_changed);
+	ClassDB::bind_method("_cell_button_pressed", &EditorPluginSettings::_cell_button_pressed);
 }
 
 EditorPluginSettings::EditorPluginSettings() {
+
 	plugin_config_dialog = memnew(PluginConfigDialog);
 	plugin_config_dialog->config("");
 	add_child(plugin_config_dialog);
@@ -197,10 +207,10 @@ EditorPluginSettings::EditorPluginSettings() {
 	title_hb->add_child(memnew(Label(TTR("Installed Plugins:"))));
 	title_hb->add_spacer();
 	create_plugin = memnew(Button(TTR("Create")));
-	create_plugin->connect("pressed", callable_mp(this, &EditorPluginSettings::_create_clicked));
+	create_plugin->connect("pressed", this, "_create_clicked");
 	title_hb->add_child(create_plugin);
 	update_list = memnew(Button(TTR("Update")));
-	update_list->connect("pressed", callable_mp(this, &EditorPluginSettings::update_plugins));
+	update_list->connect("pressed", this, "update_plugins");
 	title_hb->add_child(update_list);
 	add_child(title_hb);
 
@@ -223,7 +233,7 @@ EditorPluginSettings::EditorPluginSettings() {
 	plugin_list->set_column_min_width(3, 80 * EDSCALE);
 	plugin_list->set_column_min_width(4, 40 * EDSCALE);
 	plugin_list->set_hide_root(true);
-	plugin_list->connect("item_edited", callable_mp(this, &EditorPluginSettings::_plugin_activity_changed));
+	plugin_list->connect("item_edited", this, "_plugin_activity_changed");
 
 	VBoxContainer *mc = memnew(VBoxContainer);
 	mc->add_child(plugin_list);

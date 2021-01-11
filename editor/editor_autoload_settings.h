@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -36,6 +36,7 @@
 #include "editor_file_dialog.h"
 
 class EditorAutoloadSettings : public VBoxContainer {
+
 	GDCLASS(EditorAutoloadSettings, VBoxContainer);
 
 	enum {
@@ -50,13 +51,19 @@ class EditorAutoloadSettings : public VBoxContainer {
 	struct AutoLoadInfo {
 		String name;
 		String path;
-		bool is_singleton = false;
-		bool in_editor = false;
-		int order = 0;
-		Node *node = nullptr;
+		bool is_singleton;
+		bool in_editor;
+		int order;
+		Node *node;
 
 		bool operator==(const AutoLoadInfo &p_info) const {
 			return order == p_info.order;
+		}
+
+		AutoLoadInfo() {
+			is_singleton = false;
+			in_editor = false;
+			node = NULL;
 		}
 	};
 
@@ -67,13 +74,11 @@ class EditorAutoloadSettings : public VBoxContainer {
 	String selected_autoload;
 
 	Tree *tree;
+	EditorLineEditFileChooser *autoload_add_path;
 	LineEdit *autoload_add_name;
 	Button *add_autoload;
-	LineEdit *autoload_add_path;
-	Button *browse_button;
-	EditorFileDialog *file_dialog;
 
-	bool _autoload_name_is_valid(const String &p_name, String *r_error = nullptr);
+	bool _autoload_name_is_valid(const String &p_name, String *r_error = NULL);
 
 	void _autoload_add();
 	void _autoload_selected();
@@ -90,9 +95,6 @@ class EditorAutoloadSettings : public VBoxContainer {
 	Variant get_drag_data_fw(const Point2 &p_point, Control *p_control);
 	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_control) const;
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_control);
-
-	void _set_autoload_add_path(const String &p_text);
-	void _browse_autoload_add_path();
 
 protected:
 	void _notification(int p_what);

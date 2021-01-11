@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,20 +30,23 @@
 
 #include "midi_driver.h"
 
-#include "core/input/input.h"
 #include "core/os/os.h"
+#include "main/input_default.h"
 
 uint8_t MIDIDriver::last_received_message = 0x00;
-MIDIDriver *MIDIDriver::singleton = nullptr;
+MIDIDriver *MIDIDriver::singleton = NULL;
 MIDIDriver *MIDIDriver::get_singleton() {
+
 	return singleton;
 }
 
 void MIDIDriver::set_singleton() {
+
 	singleton = this;
 }
 
 void MIDIDriver::receive_input_packet(uint64_t timestamp, uint8_t *data, uint32_t length) {
+
 	Ref<InputEventMIDI> event;
 	event.instance();
 	uint32_t param_position = 1;
@@ -114,15 +117,17 @@ void MIDIDriver::receive_input_packet(uint64_t timestamp, uint8_t *data, uint32_
 			break;
 	}
 
-	Input *id = Input::get_singleton();
+	InputDefault *id = Object::cast_to<InputDefault>(Input::get_singleton());
 	id->parse_input_event(event);
 }
 
-PackedStringArray MIDIDriver::get_connected_inputs() {
-	PackedStringArray list;
+PoolStringArray MIDIDriver::get_connected_inputs() {
+
+	PoolStringArray list;
 	return list;
 }
 
 MIDIDriver::MIDIDriver() {
+
 	set_singleton();
 }

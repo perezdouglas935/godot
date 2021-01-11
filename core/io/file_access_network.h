@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,7 +39,9 @@
 class FileAccessNetwork;
 
 class FileAccessNetworkClient {
+
 	struct BlockRequest {
+
 		int id;
 		uint64_t offset;
 		int size;
@@ -47,15 +49,14 @@ class FileAccessNetworkClient {
 
 	List<BlockRequest> block_requests;
 
-	Semaphore sem;
-	Thread *thread = nullptr;
-	bool quit = false;
-	Mutex mutex;
-	Mutex blockrequest_mutex;
+	Semaphore *sem;
+	Thread *thread;
+	bool quit;
+	Mutex *mutex;
+	Mutex *blockrequest_mutex;
 	Map<int, FileAccessNetwork *> accesses;
 	Ref<StreamPeerTCP> client;
-	int last_id = 0;
-	int lockcount = 0;
+	int last_id;
 
 	Vector<uint8_t> block;
 
@@ -66,6 +67,7 @@ class FileAccessNetworkClient {
 	void put_64(int64_t p_64);
 	int get_32();
 	int64_t get_64();
+	int lockcount;
 	void lock_mutex();
 	void unlock_mutex();
 
@@ -82,26 +84,31 @@ public:
 };
 
 class FileAccessNetwork : public FileAccess {
-	Semaphore sem;
-	Semaphore page_sem;
-	Mutex buffer_mutex;
-	bool opened = false;
+
+	Semaphore *sem;
+	Semaphore *page_sem;
+	Mutex *buffer_mutex;
+	bool opened;
 	size_t total_size;
-	mutable size_t pos = 0;
+	mutable size_t pos;
 	int id;
-	mutable bool eof_flag = false;
-	mutable int last_page = -1;
-	mutable uint8_t *last_page_buff = nullptr;
+	mutable bool eof_flag;
+	mutable int last_page;
+	mutable uint8_t *last_page_buff;
 
 	int page_size;
 	int read_ahead;
 
-	mutable int waiting_on_page = -1;
-
+	mutable int waiting_on_page;
+	mutable int last_activity_val;
 	struct Page {
-		int activity = 0;
-		bool queued = false;
+		int activity;
+		bool queued;
 		Vector<uint8_t> buffer;
+		Page() {
+			activity = 0;
+			queued = false;
+		}
 	};
 
 	mutable Vector<Page> pages;

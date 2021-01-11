@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,9 +31,9 @@
 #ifndef GODOT_LSP_H
 #define GODOT_LSP_H
 
-#include "core/doc_data.h"
-#include "core/object/class_db.h"
-#include "core/templates/list.h"
+#include "core/class_db.h"
+#include "core/list.h"
+#include "editor/doc/doc_data.h"
 
 namespace lsp {
 
@@ -149,13 +149,14 @@ struct Location {
  * Represents a link between a source and a target location.
  */
 struct LocationLink {
+
 	/**
 	 * Span of the origin of this link.
 	 *
 	 * Used as the underlined span for mouse interaction. Defaults to the word range at
 	 * the mouse position.
 	 */
-	Range *originSelectionRange = nullptr;
+	Range *originSelectionRange = NULL;
 
 	/**
 	 * The target resource identifier of this link.
@@ -219,6 +220,7 @@ struct DocumentLinkParams {
  * text document or a web site.
  */
 struct DocumentLink {
+
 	/**
 	 * The range this link applies to.
 	 */
@@ -280,9 +282,7 @@ struct Command {
 		Dictionary dict;
 		dict["title"] = title;
 		dict["command"] = command;
-		if (arguments.size()) {
-			dict["arguments"] = arguments;
-		}
+		if (arguments.size()) dict["arguments"] = arguments;
 		return dict;
 	}
 };
@@ -687,7 +687,7 @@ struct Diagnostic {
 		dict["severity"] = severity;
 		dict["message"] = message;
 		dict["source"] = source;
-		if (!relatedInformation.is_empty()) {
+		if (!relatedInformation.empty()) {
 			Array arr;
 			arr.resize(relatedInformation.size());
 			for (int i = 0; i < relatedInformation.size(); i++) {
@@ -946,24 +946,16 @@ struct CompletionItem {
 			dict["preselect"] = preselect;
 			dict["sortText"] = sortText;
 			dict["filterText"] = filterText;
-			if (commitCharacters.size()) {
-				dict["commitCharacters"] = commitCharacters;
-			}
+			if (commitCharacters.size()) dict["commitCharacters"] = commitCharacters;
 			dict["command"] = command.to_json();
 		}
 		return dict;
 	}
 
 	void load(const Dictionary &p_dict) {
-		if (p_dict.has("label")) {
-			label = p_dict["label"];
-		}
-		if (p_dict.has("kind")) {
-			kind = p_dict["kind"];
-		}
-		if (p_dict.has("detail")) {
-			detail = p_dict["detail"];
-		}
+		if (p_dict.has("label")) label = p_dict["label"];
+		if (p_dict.has("kind")) kind = p_dict["kind"];
+		if (p_dict.has("detail")) detail = p_dict["detail"];
 		if (p_dict.has("documentation")) {
 			Variant doc = p_dict["documentation"];
 			if (doc.get_type() == Variant::STRING) {
@@ -973,24 +965,12 @@ struct CompletionItem {
 				documentation.value = v["value"];
 			}
 		}
-		if (p_dict.has("deprecated")) {
-			deprecated = p_dict["deprecated"];
-		}
-		if (p_dict.has("preselect")) {
-			preselect = p_dict["preselect"];
-		}
-		if (p_dict.has("sortText")) {
-			sortText = p_dict["sortText"];
-		}
-		if (p_dict.has("filterText")) {
-			filterText = p_dict["filterText"];
-		}
-		if (p_dict.has("insertText")) {
-			insertText = p_dict["insertText"];
-		}
-		if (p_dict.has("data")) {
-			data = p_dict["data"];
-		}
+		if (p_dict.has("deprecated")) deprecated = p_dict["deprecated"];
+		if (p_dict.has("preselect")) preselect = p_dict["preselect"];
+		if (p_dict.has("sortText")) sortText = p_dict["sortText"];
+		if (p_dict.has("filterText")) filterText = p_dict["filterText"];
+		if (p_dict.has("insertText")) insertText = p_dict["insertText"];
+		if (p_dict.has("data")) data = p_dict["data"];
 	}
 };
 
@@ -1116,6 +1096,7 @@ struct DocumentedSymbolInformation : public SymbolInformation {
  * e.g. the range of an identifier.
  */
 struct DocumentSymbol {
+
 	/**
 	 * The name of this symbol. Will be displayed in the user interface and therefore must not be
 	 * an empty string or a string only consisting of white spaces.
@@ -1191,7 +1172,7 @@ struct DocumentSymbol {
 
 	void symbol_tree_as_list(const String &p_uri, Vector<DocumentedSymbolInformation> &r_list, const String &p_container = "", bool p_join_name = false) const {
 		DocumentedSymbolInformation si;
-		if (p_join_name && !p_container.is_empty()) {
+		if (p_join_name && !p_container.empty()) {
 			si.name = p_container + ">" + name;
 		} else {
 			si.name = name;
@@ -1224,6 +1205,7 @@ struct DocumentSymbol {
 	}
 
 	_FORCE_INLINE_ CompletionItem make_completion_item(bool resolved = false) const {
+
 		lsp::CompletionItem item;
 		item.label = name;
 
@@ -1267,6 +1249,7 @@ struct DocumentSymbol {
 };
 
 struct NativeSymbolInspectParams {
+
 	String native_class;
 	String symbol_name;
 
@@ -1298,6 +1281,7 @@ static const String Region = "region";
  * Represents a folding range.
  */
 struct FoldingRange {
+
 	/**
 	 * The zero-based line number from where the folded range starts.
 	 */
@@ -1380,6 +1364,7 @@ struct CompletionContext {
 };
 
 struct CompletionParams : public TextDocumentPositionParams {
+
 	/**
 	 * The completion context. This is only available if the client specifies
 	 * to send this using `ClientCapabilities.textDocument.completion.contextSupport === true`
@@ -1420,6 +1405,7 @@ struct Hover {
  * have a label and a doc-comment.
  */
 struct ParameterInformation {
+
 	/**
 	 * The label of this parameter information.
 	 *
@@ -1698,9 +1684,10 @@ struct InitializeResult {
 };
 
 struct GodotNativeClassInfo {
+
 	String name;
-	const DocData::ClassDoc *class_doc = nullptr;
-	const ClassDB::ClassInfo *class_info = nullptr;
+	const DocData::ClassDoc *class_doc = NULL;
+	const ClassDB::ClassInfo *class_info = NULL;
 
 	Dictionary to_json() {
 		Dictionary dict;
@@ -1712,6 +1699,7 @@ struct GodotNativeClassInfo {
 
 /** Features not included in the standard lsp specifications */
 struct GodotCapabilities {
+
 	/**
 	 * Native class list
 	*/
@@ -1730,6 +1718,7 @@ struct GodotCapabilities {
 
 /** Format BBCode documentation from DocData to markdown */
 static String marked_documentation(const String &p_bbcode) {
+
 	String markdown = p_bbcode.strip_edges();
 
 	Vector<String> lines = markdown.split("\n");
@@ -1781,6 +1770,7 @@ static String marked_documentation(const String &p_bbcode) {
 	}
 	return markdown;
 }
+
 } // namespace lsp
 
 #endif

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -37,47 +37,36 @@
 
 // TODO we could probably create a base class for this...
 
-GodotJavaWrapper::GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_godot_instance) {
+GodotJavaWrapper::GodotJavaWrapper(JNIEnv *p_env, jobject p_godot_instance) {
 	godot_instance = p_env->NewGlobalRef(p_godot_instance);
-	activity = p_env->NewGlobalRef(p_activity);
 
 	// get info about our Godot class so we can get pointers and stuff...
-	godot_class = p_env->FindClass("org/godotengine/godot/Godot");
-	if (godot_class) {
-		godot_class = (jclass)p_env->NewGlobalRef(godot_class);
-	} else {
-		// this is a pretty serious fail.. bail... pointers will stay 0
-		return;
-	}
-	activity_class = p_env->FindClass("android/app/Activity");
-	if (activity_class) {
-		activity_class = (jclass)p_env->NewGlobalRef(activity_class);
+	cls = p_env->FindClass("org/godotengine/godot/Godot");
+	if (cls) {
+		cls = (jclass)p_env->NewGlobalRef(cls);
 	} else {
 		// this is a pretty serious fail.. bail... pointers will stay 0
 		return;
 	}
 
-	// get some Godot method pointers...
-	_on_video_init = p_env->GetMethodID(godot_class, "onVideoInit", "()V");
-	_restart = p_env->GetMethodID(godot_class, "restart", "()V");
-	_finish = p_env->GetMethodID(godot_class, "forceQuit", "()V");
-	_set_keep_screen_on = p_env->GetMethodID(godot_class, "setKeepScreenOn", "(Z)V");
-	_alert = p_env->GetMethodID(godot_class, "alert", "(Ljava/lang/String;Ljava/lang/String;)V");
-	_get_GLES_version_code = p_env->GetMethodID(godot_class, "getGLESVersionCode", "()I");
-	_get_clipboard = p_env->GetMethodID(godot_class, "getClipboard", "()Ljava/lang/String;");
-	_set_clipboard = p_env->GetMethodID(godot_class, "setClipboard", "(Ljava/lang/String;)V");
-	_request_permission = p_env->GetMethodID(godot_class, "requestPermission", "(Ljava/lang/String;)Z");
-	_request_permissions = p_env->GetMethodID(godot_class, "requestPermissions", "()Z");
-	_get_granted_permissions = p_env->GetMethodID(godot_class, "getGrantedPermissions", "()[Ljava/lang/String;");
-	_init_input_devices = p_env->GetMethodID(godot_class, "initInputDevices", "()V");
-	_get_surface = p_env->GetMethodID(godot_class, "getSurface", "()Landroid/view/Surface;");
-	_is_activity_resumed = p_env->GetMethodID(godot_class, "isActivityResumed", "()Z");
-	_vibrate = p_env->GetMethodID(godot_class, "vibrate", "(I)V");
-	_get_input_fallback_mapping = p_env->GetMethodID(godot_class, "getInputFallbackMapping", "()Ljava/lang/String;");
-	_on_godot_main_loop_started = p_env->GetMethodID(godot_class, "onGodotMainLoopStarted", "()V");
-
-	// get some Activity method pointers...
-	_get_class_loader = p_env->GetMethodID(activity_class, "getClassLoader", "()Ljava/lang/ClassLoader;");
+	// get some method pointers...
+	_on_video_init = p_env->GetMethodID(cls, "onVideoInit", "()V");
+	_restart = p_env->GetMethodID(cls, "restart", "()V");
+	_finish = p_env->GetMethodID(cls, "forceQuit", "()V");
+	_set_keep_screen_on = p_env->GetMethodID(cls, "setKeepScreenOn", "(Z)V");
+	_alert = p_env->GetMethodID(cls, "alert", "(Ljava/lang/String;Ljava/lang/String;)V");
+	_get_GLES_version_code = p_env->GetMethodID(cls, "getGLESVersionCode", "()I");
+	_get_clipboard = p_env->GetMethodID(cls, "getClipboard", "()Ljava/lang/String;");
+	_set_clipboard = p_env->GetMethodID(cls, "setClipboard", "(Ljava/lang/String;)V");
+	_request_permission = p_env->GetMethodID(cls, "requestPermission", "(Ljava/lang/String;)Z");
+	_request_permissions = p_env->GetMethodID(cls, "requestPermissions", "()Z");
+	_get_granted_permissions = p_env->GetMethodID(cls, "getGrantedPermissions", "()[Ljava/lang/String;");
+	_init_input_devices = p_env->GetMethodID(cls, "initInputDevices", "()V");
+	_get_surface = p_env->GetMethodID(cls, "getSurface", "()Landroid/view/Surface;");
+	_is_activity_resumed = p_env->GetMethodID(cls, "isActivityResumed", "()Z");
+	_vibrate = p_env->GetMethodID(cls, "vibrate", "(I)V");
+	_get_input_fallback_mapping = p_env->GetMethodID(cls, "getInputFallbackMapping", "()Ljava/lang/String;");
+	_on_godot_main_loop_started = p_env->GetMethodID(cls, "onGodotMainLoopStarted", "()V");
 }
 
 GodotJavaWrapper::~GodotJavaWrapper() {
@@ -85,43 +74,42 @@ GodotJavaWrapper::~GodotJavaWrapper() {
 }
 
 jobject GodotJavaWrapper::get_activity() {
-	return activity;
+	// our godot instance is our activity
+	return godot_instance;
 }
 
 jobject GodotJavaWrapper::get_member_object(const char *p_name, const char *p_class, JNIEnv *p_env) {
-	if (godot_class) {
-		if (p_env == nullptr)
+	if (cls) {
+		if (p_env == NULL)
 			p_env = ThreadAndroid::get_env();
 
-		jfieldID fid = p_env->GetStaticFieldID(godot_class, p_name, p_class);
-		return p_env->GetStaticObjectField(godot_class, fid);
+		jfieldID fid = p_env->GetStaticFieldID(cls, p_name, p_class);
+		return p_env->GetStaticObjectField(cls, fid);
 	} else {
-		return nullptr;
+		return NULL;
 	}
 }
 
 jobject GodotJavaWrapper::get_class_loader() {
-	if (_get_class_loader) {
+	if (cls) {
 		JNIEnv *env = ThreadAndroid::get_env();
-		return env->CallObjectMethod(activity, _get_class_loader);
+		jmethodID getClassLoader = env->GetMethodID(cls, "getClassLoader", "()Ljava/lang/ClassLoader;");
+		return env->CallObjectMethod(godot_instance, getClassLoader);
 	} else {
-		return nullptr;
+		return NULL;
 	}
 }
 
-GodotJavaViewWrapper *GodotJavaWrapper::get_godot_view() {
-	if (_godot_view != nullptr) {
-		return _godot_view;
-	}
-	JNIEnv *env = ThreadAndroid::get_env();
-	jmethodID godot_view_getter = env->GetMethodID(godot_class, "getRenderView", "()Lorg/godotengine/godot/GodotRenderView;");
-	_godot_view = new GodotJavaViewWrapper(env->CallObjectMethod(godot_instance, godot_view_getter));
-	return _godot_view;
+void GodotJavaWrapper::gfx_init(bool gl2) {
+	// beats me what this once did, there was no code,
+	// but we're getting false if our GLES3 driver is initialised
+	// and true for our GLES2 driver
+	// Maybe we're supposed to communicate this back or store it?
 }
 
 void GodotJavaWrapper::on_video_init(JNIEnv *p_env) {
 	if (_on_video_init)
-		if (p_env == nullptr)
+		if (p_env == NULL)
 			p_env = ThreadAndroid::get_env();
 
 	p_env->CallVoidMethod(godot_instance, _on_video_init);
@@ -129,7 +117,7 @@ void GodotJavaWrapper::on_video_init(JNIEnv *p_env) {
 
 void GodotJavaWrapper::on_godot_main_loop_started(JNIEnv *p_env) {
 	if (_on_godot_main_loop_started) {
-		if (p_env == nullptr) {
+		if (p_env == NULL) {
 			p_env = ThreadAndroid::get_env();
 		}
 	}
@@ -138,7 +126,7 @@ void GodotJavaWrapper::on_godot_main_loop_started(JNIEnv *p_env) {
 
 void GodotJavaWrapper::restart(JNIEnv *p_env) {
 	if (_restart)
-		if (p_env == nullptr)
+		if (p_env == NULL)
 			p_env = ThreadAndroid::get_env();
 
 	p_env->CallVoidMethod(godot_instance, _restart);
@@ -146,7 +134,7 @@ void GodotJavaWrapper::restart(JNIEnv *p_env) {
 
 void GodotJavaWrapper::force_quit(JNIEnv *p_env) {
 	if (_finish)
-		if (p_env == nullptr)
+		if (p_env == NULL)
 			p_env = ThreadAndroid::get_env();
 
 	p_env->CallVoidMethod(godot_instance, _finish);
@@ -263,7 +251,7 @@ jobject GodotJavaWrapper::get_surface() {
 		JNIEnv *env = ThreadAndroid::get_env();
 		return env->CallObjectMethod(godot_instance, _get_surface);
 	} else {
-		return nullptr;
+		return NULL;
 	}
 }
 

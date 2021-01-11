@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,25 +28,22 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SCENE_TREE_H
-#define SCENE_TREE_H
+#ifndef SCENE_MAIN_LOOP_H
+#define SCENE_MAIN_LOOP_H
 
 #include "core/io/multiplayer_api.h"
 #include "core/os/main_loop.h"
 #include "core/os/thread_safe.h"
-#include "core/templates/self_list.h"
+#include "core/self_list.h"
 #include "scene/resources/mesh.h"
+#include "scene/resources/world.h"
 #include "scene/resources/world_2d.h"
-#include "scene/resources/world_3d.h"
-
-#undef Window
 
 class PackedScene;
 class Node;
-class Window;
+class Viewport;
 class Material;
 class Mesh;
-class SceneDebugger;
 
 class SceneTreeTimer : public Reference {
 	GDCLASS(SceneTreeTimer, Reference);
@@ -70,6 +67,7 @@ public:
 };
 
 class SceneTree : public MainLoop {
+
 	_THREAD_SAFE_CLASS_
 
 	GDCLASS(SceneTree, MainLoop);
@@ -77,58 +75,89 @@ class SceneTree : public MainLoop {
 public:
 	typedef void (*IdleCallback)();
 
+	enum StretchMode {
+
+		STRETCH_MODE_DISABLED,
+		STRETCH_MODE_2D,
+		STRETCH_MODE_VIEWPORT,
+	};
+
+	enum StretchAspect {
+
+		STRETCH_ASPECT_IGNORE,
+		STRETCH_ASPECT_KEEP,
+		STRETCH_ASPECT_KEEP_WIDTH,
+		STRETCH_ASPECT_KEEP_HEIGHT,
+		STRETCH_ASPECT_EXPAND,
+	};
+
 private:
 	struct Group {
+
 		Vector<Node *> nodes;
+		//uint64_t last_tree_version;
 		bool changed;
 		Group() { changed = false; };
 	};
 
-	Window *root = nullptr;
+	Viewport *root;
 
-	uint64_t tree_version = 1;
-	float physics_process_time = 1.0;
-	float process_time = 1.0;
-	bool accept_quit = true;
-	bool quit_on_go_back = true;
+	uint64_t tree_version;
+	float physics_process_time;
+	float idle_process_time;
+	bool accept_quit;
+	bool quit_on_go_back;
 
 #ifdef DEBUG_ENABLED
-	bool debug_collisions_hint = false;
-	bool debug_navigation_hint = false;
+	bool debug_collisions_hint;
+	bool debug_navigation_hint;
 #endif
-	bool pause = false;
-	int root_lock = 0;
+	bool pause;
+	int root_lock;
 
 	Map<StringName, Group> group_map;
-	bool _quit = false;
-	bool initialized = false;
+	bool _quit;
+	bool initialized;
+	bool input_handled;
 
-	StringName tree_changed_name = "tree_changed";
-	StringName node_added_name = "node_added";
-	StringName node_removed_name = "node_removed";
-	StringName node_renamed_name = "node_renamed";
+	Size2 last_screen_size;
+	StringName tree_changed_name;
+	StringName node_added_name;
+	StringName node_removed_name;
+	StringName node_renamed_name;
 
-	int64_t current_frame = 0;
-	int node_count = 0;
+	bool use_font_oversampling;
+	int64_t current_frame;
+	int64_t current_event;
+	int node_count;
 
 #ifdef TOOLS_ENABLED
 	Node *edited_scene_root;
 #endif
 	struct UGCall {
+
 		StringName group;
 		StringName call;
 
 		bool operator<(const UGCall &p_with) const { return group == p_with.group ? call < p_with.call : group < p_with.group; }
 	};
 
-	// Safety for when a node is deleted while a group is being called.
-	int call_lock = 0;
-	Set<Node *> call_skip; // Skip erased nodes.
+	//safety for when a node is deleted while a group is being called
+	int call_lock;
+	Set<Node *> call_skip; //skip erased nodes
+
+	StretchMode stretch_mode;
+	StretchAspect stretch_aspect;
+	Size2i stretch_min;
+	real_t stretch_shrink;
+
+	void _update_font_oversampling(float p_ratio);
+	void _update_root_rect();
 
 	List<ObjectID> delete_queue;
 
-	Map<UGCall, Vector<Variant>> unique_group_calls;
-	bool ugc_locked = false;
+	Map<UGCall, Vector<Variant> > unique_group_calls;
+	bool ugc_locked;
 	void _flush_ugc();
 
 	_FORCE_INLINE_ void _update_group_order(Group &g, bool p_use_priority = false);
@@ -151,12 +180,12 @@ private:
 	void _change_scene(Node *p_to);
 	//void _call_group(uint32_t p_call_flags,const StringName& p_group,const StringName& p_function,const Variant& p_arg1,const Variant& p_arg2);
 
-	List<Ref<SceneTreeTimer>> timers;
+	List<Ref<SceneTreeTimer> > timers;
 
 	///network///
 
 	Ref<MultiplayerAPI> multiplayer;
-	bool multiplayer_poll = true;
+	bool multiplayer_poll;
 
 	void _network_peer_connected(int p_id);
 	void _network_peer_disconnected(int p_id);
@@ -178,19 +207,51 @@ private:
 	void make_group_changed(const StringName &p_group);
 
 	void _notify_group_pause(const StringName &p_group, int p_notification);
-	Variant _call_group_flags(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
-	Variant _call_group(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
+	void _call_input_pause(const StringName &p_group, const StringName &p_method, const Ref<InputEvent> &p_input);
+	Variant _call_group_flags(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant _call_group(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 
 	void _flush_delete_queue();
-	// Optimization.
+	//optimization
 	friend class CanvasItem;
-	friend class Node3D;
+	friend class Spatial;
 	friend class Viewport;
 
 	SelfList<Node>::List xform_change_list;
 
-#ifdef DEBUG_ENABLED // No live editor in release build.
-	friend class LiveEditor;
+	friend class ScriptDebuggerRemote;
+#ifdef DEBUG_ENABLED
+
+	Map<int, NodePath> live_edit_node_path_cache;
+	Map<int, String> live_edit_resource_cache;
+
+	NodePath live_edit_root;
+	String live_edit_scene;
+
+	Map<String, Set<Node *> > live_scene_edit_cache;
+	Map<Node *, Map<ObjectID, Node *> > live_edit_remove_list;
+
+	void _debugger_request_tree();
+
+	void _live_edit_node_path_func(const NodePath &p_path, int p_id);
+	void _live_edit_res_path_func(const String &p_path, int p_id);
+
+	void _live_edit_node_set_func(int p_id, const StringName &p_prop, const Variant &p_value);
+	void _live_edit_node_set_res_func(int p_id, const StringName &p_prop, const String &p_value);
+	void _live_edit_node_call_func(int p_id, const StringName &p_method, VARIANT_ARG_DECLARE);
+	void _live_edit_res_set_func(int p_id, const StringName &p_prop, const Variant &p_value);
+	void _live_edit_res_set_res_func(int p_id, const StringName &p_prop, const String &p_value);
+	void _live_edit_res_call_func(int p_id, const StringName &p_method, VARIANT_ARG_DECLARE);
+	void _live_edit_root_func(const NodePath &p_scene_path, const String &p_scene_from);
+
+	void _live_edit_create_node_func(const NodePath &p_parent, const String &p_type, const String &p_name);
+	void _live_edit_instance_node_func(const NodePath &p_parent, const String &p_path, const String &p_name);
+	void _live_edit_remove_node_func(const NodePath &p_at);
+	void _live_edit_remove_and_keep_node_func(const NodePath &p_at, ObjectID p_keep_id);
+	void _live_edit_restore_node_func(ObjectID p_id, const NodePath &p_at, int p_at_pos);
+	void _live_edit_duplicate_node_func(const NodePath &p_at, const String &p_new_name);
+	void _live_edit_reparent_node_func(const NodePath &p_at, const NodePath &p_new_place, const String &p_new_name, int p_at_pos);
+
 #endif
 
 	enum {
@@ -200,13 +261,6 @@ private:
 	static IdleCallback idle_callbacks[MAX_IDLE_CALLBACKS];
 	static int idle_callback_count;
 	void _call_idle_callbacks();
-
-	void _main_window_focus_in();
-	void _main_window_close();
-	void _main_window_go_back();
-
-	//used by viewport
-	void _call_input_pause(const StringName &p_group, const StringName &p_method, const Ref<InputEvent> &p_input, Viewport *p_viewport);
 
 protected:
 	void _notification(int p_notification);
@@ -222,9 +276,10 @@ public:
 		GROUP_CALL_REVERSE = 1,
 		GROUP_CALL_REALTIME = 2,
 		GROUP_CALL_UNIQUE = 4,
+		GROUP_CALL_MULTILEVEL = 8,
 	};
 
-	_FORCE_INLINE_ Window *get_root() const { return root; }
+	_FORCE_INLINE_ Viewport *get_root() const { return root; }
 
 	void call_group_flags(uint32_t p_call_flags, const StringName &p_group, const StringName &p_function, VARIANT_ARG_LIST);
 	void notify_group_flags(uint32_t p_call_flags, const StringName &p_group, int p_notification);
@@ -236,20 +291,24 @@ public:
 
 	void flush_transform_notifications();
 
-	virtual void initialize() override;
+	virtual void input_text(const String &p_text);
+	virtual void input_event(const Ref<InputEvent> &p_event);
+	virtual void init();
 
-	virtual bool physics_process(float p_time) override;
-	virtual bool process(float p_time) override;
+	virtual bool iteration(float p_time);
+	virtual bool idle(float p_time);
 
-	virtual void finalize() override;
+	virtual void finish();
 
 	void set_auto_accept_quit(bool p_enable);
 	void set_quit_on_go_back(bool p_enable);
 
 	void quit(int p_exit_code = -1);
 
+	void set_input_as_handled();
+	bool is_input_handled();
 	_FORCE_INLINE_ float get_physics_process_time() const { return physics_process_time; }
-	_FORCE_INLINE_ float get_process_time() const { return process_time; }
+	_FORCE_INLINE_ float get_idle_process_time() const { return idle_process_time; }
 
 #ifdef TOOLS_ENABLED
 	bool is_node_being_edited(const Node *p_node) const;
@@ -297,6 +356,7 @@ public:
 	int get_collision_debug_contact_count() { return collision_debug_contacts; }
 
 	int64_t get_frame() const;
+	int64_t get_event_count() const;
 
 	int get_node_count() const;
 
@@ -304,6 +364,11 @@ public:
 
 	void get_nodes_in_group(const StringName &p_group, List<Node *> *p_list);
 	bool has_group(const StringName &p_identifier) const;
+
+	void set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, const Size2 &p_minsize, real_t p_shrink = 1);
+
+	void set_use_font_oversampling(bool p_oversampling);
+	bool is_using_font_oversampling() const;
 
 	//void change_scene(const String& p_path);
 	//Node *get_loaded_scene();
@@ -324,7 +389,9 @@ public:
 
 	static SceneTree *get_singleton() { return singleton; }
 
-	void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const override;
+	void drop_files(const Vector<String> &p_files, int p_from_screen = 0);
+	void global_menu_action(const Variant &p_id, const Variant &p_meta);
+	void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const;
 
 	//network API
 
@@ -344,13 +411,12 @@ public:
 	bool is_refusing_new_network_connections() const;
 
 	static void add_idle_callback(IdleCallback p_callback);
-
-	//default texture settings
-
 	SceneTree();
 	~SceneTree();
 };
 
+VARIANT_ENUM_CAST(SceneTree::StretchMode);
+VARIANT_ENUM_CAST(SceneTree::StretchAspect);
 VARIANT_ENUM_CAST(SceneTree::GroupCallFlags);
 
-#endif // SCENE_TREE_H
+#endif

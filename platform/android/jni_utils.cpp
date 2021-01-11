@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,10 +31,13 @@
 #include "jni_utils.h"
 
 jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_arg, bool force_jobject) {
+
 	jvalret v;
 
 	switch (p_type) {
+
 		case Variant::BOOL: {
+
 			if (force_jobject) {
 				jclass bclass = env->FindClass("java/lang/Boolean");
 				jmethodID ctor = env->GetMethodID(bclass, "<init>", "(Z)V");
@@ -49,7 +52,9 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			};
 		} break;
 		case Variant::INT: {
+
 			if (force_jobject) {
+
 				jclass bclass = env->FindClass("java/lang/Integer");
 				jmethodID ctor = env->GetMethodID(bclass, "<init>", "(I)V");
 				jvalue val;
@@ -63,8 +68,10 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 				v.val.i = *p_arg;
 			};
 		} break;
-		case Variant::FLOAT: {
+		case Variant::REAL: {
+
 			if (force_jobject) {
+
 				jclass bclass = env->FindClass("java/lang/Double");
 				jmethodID ctor = env->GetMethodID(bclass, "<init>", "(D)V");
 				jvalue val;
@@ -79,16 +86,19 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			};
 		} break;
 		case Variant::STRING: {
+
 			String s = *p_arg;
 			jstring jStr = env->NewStringUTF(s.utf8().get_data());
 			v.val.l = jStr;
 			v.obj = jStr;
 		} break;
-		case Variant::PACKED_STRING_ARRAY: {
-			Vector<String> sarray = *p_arg;
+		case Variant::POOL_STRING_ARRAY: {
+
+			PoolVector<String> sarray = *p_arg;
 			jobjectArray arr = env->NewObjectArray(sarray.size(), env->FindClass("java/lang/String"), env->NewStringUTF(""));
 
 			for (int j = 0; j < sarray.size(); j++) {
+
 				jstring str = env->NewStringUTF(sarray[j].utf8().get_data());
 				env->SetObjectArrayElement(arr, j, str);
 				env->DeleteLocalRef(str);
@@ -99,6 +109,7 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 		} break;
 
 		case Variant::DICTIONARY: {
+
 			Dictionary dict = *p_arg;
 			jclass dclass = env->FindClass("org/godotengine/godot/Dictionary");
 			jmethodID ctor = env->GetMethodID(dclass, "<init>", "()V");
@@ -119,7 +130,7 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			env->CallVoidMethodA(jdict, set_keys, &val);
 			env->DeleteLocalRef(jkeys);
 
-			jobjectArray jvalues = env->NewObjectArray(keys.size(), env->FindClass("java/lang/Object"), nullptr);
+			jobjectArray jvalues = env->NewObjectArray(keys.size(), env->FindClass("java/lang/Object"), NULL);
 
 			for (int j = 0; j < keys.size(); j++) {
 				Variant var = dict[keys[j]];
@@ -140,38 +151,37 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			v.obj = jdict;
 		} break;
 
-		case Variant::PACKED_INT32_ARRAY: {
-			Vector<int> array = *p_arg;
+		case Variant::POOL_INT_ARRAY: {
+
+			PoolVector<int> array = *p_arg;
 			jintArray arr = env->NewIntArray(array.size());
-			const int *r = array.ptr();
-			env->SetIntArrayRegion(arr, 0, array.size(), r);
+			PoolVector<int>::Read r = array.read();
+			env->SetIntArrayRegion(arr, 0, array.size(), r.ptr());
 			v.val.l = arr;
 			v.obj = arr;
 
 		} break;
-		case Variant::PACKED_BYTE_ARRAY: {
-			Vector<uint8_t> array = *p_arg;
+		case Variant::POOL_BYTE_ARRAY: {
+			PoolVector<uint8_t> array = *p_arg;
 			jbyteArray arr = env->NewByteArray(array.size());
-			const uint8_t *r = array.ptr();
-			env->SetByteArrayRegion(arr, 0, array.size(), reinterpret_cast<const signed char *>(r));
+			PoolVector<uint8_t>::Read r = array.read();
+			env->SetByteArrayRegion(arr, 0, array.size(), reinterpret_cast<const signed char *>(r.ptr()));
 			v.val.l = arr;
 			v.obj = arr;
 
 		} break;
-		case Variant::PACKED_FLOAT32_ARRAY: {
-			Vector<float> array = *p_arg;
+		case Variant::POOL_REAL_ARRAY: {
+
+			PoolVector<float> array = *p_arg;
 			jfloatArray arr = env->NewFloatArray(array.size());
-			const float *r = array.ptr();
-			env->SetFloatArrayRegion(arr, 0, array.size(), r);
+			PoolVector<float>::Read r = array.read();
+			env->SetFloatArrayRegion(arr, 0, array.size(), r.ptr());
 			v.val.l = arr;
 			v.obj = arr;
 
 		} break;
-#ifndef _MSC_VER
-#warning This is missing 64 bits arrays, I have no idea how to do it in JNI
-#endif
-
 		default: {
+
 			v.val.i = 0;
 		} break;
 	}
@@ -179,6 +189,7 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 }
 
 String _get_class_name(JNIEnv *env, jclass cls, bool *array) {
+
 	jclass cclass = env->FindClass("java/lang/Class");
 	jmethodID getName = env->GetMethodID(cclass, "getName", "()Ljava/lang/String;");
 	jstring clsName = (jstring)env->CallObjectMethod(cls, getName);
@@ -195,7 +206,8 @@ String _get_class_name(JNIEnv *env, jclass cls, bool *array) {
 }
 
 Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
-	if (obj == nullptr) {
+
+	if (obj == NULL) {
 		return Variant();
 	}
 
@@ -204,13 +216,15 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 	String name = _get_class_name(env, c, &array);
 
 	if (name == "java.lang.String") {
+
 		return jstring_to_string((jstring)obj, env);
 	};
 
 	if (name == "[Ljava.lang.String;") {
+
 		jobjectArray arr = (jobjectArray)obj;
 		int stringCount = env->GetArrayLength(arr);
-		Vector<String> sarr;
+		PoolVector<String> sarr;
 
 		for (int i = 0; i < stringCount; i++) {
 			jstring string = (jstring)env->GetObjectArrayElement(arr, i);
@@ -222,12 +236,14 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 	};
 
 	if (name == "java.lang.Boolean") {
+
 		jmethodID boolValue = env->GetMethodID(c, "booleanValue", "()Z");
 		bool ret = env->CallBooleanMethod(obj, boolValue);
 		return ret;
 	};
 
 	if (name == "java.lang.Integer" || name == "java.lang.Long") {
+
 		jclass nclass = env->FindClass("java/lang/Number");
 		jmethodID longValue = env->GetMethodID(nclass, "longValue", "()J");
 		jlong ret = env->CallLongMethod(obj, longValue);
@@ -235,28 +251,33 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 	};
 
 	if (name == "[I") {
+
 		jintArray arr = (jintArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		Vector<int> sarr;
+		PoolVector<int> sarr;
 		sarr.resize(fCount);
 
-		int *w = sarr.ptrw();
-		env->GetIntArrayRegion(arr, 0, fCount, w);
+		PoolVector<int>::Write w = sarr.write();
+		env->GetIntArrayRegion(arr, 0, fCount, w.ptr());
+		w.release();
 		return sarr;
 	};
 
 	if (name == "[B") {
+
 		jbyteArray arr = (jbyteArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		Vector<uint8_t> sarr;
+		PoolVector<uint8_t> sarr;
 		sarr.resize(fCount);
 
-		uint8_t *w = sarr.ptrw();
-		env->GetByteArrayRegion(arr, 0, fCount, reinterpret_cast<signed char *>(w));
+		PoolVector<uint8_t>::Write w = sarr.write();
+		env->GetByteArrayRegion(arr, 0, fCount, reinterpret_cast<signed char *>(w.ptr()));
+		w.release();
 		return sarr;
 	};
 
 	if (name == "java.lang.Float" || name == "java.lang.Double") {
+
 		jclass nclass = env->FindClass("java/lang/Number");
 		jmethodID doubleValue = env->GetMethodID(nclass, "doubleValue", "()D");
 		double ret = env->CallDoubleMethod(obj, doubleValue);
@@ -264,38 +285,43 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 	};
 
 	if (name == "[D") {
+
 		jdoubleArray arr = (jdoubleArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PackedFloat32Array sarr;
+		PoolRealArray sarr;
 		sarr.resize(fCount);
 
-		real_t *w = sarr.ptrw();
+		PoolRealArray::Write w = sarr.write();
 
 		for (int i = 0; i < fCount; i++) {
+
 			double n;
 			env->GetDoubleArrayRegion(arr, i, 1, &n);
-			w[i] = n;
+			w.ptr()[i] = n;
 		};
 		return sarr;
 	};
 
 	if (name == "[F") {
+
 		jfloatArray arr = (jfloatArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PackedFloat32Array sarr;
+		PoolRealArray sarr;
 		sarr.resize(fCount);
 
-		real_t *w = sarr.ptrw();
+		PoolRealArray::Write w = sarr.write();
 
 		for (int i = 0; i < fCount; i++) {
+
 			float n;
 			env->GetFloatArrayRegion(arr, i, 1, &n);
-			w[i] = n;
+			w.ptr()[i] = n;
 		};
 		return sarr;
 	};
 
 	if (name == "[Ljava.lang.Object;") {
+
 		jobjectArray arr = (jobjectArray)obj;
 		int objCount = env->GetArrayLength(arr);
 		Array varr;
@@ -311,12 +337,13 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 	};
 
 	if (name == "java.util.HashMap" || name == "org.godotengine.godot.Dictionary") {
+
 		Dictionary ret;
 		jclass oclass = c;
 		jmethodID get_keys = env->GetMethodID(oclass, "get_keys", "()[Ljava/lang/String;");
 		jobjectArray arr = (jobjectArray)env->CallObjectMethod(obj, get_keys);
 
-		PackedStringArray keys = _jobject_to_variant(env, arr);
+		PoolStringArray keys = _jobject_to_variant(env, arr);
 		env->DeleteLocalRef(arr);
 
 		jmethodID get_values = env->GetMethodID(oclass, "get_values", "()[Ljava/lang/Object;");
@@ -326,6 +353,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 		env->DeleteLocalRef(arr);
 
 		for (int i = 0; i < keys.size(); i++) {
+
 			ret[keys[i]] = vals[i];
 		};
 
@@ -338,6 +366,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 }
 
 Variant::Type get_jni_type(const String &p_type) {
+
 	static struct {
 		const char *name;
 		Variant::Type type;
@@ -345,20 +374,21 @@ Variant::Type get_jni_type(const String &p_type) {
 		{ "void", Variant::NIL },
 		{ "boolean", Variant::BOOL },
 		{ "int", Variant::INT },
-		{ "float", Variant::FLOAT },
-		{ "double", Variant::FLOAT },
+		{ "float", Variant::REAL },
+		{ "double", Variant::REAL },
 		{ "java.lang.String", Variant::STRING },
-		{ "[I", Variant::PACKED_INT32_ARRAY },
-		{ "[B", Variant::PACKED_BYTE_ARRAY },
-		{ "[F", Variant::PACKED_FLOAT32_ARRAY },
-		{ "[Ljava.lang.String;", Variant::PACKED_STRING_ARRAY },
+		{ "[I", Variant::POOL_INT_ARRAY },
+		{ "[B", Variant::POOL_BYTE_ARRAY },
+		{ "[F", Variant::POOL_REAL_ARRAY },
+		{ "[Ljava.lang.String;", Variant::POOL_STRING_ARRAY },
 		{ "org.godotengine.godot.Dictionary", Variant::DICTIONARY },
-		{ nullptr, Variant::NIL }
+		{ NULL, Variant::NIL }
 	};
 
 	int idx = 0;
 
 	while (_type_to_vtype[idx].name) {
+
 		if (p_type == _type_to_vtype[idx].name)
 			return _type_to_vtype[idx].type;
 
@@ -369,6 +399,7 @@ Variant::Type get_jni_type(const String &p_type) {
 }
 
 const char *get_jni_sig(const String &p_type) {
+
 	static struct {
 		const char *name;
 		const char *sig;
@@ -384,12 +415,13 @@ const char *get_jni_sig(const String &p_type) {
 		{ "[B", "[B" },
 		{ "[F", "[F" },
 		{ "[Ljava.lang.String;", "[Ljava/lang/String;" },
-		{ nullptr, "V" }
+		{ NULL, "V" }
 	};
 
 	int idx = 0;
 
 	while (_type_to_vtype[idx].name) {
+
 		if (p_type == _type_to_vtype[idx].name)
 			return _type_to_vtype[idx].sig;
 

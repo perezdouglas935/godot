@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/gui/container.h"
 
 class CenterContainer : public Container {
+
 	GDCLASS(CenterContainer, Container);
 
 	bool use_top_left;
@@ -46,7 +47,7 @@ public:
 	void set_use_top_left(bool p_enable);
 	bool is_using_top_left() const;
 
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 
 	CenterContainer();
 };

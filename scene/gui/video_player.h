@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -37,9 +37,11 @@
 #include "servers/audio_server.h"
 
 class VideoPlayer : public Control {
+
 	GDCLASS(VideoPlayer, Control);
 
 	struct Output {
+
 		AudioFrame vol;
 		int bus_index;
 		Viewport *viewport; //pointer only used for reference to previous mix
@@ -77,14 +79,14 @@ class VideoPlayer : public Control {
 protected:
 	static void _bind_methods();
 	void _notification(int p_notification);
-	void _validate_property(PropertyInfo &p_property) const override;
+	void _validate_property(PropertyInfo &p_property) const;
 
 public:
-	Size2 get_minimum_size() const override;
+	Size2 get_minimum_size() const;
 	void set_expand(bool p_expand);
 	bool has_expand() const;
 
-	Ref<Texture2D> get_video_texture() const;
+	Ref<Texture> get_video_texture() const;
 
 	void set_stream(const Ref<VideoStream> &p_stream);
 	Ref<VideoStream> get_stream() const;

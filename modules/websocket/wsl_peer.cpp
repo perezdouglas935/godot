@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -43,10 +43,10 @@ String WSLPeer::generate_key() {
 	// Random key
 	RandomNumberGenerator rng;
 	rng.set_seed(OS::get_singleton()->get_unix_time());
-	Vector<uint8_t> bkey;
+	PoolVector<uint8_t> bkey;
 	int len = 16; // 16 bytes, as per RFC
 	bkey.resize(len);
-	uint8_t *w = bkey.ptrw();
+	PoolVector<uint8_t>::Write w = bkey.write();
 	for (int i = 0; i < len; i++) {
 		w[i] = (uint8_t)rng.randi_range(0, 255);
 	}
@@ -60,9 +60,8 @@ String WSLPeer::compute_key_response(String p_key) {
 }
 
 void WSLPeer::_wsl_destroy(struct PeerData **p_data) {
-	if (!p_data || !(*p_data)) {
+	if (!p_data || !(*p_data))
 		return;
-	}
 	struct PeerData *data = *p_data;
 	if (data->polling) {
 		data->destroy = true;
@@ -70,7 +69,7 @@ void WSLPeer::_wsl_destroy(struct PeerData **p_data) {
 	}
 	wslay_event_context_free(data->ctx);
 	memdelete(data);
-	*p_data = nullptr;
+	*p_data = NULL;
 }
 
 bool WSLPeer::_wsl_poll(struct PeerData *p_data) {
@@ -148,9 +147,8 @@ void wsl_msg_recv_callback(wslay_event_context_ptr ctx, const struct wslay_event
 	}
 	WSLPeer *peer = (WSLPeer *)peer_data->peer;
 
-	if (peer->parse_message(arg) != OK) {
+	if (peer->parse_message(arg) != OK)
 		return;
-	}
 
 	if (peer_data->is_server) {
 		WSLServer *helper = (WSLServer *)peer_data->obj;
@@ -165,9 +163,9 @@ wslay_event_callbacks wsl_callbacks = {
 	wsl_recv_callback,
 	wsl_send_callback,
 	wsl_genmask_callback,
-	nullptr, /* on_frame_recv_start_callback */
-	nullptr, /* on_frame_recv_callback */
-	nullptr, /* on_frame_recv_end_callback */
+	NULL, /* on_frame_recv_start_callback */
+	NULL, /* on_frame_recv_callback */
+	NULL, /* on_frame_recv_end_callback */
 	wsl_msg_recv_callback
 };
 
@@ -201,8 +199,8 @@ Error WSLPeer::parse_message(const wslay_event_on_msg_recv_arg *arg) {
 }
 
 void WSLPeer::make_context(PeerData *p_data, unsigned int p_in_buf_size, unsigned int p_in_pkt_size, unsigned int p_out_buf_size, unsigned int p_out_pkt_size) {
-	ERR_FAIL_COND(_data != nullptr);
-	ERR_FAIL_COND(p_data == nullptr);
+	ERR_FAIL_COND(_data != NULL);
+	ERR_FAIL_COND(p_data == NULL);
 
 	_in_buffer.resize(p_in_pkt_size, p_in_buf_size);
 	_packet_buffer.resize((1 << MAX(p_in_buf_size, p_out_buf_size)));
@@ -211,11 +209,10 @@ void WSLPeer::make_context(PeerData *p_data, unsigned int p_in_buf_size, unsigne
 	_data->peer = this;
 	_data->valid = true;
 
-	if (_data->is_server) {
+	if (_data->is_server)
 		wslay_event_context_server_init(&(_data->ctx), &wsl_callbacks, _data);
-	} else {
+	else
 		wslay_event_context_client_init(&(_data->ctx), &wsl_callbacks, _data);
-	}
 	wslay_event_config_set_max_recv_msg_length(_data->ctx, (1ULL << p_in_buf_size));
 }
 
@@ -228,16 +225,16 @@ WSLPeer::WriteMode WSLPeer::get_write_mode() const {
 }
 
 void WSLPeer::poll() {
-	if (!_data) {
+	if (!_data)
 		return;
-	}
 
 	if (_wsl_poll(_data)) {
-		_data = nullptr;
+		_data = NULL;
 	}
 }
 
 Error WSLPeer::put_packet(const uint8_t *p_buffer, int p_buffer_size) {
+
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
 
 	struct wslay_event_msg msg; // Should I use fragmented?
@@ -254,38 +251,40 @@ Error WSLPeer::put_packet(const uint8_t *p_buffer, int p_buffer_size) {
 }
 
 Error WSLPeer::get_packet(const uint8_t **r_buffer, int &r_buffer_size) {
+
 	r_buffer_size = 0;
 
 	ERR_FAIL_COND_V(!is_connected_to_host(), FAILED);
 
-	if (_in_buffer.packets_left() == 0) {
+	if (_in_buffer.packets_left() == 0)
 		return ERR_UNAVAILABLE;
-	}
 
 	int read = 0;
-	uint8_t *rw = _packet_buffer.ptrw();
-	_in_buffer.read_packet(rw, _packet_buffer.size(), &_is_string, read);
+	PoolVector<uint8_t>::Write rw = _packet_buffer.write();
+	_in_buffer.read_packet(rw.ptr(), _packet_buffer.size(), &_is_string, read);
 
-	*r_buffer = rw;
+	*r_buffer = rw.ptr();
 	r_buffer_size = read;
 
 	return OK;
 }
 
 int WSLPeer::get_available_packet_count() const {
-	if (!is_connected_to_host()) {
+
+	if (!is_connected_to_host())
 		return 0;
-	}
 
 	return _in_buffer.packets_left();
 }
 
 bool WSLPeer::was_string_packet() const {
+
 	return _is_string;
 }
 
 bool WSLPeer::is_connected_to_host() const {
-	return _data != nullptr;
+
+	return _data != NULL;
 }
 
 void WSLPeer::close_now() {
@@ -306,40 +305,43 @@ void WSLPeer::close(int p_code, String p_reason) {
 }
 
 IP_Address WSLPeer::get_connected_host() const {
+
 	ERR_FAIL_COND_V(!is_connected_to_host() || _data->tcp.is_null(), IP_Address());
 
 	return _data->tcp->get_connected_host();
 }
 
 uint16_t WSLPeer::get_connected_port() const {
+
 	ERR_FAIL_COND_V(!is_connected_to_host() || _data->tcp.is_null(), 0);
 
 	return _data->tcp->get_connected_port();
 }
 
 void WSLPeer::set_no_delay(bool p_enabled) {
+
 	ERR_FAIL_COND(!is_connected_to_host() || _data->tcp.is_null());
 	_data->tcp->set_no_delay(p_enabled);
 }
 
 void WSLPeer::invalidate() {
-	if (_data) {
+	if (_data)
 		_data->valid = false;
-	}
 }
 
 WSLPeer::WSLPeer() {
-	_data = nullptr;
+	_data = NULL;
 	_is_string = 0;
 	close_code = -1;
 	write_mode = WRITE_MODE_BINARY;
 }
 
 WSLPeer::~WSLPeer() {
+
 	close();
 	invalidate();
 	_wsl_destroy(&_data);
-	_data = nullptr;
+	_data = NULL;
 }
 
 #endif // JAVASCRIPT_ENABLED

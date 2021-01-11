@@ -61,8 +61,7 @@ public:
 	virtual void cleanOverlappingPair(btBroadphasePair& pair, btDispatcher* dispatcher) = 0;
 
 	virtual int getNumOverlappingPairs() const = 0;
-	virtual bool needsBroadphaseCollision(btBroadphaseProxy * proxy0, btBroadphaseProxy * proxy1) const = 0;
-	virtual btOverlapFilterCallback* getOverlapFilterCallback() = 0;
+
 	virtual void cleanProxyFromPairs(btBroadphaseProxy* proxy, btDispatcher* dispatcher) = 0;
 
 	virtual void setOverlapFilterCallback(btOverlapFilterCallback* callback) = 0;
@@ -381,14 +380,6 @@ public:
 	{
 	}
 
-	bool needsBroadphaseCollision(btBroadphaseProxy*, btBroadphaseProxy*) const
-	{
-		return true;
-	}
-	btOverlapFilterCallback* getOverlapFilterCallback()
-	{
-		return 0;
-	}
 	virtual void setOverlapFilterCallback(btOverlapFilterCallback* /*callback*/)
 	{
 	}

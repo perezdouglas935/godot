@@ -48,10 +48,9 @@ btSoftRigidCollisionAlgorithm::~btSoftRigidCollisionAlgorithm()
 }
 
 #include <stdio.h>
-#include "LinearMath/btQuickprof.h"
+
 void btSoftRigidCollisionAlgorithm::processCollision(const btCollisionObjectWrapper* body0Wrap, const btCollisionObjectWrapper* body1Wrap, const btDispatcherInfo& dispatchInfo, btManifoldResult* resultOut)
 {
-	BT_PROFILE("btSoftRigidCollisionAlgorithm::processCollision");
 	(void)dispatchInfo;
 	(void)resultOut;
 	//printf("btSoftRigidCollisionAlgorithm\n");

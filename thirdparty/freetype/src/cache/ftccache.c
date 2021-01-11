@@ -16,9 +16,10 @@
  */
 
 
+#include <ft2build.h>
 #include "ftcmanag.h"
-#include <freetype/internal/ftobjs.h>
-#include <freetype/internal/ftdebug.h>
+#include FT_INTERNAL_OBJECTS_H
+#include FT_INTERNAL_DEBUG_H
 
 #include "ftccback.h"
 #include "ftcerror.h"

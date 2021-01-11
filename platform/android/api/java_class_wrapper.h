@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef JAVA_CLASS_WRAPPER_H
 #define JAVA_CLASS_WRAPPER_H
 
-#include "core/object/reference.h"
+#include "core/reference.h"
 
 #ifdef ANDROID_ENABLED
 #include <android/log.h>
@@ -43,10 +43,12 @@ class JavaObject;
 #endif
 
 class JavaClass : public Reference {
+
 	GDCLASS(JavaClass, Reference);
 
 #ifdef ANDROID_ENABLED
 	enum ArgumentType{
+
 		ARG_TYPE_VOID,
 		ARG_TYPE_BOOLEAN,
 		ARG_TYPE_BYTE,
@@ -66,25 +68,24 @@ class JavaClass : public Reference {
 	Map<StringName, Variant> constant_map;
 
 	struct MethodInfo {
-		bool _static = false;
+
+		bool _static;
 		Vector<uint32_t> param_types;
 		Vector<StringName> param_sigs;
-		uint32_t return_type = 0;
+		uint32_t return_type;
 		jmethodID method;
 	};
 
 	_FORCE_INLINE_ static void _convert_to_variant_type(int p_sig, Variant::Type &r_type, float &likelihood) {
+
 		likelihood = 1.0;
 		r_type = Variant::NIL;
 
 		switch (p_sig) {
-			case ARG_TYPE_VOID:
-				r_type = Variant::NIL;
-				break;
+
+			case ARG_TYPE_VOID: r_type = Variant::NIL; break;
 			case ARG_TYPE_BOOLEAN | ARG_NUMBER_CLASS_BIT:
-			case ARG_TYPE_BOOLEAN:
-				r_type = Variant::BOOL;
-				break;
+			case ARG_TYPE_BOOLEAN: r_type = Variant::BOOL; break;
 			case ARG_TYPE_BYTE | ARG_NUMBER_CLASS_BIT:
 			case ARG_TYPE_BYTE:
 				r_type = Variant::INT;
@@ -112,79 +113,68 @@ class JavaClass : public Reference {
 				break;
 			case ARG_TYPE_FLOAT | ARG_NUMBER_CLASS_BIT:
 			case ARG_TYPE_FLOAT:
-				r_type = Variant::FLOAT;
+				r_type = Variant::REAL;
 				likelihood = 1.0;
 				break;
 			case ARG_TYPE_DOUBLE | ARG_NUMBER_CLASS_BIT:
 			case ARG_TYPE_DOUBLE:
-				r_type = Variant::FLOAT;
+				r_type = Variant::REAL;
 				likelihood = 0.5;
 				break;
-			case ARG_TYPE_STRING:
-				r_type = Variant::STRING;
-				break;
-			case ARG_TYPE_CLASS:
-				r_type = Variant::OBJECT;
-				break;
-			case ARG_ARRAY_BIT | ARG_TYPE_VOID:
-				r_type = Variant::NIL;
-				break;
-			case ARG_ARRAY_BIT | ARG_TYPE_BOOLEAN:
-				r_type = Variant::ARRAY;
-				break;
+			case ARG_TYPE_STRING: r_type = Variant::STRING; break;
+			case ARG_TYPE_CLASS: r_type = Variant::OBJECT; break;
+			case ARG_ARRAY_BIT | ARG_TYPE_VOID: r_type = Variant::NIL; break;
+			case ARG_ARRAY_BIT | ARG_TYPE_BOOLEAN: r_type = Variant::ARRAY; break;
 			case ARG_ARRAY_BIT | ARG_TYPE_BYTE:
-				r_type = Variant::PACKED_BYTE_ARRAY;
+				r_type = Variant::POOL_BYTE_ARRAY;
 				likelihood = 1.0;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_CHAR:
-				r_type = Variant::PACKED_BYTE_ARRAY;
+				r_type = Variant::POOL_BYTE_ARRAY;
 				likelihood = 0.5;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_SHORT:
-				r_type = Variant::PACKED_INT32_ARRAY;
+				r_type = Variant::POOL_INT_ARRAY;
 				likelihood = 0.3;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_INT:
-				r_type = Variant::PACKED_INT32_ARRAY;
+				r_type = Variant::POOL_INT_ARRAY;
 				likelihood = 1.0;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_LONG:
-				r_type = Variant::PACKED_INT32_ARRAY;
+				r_type = Variant::POOL_INT_ARRAY;
 				likelihood = 0.5;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_FLOAT:
-				r_type = Variant::PACKED_FLOAT32_ARRAY;
+				r_type = Variant::POOL_REAL_ARRAY;
 				likelihood = 1.0;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_DOUBLE:
-				r_type = Variant::PACKED_FLOAT32_ARRAY;
+				r_type = Variant::POOL_REAL_ARRAY;
 				likelihood = 0.5;
 				break;
-			case ARG_ARRAY_BIT | ARG_TYPE_STRING:
-				r_type = Variant::PACKED_STRING_ARRAY;
-				break;
-			case ARG_ARRAY_BIT | ARG_TYPE_CLASS:
-				r_type = Variant::ARRAY;
-				break;
+			case ARG_ARRAY_BIT | ARG_TYPE_STRING: r_type = Variant::POOL_STRING_ARRAY; break;
+			case ARG_ARRAY_BIT | ARG_TYPE_CLASS: r_type = Variant::ARRAY; break;
 		}
 	}
 
 	_FORCE_INLINE_ static bool _convert_object_to_variant(JNIEnv *env, jobject obj, Variant &var, uint32_t p_sig);
 
-	bool _call_method(JavaObject *p_instance, const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error, Variant &ret);
+	bool _call_method(JavaObject *p_instance, const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error, Variant &ret);
 
 	friend class JavaClassWrapper;
-	Map<StringName, List<MethodInfo>> methods;
+	Map<StringName, List<MethodInfo> > methods;
 	jclass _class;
 #endif
 
 public:
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) override;
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 
 	JavaClass();
 };
 
 class JavaObject : public Reference {
+
 	GDCLASS(JavaObject, Reference);
 
 #ifdef ANDROID_ENABLED
@@ -195,7 +185,7 @@ class JavaObject : public Reference {
 #endif
 
 public:
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) override;
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
 
 #ifdef ANDROID_ENABLED
 	JavaObject(const Ref<JavaClass> &p_base, jobject *p_instance);
@@ -204,10 +194,11 @@ public:
 };
 
 class JavaClassWrapper : public Object {
+
 	GDCLASS(JavaClassWrapper, Object);
 
 #ifdef ANDROID_ENABLED
-	Map<String, Ref<JavaClass>> class_cache;
+	Map<String, Ref<JavaClass> > class_cache;
 	friend class JavaClass;
 	jclass activityClass;
 	jmethodID findClass;
@@ -245,7 +236,7 @@ public:
 	Ref<JavaClass> wrap(const String &p_class);
 
 #ifdef ANDROID_ENABLED
-	JavaClassWrapper(jobject p_activity = nullptr);
+	JavaClassWrapper(jobject p_activity = NULL);
 #else
 	JavaClassWrapper();
 #endif

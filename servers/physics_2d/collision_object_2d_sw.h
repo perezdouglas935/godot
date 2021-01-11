@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,8 +32,8 @@
 #define COLLISION_OBJECT_2D_SW_H
 
 #include "broad_phase_2d_sw.h"
-#include "core/templates/self_list.h"
-#include "servers/physics_server_2d.h"
+#include "core/self_list.h"
+#include "servers/physics_2d_server.h"
 #include "shape_2d_sw.h"
 
 class Space2DSW;
@@ -53,6 +53,7 @@ private:
 	bool pickable;
 
 	struct Shape {
+
 		Transform2D xform;
 		Transform2D xform_inv;
 		BroadPhase2DSW::ID bpid;
@@ -191,6 +192,7 @@ public:
 	_FORCE_INLINE_ bool is_pickable() const { return pickable; }
 
 	_FORCE_INLINE_ bool test_collision_mask(CollisionObject2DSW *p_other) const {
+
 		return collision_layer & p_other->collision_mask || p_other->collision_layer & collision_mask;
 	}
 

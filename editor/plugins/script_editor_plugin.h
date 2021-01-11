@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +31,7 @@
 #ifndef SCRIPT_EDITOR_PLUGIN_H
 #define SCRIPT_EDITOR_PLUGIN_H
 
-#include "core/object/script_language.h"
+#include "core/script_language.h"
 #include "editor/code_editor.h"
 #include "editor/editor_help.h"
 #include "editor/editor_help_search.h"
@@ -43,58 +43,13 @@
 #include "scene/gui/split_container.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/text_edit.h"
+#include "scene/gui/tool_button.h"
 #include "scene/gui/tree.h"
 #include "scene/main/timer.h"
 #include "scene/resources/text_file.h"
 
-class EditorSyntaxHighlighter : public SyntaxHighlighter {
-	GDCLASS(EditorSyntaxHighlighter, SyntaxHighlighter)
-
-private:
-	REF edited_resourse;
-
-protected:
-	static void _bind_methods();
-
-public:
-	virtual String _get_name() const;
-	virtual Array _get_supported_languages() const;
-
-	void _set_edited_resource(const RES &p_res) { edited_resourse = p_res; }
-	REF _get_edited_resource() { return edited_resourse; }
-
-	virtual Ref<EditorSyntaxHighlighter> _create() const;
-};
-
-class EditorStandardSyntaxHighlighter : public EditorSyntaxHighlighter {
-	GDCLASS(EditorStandardSyntaxHighlighter, EditorSyntaxHighlighter)
-
-private:
-	Ref<CodeHighlighter> highlighter;
-
-public:
-	virtual void _update_cache() override;
-	virtual Dictionary _get_line_syntax_highlighting(int p_line) override { return highlighter->get_line_syntax_highlighting(p_line); }
-
-	virtual String _get_name() const override { return TTR("Standard"); }
-
-	virtual Ref<EditorSyntaxHighlighter> _create() const override;
-
-	EditorStandardSyntaxHighlighter() { highlighter.instance(); }
-};
-
-class EditorPlainTextSyntaxHighlighter : public EditorSyntaxHighlighter {
-	GDCLASS(EditorPlainTextSyntaxHighlighter, EditorSyntaxHighlighter)
-
-public:
-	virtual String _get_name() const override { return TTR("Plain Text"); }
-
-	virtual Ref<EditorSyntaxHighlighter> _create() const override;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
 class ScriptEditorQuickOpen : public ConfirmationDialog {
+
 	GDCLASS(ScriptEditorQuickOpen, ConfirmationDialog);
 
 	LineEdit *search_box;
@@ -118,26 +73,26 @@ public:
 	ScriptEditorQuickOpen();
 };
 
-class EditorDebuggerNode;
+class ScriptEditorDebugger;
 
 class ScriptEditorBase : public VBoxContainer {
+
 	GDCLASS(ScriptEditorBase, VBoxContainer);
 
 protected:
 	static void _bind_methods();
 
 public:
-	virtual void add_syntax_highlighter(Ref<EditorSyntaxHighlighter> p_highlighter) = 0;
-	virtual void set_syntax_highlighter(Ref<EditorSyntaxHighlighter> p_highlighter) = 0;
+	virtual void add_syntax_highlighter(SyntaxHighlighter *p_highlighter) = 0;
+	virtual void set_syntax_highlighter(SyntaxHighlighter *p_highlighter) = 0;
 
 	virtual void apply_code() = 0;
 	virtual RES get_edited_resource() const = 0;
 	virtual Vector<String> get_functions() = 0;
 	virtual void set_edited_resource(const RES &p_res) = 0;
-	virtual void enable_editor() = 0;
 	virtual void reload_text() = 0;
 	virtual String get_name() = 0;
-	virtual Ref<Texture2D> get_theme_icon() = 0;
+	virtual Ref<Texture> get_icon() = 0;
 	virtual bool is_unsaved() = 0;
 	virtual Variant get_edit_state() = 0;
 	virtual void set_edit_state(const Variant &p_state) = 0;
@@ -151,8 +106,8 @@ public:
 	virtual void ensure_focus() = 0;
 	virtual void tag_saved_version() = 0;
 	virtual void reload(bool p_soft) {}
-	virtual Array get_breakpoints() = 0;
-	virtual void add_callback(const String &p_function, PackedStringArray p_args) = 0;
+	virtual void get_breakpoints(List<int> *p_breakpoints) = 0;
+	virtual void add_callback(const String &p_function, PoolStringArray p_args) = 0;
 	virtual void update_settings() = 0;
 	virtual void set_debugger_active(bool p_active) = 0;
 	virtual bool can_lose_focus_on_node_selection() { return true; }
@@ -168,6 +123,7 @@ public:
 	ScriptEditorBase() {}
 };
 
+typedef SyntaxHighlighter *(*CreateSyntaxHighlighterFunc)();
 typedef ScriptEditorBase *(*CreateScriptEditorFunc)(const RES &p_resource);
 
 class EditorScriptCodeCompletionCache;
@@ -175,6 +131,7 @@ class FindInFilesDialog;
 class FindInFilesPanel;
 
 class ScriptEditor : public PanelContainer {
+
 	GDCLASS(ScriptEditor, PanelContainer);
 
 	EditorNode *editor;
@@ -198,8 +155,14 @@ class ScriptEditor : public PanelContainer {
 		FILE_COPY_PATH,
 		FILE_TOOL_RELOAD,
 		FILE_TOOL_RELOAD_SOFT,
+		DEBUG_NEXT,
+		DEBUG_STEP,
+		DEBUG_BREAK,
+		DEBUG_CONTINUE,
+		DEBUG_SHOW,
+		DEBUG_SHOW_KEEP_OPEN,
+		DEBUG_WITH_EXTERNAL_EDITOR,
 		SEARCH_IN_FILES,
-		REPLACE_IN_FILES,
 		SEARCH_HELP,
 		SEARCH_WEBSITE,
 		HELP_SEARCH_FIND,
@@ -257,7 +220,7 @@ class ScriptEditor : public PanelContainer {
 	VBoxContainer *overview_vbox;
 	HBoxContainer *buttons_hbox;
 	Label *filename;
-	Button *members_overview_alphabeta_sort_button;
+	ToolButton *members_overview_alphabeta_sort_button;
 	bool members_overview_enabled;
 	ItemList *help_overview;
 	bool help_overview_enabled;
@@ -267,15 +230,16 @@ class ScriptEditor : public PanelContainer {
 	AcceptDialog *error_dialog;
 	ConfirmationDialog *erase_tab_confirm;
 	ScriptCreateDialog *script_create_dialog;
-	Button *scripts_visible;
+	ScriptEditorDebugger *debugger;
+	ToolButton *scripts_visible;
 
 	String current_theme;
 
 	TextureRect *script_icon;
 	Label *script_name_label;
 
-	Button *script_back;
-	Button *script_forward;
+	ToolButton *script_back;
+	ToolButton *script_forward;
 
 	FindInFilesDialog *find_in_files_dialog;
 	FindInFilesPanel *find_in_files;
@@ -283,15 +247,18 @@ class ScriptEditor : public PanelContainer {
 
 	enum {
 		SCRIPT_EDITOR_FUNC_MAX = 32,
+		SYNTAX_HIGHLIGHTER_FUNC_MAX = 32
 	};
 
 	static int script_editor_func_count;
 	static CreateScriptEditorFunc script_editor_funcs[SCRIPT_EDITOR_FUNC_MAX];
 
-	Vector<Ref<EditorSyntaxHighlighter>> syntax_highlighters;
+	static int syntax_highlighters_func_count;
+	static CreateSyntaxHighlighterFunc syntax_highlighters_funcs[SYNTAX_HIGHLIGHTER_FUNC_MAX];
 
 	struct ScriptHistory {
-		Control *control = nullptr;
+
+		Control *control;
 		Variant state;
 	};
 
@@ -345,11 +312,13 @@ class ScriptEditor : public PanelContainer {
 
 	EditorScriptCodeCompletionCache *completion_cache;
 
+	void _editor_play();
+	void _editor_pause();
 	void _editor_stop();
 
 	int edit_pass;
 
-	void _add_callback(Object *p_obj, const String &p_function, const PackedStringArray &p_args);
+	void _add_callback(Object *p_obj, const String &p_function, const PoolStringArray &p_args);
 	void _res_saved_callback(const Ref<Resource> &p_res);
 
 	bool trim_trailing_whitespace_on_save;
@@ -363,16 +332,14 @@ class ScriptEditor : public PanelContainer {
 	void _set_execution(REF p_script, int p_line);
 	void _clear_execution(REF p_script);
 	void _breaked(bool p_breaked, bool p_can_debug);
+	void _show_debugger(bool p_show);
 	void _update_window_menu();
 	void _script_created(Ref<Script> p_script);
 
 	ScriptEditorBase *_get_current_editor() const;
-	Array _get_open_script_editors() const;
 
 	void _save_layout();
 	void _editor_settings_changed();
-	void _filesystem_changed();
-	void _file_removed(const String &p_file);
 	void _autosave_scripts();
 	void _update_autosave_timer();
 
@@ -392,7 +359,7 @@ class ScriptEditor : public PanelContainer {
 	void _update_help_overview();
 	void _help_overview_selected(int p_idx);
 
-	void _find_scripts(Node *p_base, Node *p_current, Set<Ref<Script>> &used);
+	void _find_scripts(Node *p_base, Node *p_current, Set<Ref<Script> > &used);
 
 	void _tree_changed();
 
@@ -402,7 +369,7 @@ class ScriptEditor : public PanelContainer {
 	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const;
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
-	void _unhandled_key_input(const Ref<InputEvent> &p_event);
+	void _unhandled_input(const Ref<InputEvent> &p_event);
 
 	void _script_list_gui_input(const Ref<InputEvent> &ev);
 	void _make_script_list_context_menu();
@@ -435,10 +402,9 @@ class ScriptEditor : public PanelContainer {
 	Error _save_text_file(Ref<TextFile> p_text_file, const String &p_path);
 
 	void _on_find_in_files_requested(String text);
-	void _on_replace_in_files_requested(String text);
 	void _on_find_in_files_result_selected(String fpath, int line_number, int begin, int end);
 	void _start_find_in_files(bool with_replace);
-	void _on_find_in_files_modified_files(PackedStringArray paths);
+	void _on_find_in_files_modified_files(PoolStringArray paths);
 
 	static void _open_script_request(const String &p_path);
 
@@ -453,6 +419,7 @@ public:
 
 	bool toggle_scripts_panel();
 	bool is_scripts_panel_toggled();
+	void ensure_focus_current();
 	void apply_scripts() const;
 	void open_script_create_dialog(const String &p_base_name, const String &p_base_path);
 
@@ -469,7 +436,7 @@ public:
 	void get_window_layout(Ref<ConfigFile> p_layout);
 
 	void set_scene_root_script(Ref<Script> p_script);
-	Vector<Ref<Script>> get_open_scripts() const;
+	Vector<Ref<Script> > get_open_scripts() const;
 
 	bool script_goto_method(Ref<Script> p_script, const String &p_method);
 
@@ -481,17 +448,15 @@ public:
 	void close_builtin_scripts_from_scene(const String &p_scene);
 
 	void goto_help(const String &p_desc) { _help_class_goto(p_desc); }
-	void update_doc(const String &p_name);
 
 	bool can_take_away_focus() const;
 
 	VSplitContainer *get_left_list_split() { return list_split; }
 
+	ScriptEditorDebugger *get_debugger() { return debugger; }
 	void set_live_auto_reload_running_scripts(bool p_enabled);
 
-	void register_syntax_highlighter(const Ref<EditorSyntaxHighlighter> &p_syntax_highlighter);
-	void unregister_syntax_highlighter(const Ref<EditorSyntaxHighlighter> &p_syntax_highlighter);
-
+	static void register_create_syntax_highlighter_function(CreateSyntaxHighlighterFunc p_func);
 	static void register_create_script_editor_function(CreateScriptEditorFunc p_func);
 
 	ScriptEditor(EditorNode *p_editor);
@@ -499,31 +464,32 @@ public:
 };
 
 class ScriptEditorPlugin : public EditorPlugin {
+
 	GDCLASS(ScriptEditorPlugin, EditorPlugin);
 
 	ScriptEditor *script_editor;
 	EditorNode *editor;
 
 public:
-	virtual String get_name() const override { return "Script"; }
-	bool has_main_screen() const override { return true; }
-	virtual void edit(Object *p_object) override;
-	virtual bool handles(Object *p_object) const override;
-	virtual void make_visible(bool p_visible) override;
-	virtual void selected_notify() override;
+	virtual String get_name() const { return "Script"; }
+	bool has_main_screen() const { return true; }
+	virtual void edit(Object *p_object);
+	virtual bool handles(Object *p_object) const;
+	virtual void make_visible(bool p_visible);
+	virtual void selected_notify();
 
-	virtual void save_external_data() override;
-	virtual void apply_changes() override;
+	virtual void save_external_data();
+	virtual void apply_changes();
 
-	virtual void restore_global_state() override;
-	virtual void save_global_state() override;
+	virtual void restore_global_state();
+	virtual void save_global_state();
 
-	virtual void set_window_layout(Ref<ConfigFile> p_layout) override;
-	virtual void get_window_layout(Ref<ConfigFile> p_layout) override;
+	virtual void set_window_layout(Ref<ConfigFile> p_layout);
+	virtual void get_window_layout(Ref<ConfigFile> p_layout);
 
-	virtual void get_breakpoints(List<String> *p_breakpoints) override;
+	virtual void get_breakpoints(List<String> *p_breakpoints);
 
-	virtual void edited_scene_changed() override;
+	virtual void edited_scene_changed();
 
 	ScriptEditorPlugin(EditorNode *p_node);
 	~ScriptEditorPlugin();

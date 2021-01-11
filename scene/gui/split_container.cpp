@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,25 +34,23 @@
 #include "margin_container.h"
 
 Control *SplitContainer::_getch(int p_idx) const {
+
 	int idx = 0;
 
 	for (int i = 0; i < get_child_count(); i++) {
 		Control *c = Object::cast_to<Control>(get_child(i));
-		if (!c || !c->is_visible_in_tree()) {
+		if (!c || !c->is_visible_in_tree())
 			continue;
-		}
-		if (c->is_set_as_top_level()) {
+		if (c->is_set_as_toplevel())
 			continue;
-		}
 
-		if (idx == p_idx) {
+		if (idx == p_idx)
 			return c;
-		}
 
 		idx++;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 void SplitContainer::_resort() {
@@ -76,8 +74,8 @@ void SplitContainer::_resort() {
 	bool second_expanded = (vertical ? second->get_v_size_flags() : second->get_h_size_flags()) & SIZE_EXPAND;
 
 	// Determine the separation between items
-	Ref<Texture2D> g = get_theme_icon("grabber");
-	int sep = get_theme_constant("separation");
+	Ref<Texture> g = get_icon("grabber");
+	int sep = get_constant("separation");
 	sep = (dragger_visibility != DRAGGER_HIDDEN_COLLAPSED) ? MAX(sep, vertical ? g->get_height() : g->get_width()) : 0;
 
 	// Compute the minimum size
@@ -112,48 +110,44 @@ void SplitContainer::_resort() {
 		int sofs = middle_sep + sep;
 		fit_child_in_rect(second, Rect2(Point2(0, sofs), Size2(get_size().width, get_size().height - sofs)));
 	} else {
-		if (is_layout_rtl()) {
-			middle_sep = get_size().width - middle_sep - sep;
-			fit_child_in_rect(second, Rect2(Point2(0, 0), Size2(middle_sep, get_size().height)));
-			int sofs = middle_sep + sep;
-			fit_child_in_rect(first, Rect2(Point2(sofs, 0), Size2(get_size().width - sofs, get_size().height)));
-		} else {
-			fit_child_in_rect(first, Rect2(Point2(0, 0), Size2(middle_sep, get_size().height)));
-			int sofs = middle_sep + sep;
-			fit_child_in_rect(second, Rect2(Point2(sofs, 0), Size2(get_size().width - sofs, get_size().height)));
-		}
+		fit_child_in_rect(first, Rect2(Point2(0, 0), Size2(middle_sep, get_size().height)));
+		int sofs = middle_sep + sep;
+		fit_child_in_rect(second, Rect2(Point2(sofs, 0), Size2(get_size().width - sofs, get_size().height)));
 	}
 
 	update();
 }
 
 Size2 SplitContainer::get_minimum_size() const {
+
 	/* Calculate MINIMUM SIZE */
 
 	Size2i minimum;
-	Ref<Texture2D> g = get_theme_icon("grabber");
-	int sep = get_theme_constant("separation");
+	Ref<Texture> g = get_icon("grabber");
+	int sep = get_constant("separation");
 	sep = (dragger_visibility != DRAGGER_HIDDEN_COLLAPSED) ? MAX(sep, vertical ? g->get_height() : g->get_width()) : 0;
 
 	for (int i = 0; i < 2; i++) {
-		if (!_getch(i)) {
+
+		if (!_getch(i))
 			break;
-		}
 
 		if (i == 1) {
-			if (vertical) {
+
+			if (vertical)
 				minimum.height += sep;
-			} else {
+			else
 				minimum.width += sep;
-			}
 		}
 
 		Size2 ms = _getch(i)->get_combined_minimum_size();
 
 		if (vertical) {
+
 			minimum.height += ms.height;
 			minimum.width = MAX(minimum.width, ms.width);
 		} else {
+
 			minimum.width += ms.width;
 			minimum.height = MAX(minimum.height, ms.height);
 		}
@@ -163,75 +157,80 @@ Size2 SplitContainer::get_minimum_size() const {
 }
 
 void SplitContainer::_notification(int p_what) {
+
 	switch (p_what) {
-		case NOTIFICATION_TRANSLATION_CHANGED:
-		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
-			queue_sort();
-		} break;
+
 		case NOTIFICATION_SORT_CHILDREN: {
+
 			_resort();
 		} break;
 		case NOTIFICATION_MOUSE_EXIT: {
+
 			mouse_inside = false;
-			if (get_theme_constant("autohide")) {
+			if (get_constant("autohide"))
 				update();
-			}
 		} break;
 		case NOTIFICATION_DRAW: {
-			if (!_getch(0) || !_getch(1)) {
-				return;
-			}
 
-			if (collapsed || (!dragging && !mouse_inside && get_theme_constant("autohide"))) {
+			if (!_getch(0) || !_getch(1))
 				return;
-			}
 
-			if (dragger_visibility != DRAGGER_VISIBLE) {
+			if (collapsed || (!dragging && !mouse_inside && get_constant("autohide")))
 				return;
-			}
 
-			int sep = dragger_visibility != DRAGGER_HIDDEN_COLLAPSED ? get_theme_constant("separation") : 0;
-			Ref<Texture2D> tex = get_theme_icon("grabber");
+			if (dragger_visibility != DRAGGER_VISIBLE)
+				return;
+
+			int sep = dragger_visibility != DRAGGER_HIDDEN_COLLAPSED ? get_constant("separation") : 0;
+			Ref<Texture> tex = get_icon("grabber");
 			Size2 size = get_size();
 
-			if (vertical) {
+			if (vertical)
 				draw_texture(tex, Point2i((size.x - tex->get_width()) / 2, middle_sep + (sep - tex->get_height()) / 2));
-			} else {
+			else
 				draw_texture(tex, Point2i(middle_sep + (sep - tex->get_width()) / 2, (size.y - tex->get_height()) / 2));
-			}
 		} break;
 		case NOTIFICATION_THEME_CHANGED: {
+
 			minimum_size_changed();
 		} break;
 	}
 }
 
 void SplitContainer::_gui_input(const Ref<InputEvent> &p_event) {
-	if (collapsed || !_getch(0) || !_getch(1) || dragger_visibility != DRAGGER_VISIBLE) {
+
+	if (collapsed || !_getch(0) || !_getch(1) || dragger_visibility != DRAGGER_VISIBLE)
 		return;
-	}
 
 	Ref<InputEventMouseButton> mb = p_event;
 
 	if (mb.is_valid()) {
+
 		if (mb->get_button_index() == BUTTON_LEFT) {
+
 			if (mb->is_pressed()) {
-				int sep = get_theme_constant("separation");
+
+				int sep = get_constant("separation");
 
 				if (vertical) {
+
 					if (mb->get_position().y > middle_sep && mb->get_position().y < middle_sep + sep) {
+
 						dragging = true;
 						drag_from = mb->get_position().y;
 						drag_ofs = split_offset;
 					}
 				} else {
+
 					if (mb->get_position().x > middle_sep && mb->get_position().x < middle_sep + sep) {
+
 						dragging = true;
 						drag_from = mb->get_position().x;
 						drag_ofs = split_offset;
 					}
 				}
 			} else {
+
 				dragging = false;
 			}
 		}
@@ -240,29 +239,24 @@ void SplitContainer::_gui_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseMotion> mm = p_event;
 
 	if (mm.is_valid()) {
+
 		bool mouse_inside_state = false;
-		if (vertical) {
-			mouse_inside_state = mm->get_position().y > middle_sep && mm->get_position().y < middle_sep + get_theme_constant("separation");
-		} else {
-			mouse_inside_state = mm->get_position().x > middle_sep && mm->get_position().x < middle_sep + get_theme_constant("separation");
-		}
+		if (vertical)
+			mouse_inside_state = mm->get_position().y > middle_sep && mm->get_position().y < middle_sep + get_constant("separation");
+		else
+			mouse_inside_state = mm->get_position().x > middle_sep && mm->get_position().x < middle_sep + get_constant("separation");
 
 		if (mouse_inside != mouse_inside_state) {
+
 			mouse_inside = mouse_inside_state;
-			if (get_theme_constant("autohide")) {
+			if (get_constant("autohide"))
 				update();
-			}
 		}
 
-		if (!dragging) {
+		if (!dragging)
 			return;
-		}
 
-		if (!vertical && is_layout_rtl()) {
-			split_offset = drag_ofs + (drag_from - (vertical ? mm->get_position().y : mm->get_position().x));
-		} else {
-			split_offset = drag_ofs + ((vertical ? mm->get_position().y : mm->get_position().x) - drag_from);
-		}
+		split_offset = drag_ofs + ((vertical ? mm->get_position().y : mm->get_position().x) - drag_from);
 		should_clamp_split_offset = true;
 		queue_sort();
 		emit_signal("dragged", get_split_offset());
@@ -270,21 +264,22 @@ void SplitContainer::_gui_input(const Ref<InputEvent> &p_event) {
 }
 
 Control::CursorShape SplitContainer::get_cursor_shape(const Point2 &p_pos) const {
-	if (dragging) {
+
+	if (dragging)
 		return (vertical ? CURSOR_VSPLIT : CURSOR_HSPLIT);
-	}
 
 	if (!collapsed && _getch(0) && _getch(1) && dragger_visibility == DRAGGER_VISIBLE) {
-		int sep = get_theme_constant("separation");
+
+		int sep = get_constant("separation");
 
 		if (vertical) {
-			if (p_pos.y > middle_sep && p_pos.y < middle_sep + sep) {
+
+			if (p_pos.y > middle_sep && p_pos.y < middle_sep + sep)
 				return CURSOR_VSPLIT;
-			}
 		} else {
-			if (p_pos.x > middle_sep && p_pos.x < middle_sep + sep) {
+
+			if (p_pos.x > middle_sep && p_pos.x < middle_sep + sep)
 				return CURSOR_HSPLIT;
-			}
 		}
 	}
 
@@ -292,9 +287,9 @@ Control::CursorShape SplitContainer::get_cursor_shape(const Point2 &p_pos) const
 }
 
 void SplitContainer::set_split_offset(int p_offset) {
-	if (split_offset == p_offset) {
+
+	if (split_offset == p_offset)
 		return;
-	}
 
 	split_offset = p_offset;
 
@@ -302,6 +297,7 @@ void SplitContainer::set_split_offset(int p_offset) {
 }
 
 int SplitContainer::get_split_offset() const {
+
 	return split_offset;
 }
 
@@ -312,29 +308,33 @@ void SplitContainer::clamp_split_offset() {
 }
 
 void SplitContainer::set_collapsed(bool p_collapsed) {
-	if (collapsed == p_collapsed) {
+
+	if (collapsed == p_collapsed)
 		return;
-	}
 
 	collapsed = p_collapsed;
 	queue_sort();
 }
 
 void SplitContainer::set_dragger_visibility(DraggerVisibility p_visibility) {
+
 	dragger_visibility = p_visibility;
 	queue_sort();
 	update();
 }
 
 SplitContainer::DraggerVisibility SplitContainer::get_dragger_visibility() const {
+
 	return dragger_visibility;
 }
 
 bool SplitContainer::is_collapsed() const {
+
 	return collapsed;
 }
 
 void SplitContainer::_bind_methods() {
+
 	ClassDB::bind_method(D_METHOD("_gui_input"), &SplitContainer::_gui_input);
 
 	ClassDB::bind_method(D_METHOD("set_split_offset", "offset"), &SplitContainer::set_split_offset);
@@ -359,6 +359,7 @@ void SplitContainer::_bind_methods() {
 }
 
 SplitContainer::SplitContainer(bool p_vertical) {
+
 	mouse_inside = false;
 	split_offset = 0;
 	should_clamp_split_offset = false;

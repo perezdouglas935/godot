@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -38,6 +38,7 @@
 #include <enet/enet.h>
 
 class NetworkedMultiplayerENet : public NetworkedMultiplayerPeer {
+
 	GDCLASS(NetworkedMultiplayerENet, NetworkedMultiplayerPeer);
 
 public:
@@ -85,6 +86,7 @@ private:
 	Map<int, ENetPeer *> peer_map;
 
 	struct Packet {
+
 		ENetPacket *packet;
 		int from;
 		int channel;
@@ -119,11 +121,11 @@ protected:
 	static void _bind_methods();
 
 public:
-	virtual void set_transfer_mode(TransferMode p_mode) override;
-	virtual TransferMode get_transfer_mode() const override;
-	virtual void set_target_peer(int p_peer) override;
+	virtual void set_transfer_mode(TransferMode p_mode);
+	virtual TransferMode get_transfer_mode() const;
+	virtual void set_target_peer(int p_peer);
 
-	virtual int get_packet_peer() const override;
+	virtual int get_packet_peer() const;
 
 	virtual IP_Address get_peer_address(int p_peer_id) const;
 	virtual int get_peer_port(int p_peer_id) const;
@@ -135,22 +137,22 @@ public:
 
 	void disconnect_peer(int p_peer, bool now = false);
 
-	virtual void poll() override;
+	virtual void poll();
 
-	virtual bool is_server() const override;
+	virtual bool is_server() const;
 
-	virtual int get_available_packet_count() const override;
-	virtual Error get_packet(const uint8_t **r_buffer, int &r_buffer_size) override; ///< buffer is GONE after next get_packet
-	virtual Error put_packet(const uint8_t *p_buffer, int p_buffer_size) override;
+	virtual int get_available_packet_count() const;
+	virtual Error get_packet(const uint8_t **r_buffer, int &r_buffer_size); ///< buffer is GONE after next get_packet
+	virtual Error put_packet(const uint8_t *p_buffer, int p_buffer_size);
 
-	virtual int get_max_packet_size() const override;
+	virtual int get_max_packet_size() const;
 
-	virtual ConnectionStatus get_connection_status() const override;
+	virtual ConnectionStatus get_connection_status() const;
 
-	virtual void set_refuse_new_connections(bool p_enable) override;
-	virtual bool is_refusing_new_connections() const override;
+	virtual void set_refuse_new_connections(bool p_enable);
+	virtual bool is_refusing_new_connections() const;
 
-	virtual int get_unique_id() const override;
+	virtual int get_unique_id() const;
 
 	void set_compression_mode(CompressionMode p_mode);
 	CompressionMode get_compression_mode() const;

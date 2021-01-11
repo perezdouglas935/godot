@@ -187,6 +187,33 @@ namespace Godot
         }
 
         /// <summary>
+        /// Returns a color according to the standardized name, with the
+        /// specified alpha value. Supported color names are the same as
+        /// the constants defined in <see cref="Colors"/>.
+        /// </summary>
+        /// <param name="name">The name of the color.</param>
+        /// <param name="alpha">The alpha (transparency) component represented on the range of 0 to 1. Default: 1.</param>
+        /// <returns>The constructed color.</returns>
+        public static Color ColorN(string name, float alpha = 1f)
+        {
+            name = name.Replace(" ", String.Empty);
+            name = name.Replace("-", String.Empty);
+            name = name.Replace("_", String.Empty);
+            name = name.Replace("'", String.Empty);
+            name = name.Replace(".", String.Empty);
+            name = name.ToLower();
+
+            if (!Colors.namedColors.ContainsKey(name))
+            {
+                throw new ArgumentOutOfRangeException($"Invalid Color Name: {name}");
+            }
+
+            Color color = Colors.namedColors[name];
+            color.a = alpha;
+            return color;
+        }
+
+        /// <summary>
         /// Access color components using their index.
         /// </summary>
         /// <value>`[0]` is equivalent to `.r`, `[1]` is equivalent to `.g`, `[2]` is equivalent to `.b`, `[3]` is equivalent to `.a`.</value>
@@ -231,6 +258,90 @@ namespace Godot
         }
 
         /// <summary>
+        /// Converts a color to HSV values. This is equivalent to using each of
+        /// the `h`/`s`/`v` properties, but much more efficient.
+        /// </summary>
+        /// <param name="hue">Output parameter for the HSV hue.</param>
+        /// <param name="saturation">Output parameter for the HSV saturation.</param>
+        /// <param name="value">Output parameter for the HSV value.</param>
+        public void ToHsv(out float hue, out float saturation, out float value)
+        {
+            float max = (float)Mathf.Max(r, Mathf.Max(g, b));
+            float min = (float)Mathf.Min(r, Mathf.Min(g, b));
+
+            float delta = max - min;
+
+            if (delta == 0)
+            {
+                hue = 0;
+            }
+            else
+            {
+                if (r == max)
+                    hue = (g - b) / delta; // Between yellow & magenta
+                else if (g == max)
+                    hue = 2 + (b - r) / delta; // Between cyan & yellow
+                else
+                    hue = 4 + (r - g) / delta; // Between magenta & cyan
+
+                hue /= 6.0f;
+
+                if (hue < 0)
+                    hue += 1.0f;
+            }
+
+            saturation = max == 0 ? 0 : 1f - 1f * min / max;
+            value = max;
+        }
+
+        /// <summary>
+        /// Constructs a color from an HSV profile, with values on the
+        /// range of 0 to 1. This is equivalent to using each of
+        /// the `h`/`s`/`v` properties, but much more efficient.
+        /// </summary>
+        /// <param name="hue">The HSV hue, typically on the range of 0 to 1.</param>
+        /// <param name="saturation">The HSV saturation, typically on the range of 0 to 1.</param>
+        /// <param name="value">The HSV value (brightness), typically on the range of 0 to 1.</param>
+        /// <param name="alpha">The alpha (transparency) value, typically on the range of 0 to 1.</param>
+        /// <returns>The constructed color.</returns>
+        public static Color FromHsv(float hue, float saturation, float value, float alpha = 1.0f)
+        {
+            if (saturation == 0)
+            {
+                // acp_hromatic (grey)
+                return new Color(value, value, value, alpha);
+            }
+
+            int i;
+            float f, p, q, t;
+
+            hue *= 6.0f;
+            hue %= 6f;
+            i = (int)hue;
+
+            f = hue - i;
+            p = value * (1 - saturation);
+            q = value * (1 - saturation * f);
+            t = value * (1 - saturation * (1 - f));
+
+            switch (i)
+            {
+                case 0: // Red is the dominant color
+                    return new Color(value, t, p, alpha);
+                case 1: // Green is the dominant color
+                    return new Color(q, value, p, alpha);
+                case 2:
+                    return new Color(p, value, t, alpha);
+                case 3: // Blue is the dominant color
+                    return new Color(p, q, value, alpha);
+                case 4:
+                    return new Color(t, p, value, alpha);
+                default: // (5) Red is the dominant color
+                    return new Color(value, p, q, alpha);
+            }
+        }
+
+        /// <summary>
         /// Returns a new color resulting from blending this color over another.
         /// If the color is opaque, the result is also opaque.
         /// The second color may have a range of alpha values.
@@ -254,6 +365,20 @@ namespace Godot
             res.b = (b * a * sa + over.b * over.a) / res.a;
 
             return res;
+        }
+
+        /// <summary>
+        /// Returns the most contrasting color.
+        /// </summary>
+        /// <returns>The most contrasting color</returns>
+        public Color Contrasted()
+        {
+            return new Color(
+                (r + 0.5f) % 1.0f,
+                (g + 0.5f) % 1.0f,
+                (b + 0.5f) % 1.0f,
+                a
+            );
         }
 
         /// <summary>
@@ -307,7 +432,7 @@ namespace Godot
         /// <param name="to">The destination color for interpolation.</param>
         /// <param name="weight">A value on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting color of the interpolation.</returns>
-        public Color Lerp(Color to, float weight)
+        public Color LinearInterpolate(Color to, float weight)
         {
             return new Color
             (
@@ -325,7 +450,7 @@ namespace Godot
         /// <param name="to">The destination color for interpolation.</param>
         /// <param name="weight">A color with components on the range of 0.0 to 1.0, representing the amount of interpolation.</param>
         /// <returns>The resulting color of the interpolation.</returns>
-        public Color Lerp(Color to, Color weight)
+        public Color LinearInterpolate(Color to, Color weight)
         {
             return new Color
             (
@@ -337,14 +462,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 32-bit integer in ABGR
-        /// format (each byte represents a color channel).
+        /// Returns the color's 32-bit integer in ABGR format
+        /// (each byte represents a component of the ABGR profile).
         /// ABGR is the reversed version of the default format.
         /// </summary>
-        /// <returns>A uint representing this color in ABGR32 format.</returns>
-        public uint ToAbgr32()
+        /// <returns>An int representing this color in ABGR32 format.</returns>
+        public int ToAbgr32()
         {
-            uint c = (byte)Math.Round(a * 255);
+            int c = (byte)Math.Round(a * 255);
             c <<= 8;
             c |= (byte)Math.Round(b * 255);
             c <<= 8;
@@ -356,14 +481,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 64-bit integer in ABGR
-        /// format (each word represents a color channel).
+        /// Returns the color's 64-bit integer in ABGR format
+        /// (each byte represents a component of the ABGR profile).
         /// ABGR is the reversed version of the default format.
         /// </summary>
-        /// <returns>A ulong representing this color in ABGR64 format.</returns>
-        public ulong ToAbgr64()
+        /// <returns>An int representing this color in ABGR64 format.</returns>
+        public long ToAbgr64()
         {
-            ulong c = (ushort)Math.Round(a * 65535);
+            long c = (ushort)Math.Round(a * 65535);
             c <<= 16;
             c |= (ushort)Math.Round(b * 65535);
             c <<= 16;
@@ -375,14 +500,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 32-bit integer in ARGB
-        /// format (each byte represents a color channel).
+        /// Returns the color's 32-bit integer in ARGB format
+        /// (each byte represents a component of the ARGB profile).
         /// ARGB is more compatible with DirectX, but not used much in Godot.
         /// </summary>
-        /// <returns>A uint representing this color in ARGB32 format.</returns>
-        public uint ToArgb32()
+        /// <returns>An int representing this color in ARGB32 format.</returns>
+        public int ToArgb32()
         {
-            uint c = (byte)Math.Round(a * 255);
+            int c = (byte)Math.Round(a * 255);
             c <<= 8;
             c |= (byte)Math.Round(r * 255);
             c <<= 8;
@@ -394,14 +519,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 64-bit integer in ARGB
-        /// format (each word represents a color channel).
+        /// Returns the color's 64-bit integer in ARGB format
+        /// (each word represents a component of the ARGB profile).
         /// ARGB is more compatible with DirectX, but not used much in Godot.
         /// </summary>
-        /// <returns>A ulong representing this color in ARGB64 format.</returns>
-        public ulong ToArgb64()
+        /// <returns>A long representing this color in ARGB64 format.</returns>
+        public long ToArgb64()
         {
-            ulong c = (ushort)Math.Round(a * 65535);
+            long c = (ushort)Math.Round(a * 65535);
             c <<= 16;
             c |= (ushort)Math.Round(r * 65535);
             c <<= 16;
@@ -413,14 +538,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 32-bit integer in RGBA
-        /// format (each byte represents a color channel).
+        /// Returns the color's 32-bit integer in RGBA format
+        /// (each byte represents a component of the RGBA profile).
         /// RGBA is Godot's default and recommended format.
         /// </summary>
-        /// <returns>A uint representing this color in RGBA32 format.</returns>
-        public uint ToRgba32()
+        /// <returns>An int representing this color in RGBA32 format.</returns>
+        public int ToRgba32()
         {
-            uint c = (byte)Math.Round(r * 255);
+            int c = (byte)Math.Round(r * 255);
             c <<= 8;
             c |= (byte)Math.Round(g * 255);
             c <<= 8;
@@ -432,14 +557,14 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns the color converted to an unsigned 64-bit integer in RGBA
-        /// format (each word represents a color channel).
+        /// Returns the color's 64-bit integer in RGBA format
+        /// (each word represents a component of the RGBA profile).
         /// RGBA is Godot's default and recommended format.
         /// </summary>
-        /// <returns>A ulong representing this color in RGBA64 format.</returns>
-        public ulong ToRgba64()
+        /// <returns>A long representing this color in RGBA64 format.</returns>
+        public long ToRgba64()
         {
-            ulong c = (ushort)Math.Round(r * 65535);
+            long c = (ushort)Math.Round(r * 65535);
             c <<= 16;
             c |= (ushort)Math.Round(g * 65535);
             c <<= 16;
@@ -464,15 +589,13 @@ namespace Godot
             txt += ToHex32(b);
 
             if (includeAlpha)
-            {
-                txt += ToHex32(a);
-            }
+                txt = ToHex32(a) + txt;
 
             return txt;
         }
 
         /// <summary>
-        /// Constructs a color from RGBA values, typically on the range of 0 to 1.
+        /// Constructs a color from RGBA values on the range of 0 to 1.
         /// </summary>
         /// <param name="r">The color's red component, typically on the range of 0 to 1.</param>
         /// <param name="g">The color's green component, typically on the range of 0 to 1.</param>
@@ -500,11 +623,11 @@ namespace Godot
         }
 
         /// <summary>
-        /// Constructs a color from an unsigned 32-bit integer in RGBA format
-        /// (each byte represents a color channel).
+        /// Constructs a color from a 32-bit integer
+        /// (each byte represents a component of the RGBA profile).
         /// </summary>
-        /// <param name="rgba">The uint representing the color.</param>
-        public Color(uint rgba)
+        /// <param name="rgba">The int representing the color.</param>
+        public Color(int rgba)
         {
             a = (rgba & 0xFF) / 255.0f;
             rgba >>= 8;
@@ -516,11 +639,11 @@ namespace Godot
         }
 
         /// <summary>
-        /// Constructs a color from an unsigned 64-bit integer in RGBA format
-        /// (each word represents a color channel).
+        /// Constructs a color from a 64-bit integer
+        /// (each word represents a component of the RGBA profile).
         /// </summary>
-        /// <param name="rgba">The ulong representing the color.</param>
-        public Color(ulong rgba)
+        /// <param name="rgba">The long representing the color.</param>
+        public Color(long rgba)
         {
             a = (rgba & 0xFFFF) / 65535.0f;
             rgba >>= 16;
@@ -529,6 +652,134 @@ namespace Godot
             g = (rgba & 0xFFFF) / 65535.0f;
             rgba >>= 16;
             r = (rgba & 0xFFFF) / 65535.0f;
+        }
+
+        private static int ParseCol8(string str, int ofs)
+        {
+            int ig = 0;
+
+            for (int i = 0; i < 2; i++)
+            {
+                int c = str[i + ofs];
+                int v;
+
+                if (c >= '0' && c <= '9')
+                {
+                    v = c - '0';
+                }
+                else if (c >= 'a' && c <= 'f')
+                {
+                    v = c - 'a';
+                    v += 10;
+                }
+                else if (c >= 'A' && c <= 'F')
+                {
+                    v = c - 'A';
+                    v += 10;
+                }
+                else
+                {
+                    return -1;
+                }
+
+                if (i == 0)
+                {
+                    ig += v * 16;
+                }
+                else
+                {
+                    ig += v;
+                }
+            }
+
+            return ig;
+        }
+
+        private String ToHex32(float val)
+        {
+            int v = Mathf.RoundToInt(Mathf.Clamp(val * 255, 0, 255));
+
+            var ret = string.Empty;
+
+            for (int i = 0; i < 2; i++)
+            {
+                char c;
+                int lv = v & 0xF;
+
+                if (lv < 10)
+                {
+                    c = (char)('0' + lv);
+                }
+                else
+                {
+                    c = (char)('a' + lv - 10);
+                }
+
+                v >>= 4;
+                ret = c + ret;
+            }
+
+            return ret;
+        }
+
+        internal static bool HtmlIsValid(string color)
+        {
+            if (color.Length == 0)
+            {
+                return false;
+            }
+
+            if (color[0] == '#')
+            {
+                color = color.Substring(1, color.Length - 1);
+            }
+
+            bool alpha;
+
+            switch (color.Length)
+            {
+                case 8:
+                    alpha = true;
+                    break;
+                case 6:
+                    alpha = false;
+                    break;
+                default:
+                    return false;
+            }
+
+            if (alpha)
+            {
+                if (ParseCol8(color, 0) < 0)
+                {
+                    return false;
+                }
+            }
+
+            int from = alpha ? 2 : 0;
+
+            if (ParseCol8(color, from + 0) < 0)
+                return false;
+            if (ParseCol8(color, from + 2) < 0)
+                return false;
+            if (ParseCol8(color, from + 4) < 0)
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns a color constructed from integer red, green, blue, and alpha channels.
+        /// Each channel should have 8 bits of information ranging from 0 to 255.
+        /// </summary>
+        /// <param name="r8">The red component represented on the range of 0 to 255.</param>
+        /// <param name="g8">The green component represented on the range of 0 to 255.</param>
+        /// <param name="b8">The blue component represented on the range of 0 to 255.</param>
+        /// <param name="a8">The alpha (transparency) component represented on the range of 0 to 255.</param>
+        /// <returns>The constructed color.</returns>
+        public static Color Color8(byte r8, byte g8, byte b8, byte a8 = 255)
+        {
+            return new Color(r8 / 255f, g8 / 255f, b8 / 255f, a8 / 255f);
         }
 
         /// <summary>
@@ -547,13 +798,8 @@ namespace Godot
             }
 
             if (rgba[0] == '#')
-            {
                 rgba = rgba.Substring(1);
-            }
 
-            // If enabled, use 1 hex digit per channel instead of 2.
-            // Other sizes aren't in the HTML/CSS spec but we could add them if desired.
-            bool isShorthand = rgba.Length < 5;
             bool alpha;
 
             if (rgba.Length == 8)
@@ -564,253 +810,39 @@ namespace Godot
             {
                 alpha = false;
             }
-            else if (rgba.Length == 4)
-            {
-                alpha = true;
-            }
-            else if (rgba.Length == 3)
-            {
-                alpha = false;
-            }
             else
             {
                 throw new ArgumentOutOfRangeException("Invalid color code. Length is " + rgba.Length + " but a length of 6 or 8 is expected: " + rgba);
             }
 
-            a = 1.0f;
-            if (isShorthand)
+            if (alpha)
             {
-                r = ParseCol4(rgba, 0) / 15f;
-                g = ParseCol4(rgba, 1) / 15f;
-                b = ParseCol4(rgba, 2) / 15f;
-                if (alpha)
-                {
-                    a = ParseCol4(rgba, 3) / 15f;
-                }
+                a = ParseCol8(rgba, 0) / 255f;
+
+                if (a < 0)
+                    throw new ArgumentOutOfRangeException("Invalid color code. Alpha part is not valid hexadecimal: " + rgba);
             }
             else
             {
-                r = ParseCol8(rgba, 0) / 255f;
-                g = ParseCol8(rgba, 2) / 255f;
-                b = ParseCol8(rgba, 4) / 255f;
-                if (alpha)
-                {
-                    a = ParseCol8(rgba, 6) / 255f;
-                }
+                a = 1.0f;
             }
+
+            int from = alpha ? 2 : 0;
+
+            r = ParseCol8(rgba, from + 0) / 255f;
 
             if (r < 0)
-            {
                 throw new ArgumentOutOfRangeException("Invalid color code. Red part is not valid hexadecimal: " + rgba);
-            }
+
+            g = ParseCol8(rgba, from + 2) / 255f;
 
             if (g < 0)
-            {
                 throw new ArgumentOutOfRangeException("Invalid color code. Green part is not valid hexadecimal: " + rgba);
-            }
+
+            b = ParseCol8(rgba, from + 4) / 255f;
 
             if (b < 0)
-            {
                 throw new ArgumentOutOfRangeException("Invalid color code. Blue part is not valid hexadecimal: " + rgba);
-            }
-
-            if (a < 0)
-            {
-                throw new ArgumentOutOfRangeException("Invalid color code. Alpha part is not valid hexadecimal: " + rgba);
-            }
-        }
-
-        /// <summary>
-        /// Returns a color constructed from integer red, green, blue, and alpha channels.
-        /// Each channel should have 8 bits of information ranging from 0 to 255.
-        /// </summary>
-        /// <param name="r8">The red component represented on the range of 0 to 255.</param>
-        /// <param name="g8">The green component represented on the range of 0 to 255.</param>
-        /// <param name="b8">The blue component represented on the range of 0 to 255.</param>
-        /// <param name="a8">The alpha (transparency) component represented on the range of 0 to 255.</param>
-        /// <returns>The constructed color.</returns>
-        public static Color Color8(byte r8, byte g8, byte b8, byte a8 = 255)
-        {
-            return new Color(r8 / 255f, g8 / 255f, b8 / 255f, a8 / 255f);
-        }
-
-        /// <summary>
-        /// Returns a color according to the standardized name, with the
-        /// specified alpha value. Supported color names are the same as
-        /// the constants defined in <see cref="Colors"/>.
-        /// </summary>
-        /// <param name="name">The name of the color.</param>
-        /// <param name="alpha">The alpha (transparency) component represented on the range of 0 to 1. Default: 1.</param>
-        /// <returns>The constructed color.</returns>
-        public static Color ColorN(string name, float alpha = 1f)
-        {
-            name = name.Replace(" ", String.Empty);
-            name = name.Replace("-", String.Empty);
-            name = name.Replace("_", String.Empty);
-            name = name.Replace("'", String.Empty);
-            name = name.Replace(".", String.Empty);
-            name = name.ToLower();
-
-            if (!Colors.namedColors.ContainsKey(name))
-            {
-                throw new ArgumentOutOfRangeException($"Invalid Color Name: {name}");
-            }
-
-            Color color = Colors.namedColors[name];
-            color.a = alpha;
-            return color;
-        }
-
-        /// <summary>
-        /// Constructs a color from an HSV profile, with values on the
-        /// range of 0 to 1. This is equivalent to using each of
-        /// the `h`/`s`/`v` properties, but much more efficient.
-        /// </summary>
-        /// <param name="hue">The HSV hue, typically on the range of 0 to 1.</param>
-        /// <param name="saturation">The HSV saturation, typically on the range of 0 to 1.</param>
-        /// <param name="value">The HSV value (brightness), typically on the range of 0 to 1.</param>
-        /// <param name="alpha">The alpha (transparency) value, typically on the range of 0 to 1.</param>
-        /// <returns>The constructed color.</returns>
-        public static Color FromHsv(float hue, float saturation, float value, float alpha = 1.0f)
-        {
-            if (saturation == 0)
-            {
-                // acp_hromatic (grey)
-                return new Color(value, value, value, alpha);
-            }
-
-            int i;
-            float f, p, q, t;
-
-            hue *= 6.0f;
-            hue %= 6f;
-            i = (int)hue;
-
-            f = hue - i;
-            p = value * (1 - saturation);
-            q = value * (1 - saturation * f);
-            t = value * (1 - saturation * (1 - f));
-
-            switch (i)
-            {
-                case 0: // Red is the dominant color
-                    return new Color(value, t, p, alpha);
-                case 1: // Green is the dominant color
-                    return new Color(q, value, p, alpha);
-                case 2:
-                    return new Color(p, value, t, alpha);
-                case 3: // Blue is the dominant color
-                    return new Color(p, q, value, alpha);
-                case 4:
-                    return new Color(t, p, value, alpha);
-                default: // (5) Red is the dominant color
-                    return new Color(value, p, q, alpha);
-            }
-        }
-
-        /// <summary>
-        /// Converts a color to HSV values. This is equivalent to using each of
-        /// the `h`/`s`/`v` properties, but much more efficient.
-        /// </summary>
-        /// <param name="hue">Output parameter for the HSV hue.</param>
-        /// <param name="saturation">Output parameter for the HSV saturation.</param>
-        /// <param name="value">Output parameter for the HSV value.</param>
-        public void ToHsv(out float hue, out float saturation, out float value)
-        {
-            float max = (float)Mathf.Max(r, Mathf.Max(g, b));
-            float min = (float)Mathf.Min(r, Mathf.Min(g, b));
-
-            float delta = max - min;
-
-            if (delta == 0)
-            {
-                hue = 0;
-            }
-            else
-            {
-                if (r == max)
-                {
-                    hue = (g - b) / delta; // Between yellow & magenta
-                }
-                else if (g == max)
-                {
-                    hue = 2 + (b - r) / delta; // Between cyan & yellow
-                }
-                else
-                {
-                    hue = 4 + (r - g) / delta; // Between magenta & cyan
-                }
-
-                hue /= 6.0f;
-
-                if (hue < 0)
-                {
-                    hue += 1.0f;
-                }
-            }
-
-            saturation = max == 0 ? 0 : 1f - 1f * min / max;
-            value = max;
-        }
-
-        private static int ParseCol4(string str, int ofs)
-        {
-            char character = str[ofs];
-
-            if (character >= '0' && character <= '9')
-            {
-                return character - '0';
-            }
-            else if (character >= 'a' && character <= 'f')
-            {
-                return character + (10 - 'a');
-            }
-            else if (character >= 'A' && character <= 'F')
-            {
-                return character + (10 - 'A');
-            }
-            return -1;
-        }
-
-        private static int ParseCol8(string str, int ofs)
-        {
-            return ParseCol4(str, ofs) * 16 + ParseCol4(str, ofs + 1);
-        }
-
-        private string ToHex32(float val)
-        {
-            byte b = (byte)Mathf.RoundToInt(Mathf.Clamp(val * 255, 0, 255));
-            return b.HexEncode();
-        }
-
-        internal static bool HtmlIsValid(string color)
-        {
-            if (color.Length == 0)
-            {
-                return false;
-            }
-
-            if (color[0] == '#')
-            {
-                color = color.Substring(1);
-            }
-
-            // Check if the amount of hex digits is valid.
-            int len = color.Length;
-            if (!(len == 3 || len == 4 || len == 6 || len == 8))
-            {
-                return false;
-            }
-
-            // Check if each hex digit is valid.
-            for (int i = 0; i < len; i++) {
-                if (ParseCol4(color, i) == -1)
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static Color operator +(Color left, Color right)

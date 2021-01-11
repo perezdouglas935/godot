@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,12 +31,13 @@
 #include "image_loader_jpegd.h"
 
 #include "core/os/os.h"
-#include "core/string/print_string.h"
+#include "core/print_string.h"
 
 #include <jpgd.h>
 #include <string.h>
 
 Error jpeg_load_image_from_buffer(Image *p_image, const uint8_t *p_buffer, int p_buffer_len) {
+
 	jpgd::jpeg_decoder_mem_stream mem_stream(p_buffer, p_buffer_len);
 
 	jpgd::jpeg_decoder decoder(&mem_stream);
@@ -48,23 +49,21 @@ Error jpeg_load_image_from_buffer(Image *p_image, const uint8_t *p_buffer, int p
 	const int image_width = decoder.get_width();
 	const int image_height = decoder.get_height();
 	const int comps = decoder.get_num_components();
-	if (comps != 1 && comps != 3) {
+	if (comps != 1 && comps != 3)
 		return ERR_FILE_CORRUPT;
-	}
 
-	if (decoder.begin_decoding() != jpgd::JPGD_SUCCESS) {
+	if (decoder.begin_decoding() != jpgd::JPGD_SUCCESS)
 		return ERR_FILE_CORRUPT;
-	}
 
 	const int dst_bpl = image_width * comps;
 
-	Vector<uint8_t> data;
+	PoolVector<uint8_t> data;
 
 	data.resize(dst_bpl * image_height);
 
-	uint8_t *dw = data.ptrw();
+	PoolVector<uint8_t>::Write dw = data.write();
 
-	jpgd::uint8 *pImage_data = (jpgd::uint8 *)dw;
+	jpgd::uint8 *pImage_data = (jpgd::uint8 *)dw.ptr();
 
 	for (int y = 0; y < image_height; y++) {
 		const jpgd::uint8 *pScan_line;
@@ -92,40 +91,43 @@ Error jpeg_load_image_from_buffer(Image *p_image, const uint8_t *p_buffer, int p
 	//all good
 
 	Image::Format fmt;
-	if (comps == 1) {
+	if (comps == 1)
 		fmt = Image::FORMAT_L8;
-	} else {
+	else
 		fmt = Image::FORMAT_RGB8;
-	}
 
-	p_image->create(image_width, image_height, false, fmt, data);
+	dw.release();
+	p_image->create(image_width, image_height, 0, fmt, data);
 
 	return OK;
 }
 
 Error ImageLoaderJPG::load_image(Ref<Image> p_image, FileAccess *f, bool p_force_linear, float p_scale) {
-	Vector<uint8_t> src_image;
+
+	PoolVector<uint8_t> src_image;
 	int src_image_len = f->get_len();
 	ERR_FAIL_COND_V(src_image_len == 0, ERR_FILE_CORRUPT);
 	src_image.resize(src_image_len);
 
-	uint8_t *w = src_image.ptrw();
+	PoolVector<uint8_t>::Write w = src_image.write();
 
 	f->get_buffer(&w[0], src_image_len);
 
 	f->close();
 
-	Error err = jpeg_load_image_from_buffer(p_image.ptr(), w, src_image_len);
+	Error err = jpeg_load_image_from_buffer(p_image.ptr(), w.ptr(), src_image_len);
 
 	return err;
 }
 
 void ImageLoaderJPG::get_recognized_extensions(List<String> *p_extensions) const {
+
 	p_extensions->push_back("jpg");
 	p_extensions->push_back("jpeg");
 }
 
 static Ref<Image> _jpegd_mem_loader_func(const uint8_t *p_png, int p_size) {
+
 	Ref<Image> img;
 	img.instance();
 	Error err = jpeg_load_image_from_buffer(img.ptr(), p_png, p_size);
@@ -134,5 +136,6 @@ static Ref<Image> _jpegd_mem_loader_func(const uint8_t *p_png, int p_size) {
 }
 
 ImageLoaderJPG::ImageLoaderJPG() {
+
 	Image::_jpg_mem_loader_func = _jpegd_mem_loader_func;
 }

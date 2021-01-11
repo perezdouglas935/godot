@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="Animation" inherits="Resource" version="4.0">
+<class name="Animation" inherits="Resource" version="3.2">
 	<brief_description>
 		Contains data used to animate everything in the engine.
 	</brief_description>
 	<description>
 		An Animation resource contains data used to animate everything in the engine. Animations are divided into tracks, and each track must be linked to a node. The state of that node can be changed through time, by adding timed keys (events) to the track.
-		[codeblocks]
-		[gdscript]
+		[codeblock]
 		# This creates an animation that makes the node "Enemy" move to the right by
 		# 100 pixels in 0.5 seconds.
 		var animation = Animation.new()
@@ -14,21 +13,11 @@
 		animation.track_set_path(track_index, "Enemy:position:x")
 		animation.track_insert_key(track_index, 0.0, 0)
 		animation.track_insert_key(track_index, 0.5, 100)
-		[/gdscript]
-		[csharp]
-		// This creates an animation that makes the node "Enemy" move to the right by
-		// 100 pixels in 0.5 seconds.
-		var animation = new Animation();
-		int trackIndex = animation.AddTrack(Animation.TrackType.Value);
-		animation.TrackSetPath(trackIndex, "Enemy:position:x");
-		animation.TrackInsertKey(trackIndex, 0.0f, 0);
-		animation.TrackInsertKey(trackIndex, 0.5f, 100);
-		[/csharp]
-		[/codeblocks]
-		Animations are just data containers, and must be added to nodes such as an [AnimationPlayer] to be played back. Animation tracks have different types, each with its own set of dedicated methods. Check [enum TrackType] to see available types.
+		[/codeblock]
+		Animations are just data containers, and must be added to nodes such as an [AnimationPlayer] or [AnimationTreePlayer] to be played back. Animation tracks have different types, each with its own set of dedicated methods. Check [enum TrackType] to see available types.
 	</description>
 	<tutorials>
-		<link title="Animation tutorial index">https://docs.godotengine.org/en/latest/tutorials/animation/index.html</link>
+		<link>https://docs.godotengine.org/en/latest/tutorials/animation/index.html</link>
 	</tutorials>
 	<methods>
 		<method name="add_track">
@@ -43,7 +32,7 @@
 			</description>
 		</method>
 		<method name="animation_track_get_key_animation" qualifiers="const">
-			<return type="StringName">
+			<return type="String">
 			</return>
 			<argument index="0" name="track_idx" type="int">
 			</argument>
@@ -60,7 +49,7 @@
 			</argument>
 			<argument index="1" name="time" type="float">
 			</argument>
-			<argument index="2" name="animation" type="StringName">
+			<argument index="2" name="animation" type="String">
 			</argument>
 			<description>
 				Inserts a key with value [code]animation[/code] at the given [code]time[/code] (in seconds). The [code]track_idx[/code] must be the index of an Animation Track.
@@ -73,7 +62,7 @@
 			</argument>
 			<argument index="1" name="key_idx" type="int">
 			</argument>
-			<argument index="2" name="animation" type="StringName">
+			<argument index="2" name="animation" type="String">
 			</argument>
 			<description>
 				Sets the key identified by [code]key_idx[/code] to value [code]animation[/code]. The [code]track_idx[/code] must be the index of an Animation Track.
@@ -307,7 +296,7 @@
 			</description>
 		</method>
 		<method name="method_track_get_key_indices" qualifiers="const">
-			<return type="PackedInt32Array">
+			<return type="PoolIntArray">
 			</return>
 			<argument index="0" name="track_idx" type="int">
 			</argument>
@@ -320,7 +309,7 @@
 			</description>
 		</method>
 		<method name="method_track_get_name" qualifiers="const">
-			<return type="StringName">
+			<return type="String">
 			</return>
 			<argument index="0" name="track_idx" type="int">
 			</argument>
@@ -409,7 +398,7 @@
 			<argument index="1" name="key_idx" type="int">
 			</argument>
 			<description>
-				Returns the transition curve (easing) for a specific key (see the built-in math function [method @GlobalScope.ease]).
+				Returns the transition curve (easing) for a specific key (see the built-in math function [method @GDScript.ease]).
 			</description>
 		</method>
 		<method name="track_get_key_value" qualifiers="const">
@@ -514,15 +503,15 @@
 				Removes a key by index in a given track.
 			</description>
 		</method>
-		<method name="track_remove_key_at_time">
+		<method name="track_remove_key_at_position">
 			<return type="void">
 			</return>
 			<argument index="0" name="track_idx" type="int">
 			</argument>
-			<argument index="1" name="time" type="float">
+			<argument index="1" name="position" type="float">
 			</argument>
 			<description>
-				Removes a key at [code]time[/code] in a given track.
+				Removes a key by position (seconds) in a given track.
 			</description>
 		</method>
 		<method name="track_set_enabled">
@@ -592,7 +581,7 @@
 			<argument index="2" name="transition" type="float">
 			</argument>
 			<description>
-				Sets the transition curve (easing) for a specific key (see the built-in math function [method @GlobalScope.ease]).
+				Sets the transition curve (easing) for a specific key (see the built-in math function [method @GDScript.ease]).
 			</description>
 		</method>
 		<method name="track_set_key_value">
@@ -660,7 +649,7 @@
 			</description>
 		</method>
 		<method name="value_track_get_key_indices" qualifiers="const">
-			<return type="PackedInt32Array">
+			<return type="PoolIntArray">
 			</return>
 			<argument index="0" name="track_idx" type="int">
 			</argument>
@@ -679,17 +668,6 @@
 			</argument>
 			<description>
 				Returns the update mode of a value track.
-			</description>
-		</method>
-		<method name="value_track_interpolate" qualifiers="const">
-			<return type="Variant">
-			</return>
-			<argument index="0" name="track_idx" type="int">
-			</argument>
-			<argument index="1" name="time_sec" type="float">
-			</argument>
-			<description>
-				Returns the interpolated value at the given time (in seconds). The [code]track_idx[/code] must be the index of a value track.
 			</description>
 		</method>
 		<method name="value_track_set_update_mode">

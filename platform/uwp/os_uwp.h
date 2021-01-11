@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -32,15 +32,17 @@
 #define OS_UWP_H
 
 #include "context_egl_uwp.h"
-#include "core/input/input.h"
 #include "core/math/transform_2d.h"
+#include "core/os/input.h"
 #include "core/os/os.h"
-#include "core/string/ustring.h"
+#include "core/ustring.h"
 #include "drivers/xaudio2/audio_driver_xaudio2.h"
 #include "joypad_uwp.h"
+#include "main/input_default.h"
+#include "power_uwp.h"
 #include "servers/audio_server.h"
-#include "servers/rendering/renderer_compositor.h"
-#include "servers/rendering_server.h"
+#include "servers/visual/rasterizer.h"
+#include "servers/visual_server.h"
 
 #include <fcntl.h>
 #include <io.h>
@@ -48,20 +50,21 @@
 #include <windows.h>
 
 class OS_UWP : public OS {
+
 public:
 	struct KeyEvent {
+
 		enum MessageType {
 			KEY_EVENT_MESSAGE,
 			CHAR_EVENT_MESSAGE
 		};
 
-		bool alt = false, shift = false, control = false;
-		MessageType type = KEY_EVENT_MESSAGE;
-		bool pressed = false;
-		unsigned int keycode = 0;
-		unsigned int physical_keycode = 0;
-		unsigned int unicode = 0;
-		bool echo = false;
+		bool alt, shift, control;
+		MessageType type;
+		bool pressed;
+		unsigned int scancode;
+		unsigned int unicode;
+		bool echo;
 		CorePhysicalKeyStatus status;
 	};
 
@@ -86,7 +89,7 @@ private:
 	bool outside;
 	int old_x, old_y;
 	Point2i center;
-	RenderingServer *rendering_server;
+	VisualServer *visual_server;
 	int pressrc;
 
 	ContextEGL_UWP *gl_context;
@@ -98,6 +101,8 @@ private:
 	MainLoop *main_loop;
 
 	AudioDriverXAudio2 audio_driver;
+
+	PowerUWP *power_manager;
 
 	MouseMode mouse_mode;
 	bool alt_mem;
@@ -194,12 +199,13 @@ public:
 	virtual TimeZoneInfo get_time_zone_info() const;
 	virtual uint64_t get_unix_time() const;
 
+	virtual bool can_draw() const;
 	virtual Error set_cwd(const String &p_cwd);
 
 	virtual void delay_usec(uint32_t p_usec) const;
 	virtual uint64_t get_ticks_usec() const;
 
-	virtual Error execute(const String &p_path, const List<String> &p_arguments, bool p_blocking = true, ProcessID *r_child_id = nullptr, String *r_pipe = nullptr, int *r_exitcode = nullptr, bool read_stderr = false, Mutex *p_pipe_mutex = nullptr);
+	virtual Error execute(const String &p_path, const List<String> &p_arguments, bool p_blocking = true, ProcessID *r_child_id = NULL, String *r_pipe = NULL, int *r_exitcode = NULL, bool read_stderr = false, Mutex *p_pipe_mutex = NULL);
 	virtual Error kill(const ProcessID &p_pid);
 
 	virtual bool has_environment(const String &p_var) const;
@@ -244,9 +250,13 @@ public:
 
 	void run();
 
-	virtual bool get_swap_cancel_ok() { return true; }
+	virtual bool get_swap_ok_cancel() { return true; }
 
 	void input_event(const Ref<InputEvent> &p_event);
+
+	virtual OS::PowerState get_power_state();
+	virtual int get_power_seconds_left();
+	virtual int get_power_percent_left();
 
 	void queue_key_event(KeyEvent &p_event);
 

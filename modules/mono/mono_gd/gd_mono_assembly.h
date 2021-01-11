@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,12 +34,13 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 
-#include "core/string/ustring.h"
-#include "core/templates/hash_map.h"
-#include "core/templates/map.h"
+#include "core/hash_map.h"
+#include "core/map.h"
+#include "core/ustring.h"
 #include "gd_mono_utils.h"
 
 class GDMonoAssembly {
+
 	struct ClassKey {
 		struct Hasher {
 			static _FORCE_INLINE_ uint32_t hash(const ClassKey &p_key) {
@@ -72,10 +73,10 @@ class GDMonoAssembly {
 	MonoAssembly *assembly;
 
 #ifdef GD_MONO_HOT_RELOAD
-	uint64_t modified_time = 0;
+	uint64_t modified_time;
 #endif
 
-	bool gdobject_class_cache_updated = false;
+	bool gdobject_class_cache_updated;
 	Map<StringName, GDMonoClass *> gdobject_class_cache;
 
 	HashMap<ClassKey, GDMonoClass *, ClassKey::Hasher> cached_classes;
@@ -124,11 +125,7 @@ public:
 	static GDMonoAssembly *load(const String &p_name, MonoAssemblyName *p_aname, bool p_refonly, const Vector<String> &p_search_dirs);
 	static GDMonoAssembly *load_from(const String &p_name, const String &p_path, bool p_refonly);
 
-	GDMonoAssembly(const String &p_name, MonoImage *p_image, MonoAssembly *p_assembly) :
-			name(p_name),
-			image(p_image),
-			assembly(p_assembly) {
-	}
+	GDMonoAssembly(const String &p_name, MonoImage *p_image, MonoAssembly *p_assembly);
 	~GDMonoAssembly();
 };
 

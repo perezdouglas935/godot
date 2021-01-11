@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,28 +31,32 @@
 #ifndef EDITOR_DATA_H
 #define EDITOR_DATA_H
 
-#include "core/object/undo_redo.h"
-#include "core/templates/list.h"
-#include "core/templates/pair.h"
+#include "core/list.h"
+#include "core/pair.h"
+#include "core/undo_redo.h"
 #include "editor/editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "scene/resources/texture.h"
 
 class EditorHistory {
+
 	enum {
+
 		HISTORY_MAX = 64
 	};
 
 	struct Obj {
+
 		REF ref;
 		ObjectID object;
 		String property;
-		bool inspector_only = false;
+		bool inspector_only;
 	};
 
 	struct History {
+
 		Vector<Obj> path;
-		int level = 0;
+		int level;
 	};
 	friend class EditorData;
 
@@ -62,6 +66,7 @@ class EditorHistory {
 	//Vector<EditorPlugin*> editor_plugins;
 
 	struct PropertyData {
+
 		String name;
 		Variant value;
 	};
@@ -101,22 +106,24 @@ public:
 class EditorSelection;
 
 class EditorData {
+
 public:
 	struct CustomType {
+
 		String name;
 		Ref<Script> script;
-		Ref<Texture2D> icon;
+		Ref<Texture> icon;
 	};
 
 	struct EditedScene {
-		Node *root = nullptr;
+		Node *root;
 		String path;
 		Dictionary editor_states;
 		List<Node *> selection;
 		Vector<EditorHistory::History> history_stored;
-		int history_current = 0;
+		int history_current;
 		Dictionary custom_state;
-		uint64_t version = 0;
+		uint64_t version;
 		NodePath live_edit_root;
 	};
 
@@ -124,10 +131,11 @@ private:
 	Vector<EditorPlugin *> editor_plugins;
 
 	struct PropertyData {
+
 		String name;
 		Variant value;
 	};
-	Map<String, Vector<CustomType>> custom_types;
+	Map<String, Vector<CustomType> > custom_types;
 
 	List<PropertyData> clipboard;
 	UndoRedo undo_redo;
@@ -170,10 +178,10 @@ public:
 	void save_editor_global_states();
 	void restore_editor_global_states();
 
-	void add_custom_type(const String &p_type, const String &p_inherits, const Ref<Script> &p_script, const Ref<Texture2D> &p_icon);
-	Variant instance_custom_type(const String &p_type, const String &p_inherits);
+	void add_custom_type(const String &p_type, const String &p_inherits, const Ref<Script> &p_script, const Ref<Texture> &p_icon);
+	Object *instance_custom_type(const String &p_type, const String &p_inherits);
 	void remove_custom_type(const String &p_type);
-	const Map<String, Vector<CustomType>> &get_custom_types() const { return custom_types; }
+	const Map<String, Vector<CustomType> > &get_custom_types() const { return custom_types; }
 
 	int add_edited_scene(int p_at_pos);
 	void move_edited_scene_index(int p_idx, int p_to_idx);
@@ -190,6 +198,7 @@ public:
 	void set_scene_path(int p_idx, const String &p_path);
 	Ref<Script> get_scene_root_script(int p_idx) const;
 	void set_edited_scene_version(uint64_t version, int p_scene_idx = -1);
+	uint64_t get_edited_scene_version() const;
 	uint64_t get_scene_version(int p_idx) const;
 	void clear_edited_scenes();
 	void set_edited_scene_live_edit_root(const NodePath &p_root);
@@ -208,7 +217,7 @@ public:
 
 	bool script_class_is_parent(const String &p_class, const String &p_inherits);
 	StringName script_class_get_base(const String &p_class) const;
-	Variant script_class_instance(const String &p_class);
+	Object *script_class_instance(const String &p_class);
 
 	Ref<Script> script_class_load_script(const String &p_class) const;
 
@@ -225,6 +234,7 @@ public:
 };
 
 class EditorSelection : public Object {
+
 	GDCLASS(EditorSelection, Object);
 
 private:
@@ -247,16 +257,15 @@ protected:
 	static void _bind_methods();
 
 public:
-	TypedArray<Node> get_selected_nodes();
+	Array get_selected_nodes();
 	void add_node(Node *p_node);
 	void remove_node(Node *p_node);
 	bool is_selected(Node *) const;
 
 	template <class T>
 	T *get_node_editor_data(Node *p_node) {
-		if (!selection.has(p_node)) {
-			return nullptr;
-		}
+		if (!selection.has(p_node))
+			return NULL;
 		return Object::cast_to<T>(selection[p_node]);
 	}
 

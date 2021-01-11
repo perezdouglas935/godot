@@ -30,28 +30,23 @@ btScalar btMultiBodyConstraintSolver::solveSingleIteration(int iteration, btColl
 	btScalar leastSquaredResidual = btSequentialImpulseConstraintSolver::solveSingleIteration(iteration, bodies, numBodies, manifoldPtr, numManifolds, constraints, numConstraints, infoGlobal, debugDrawer);
 
 	//solve featherstone non-contact constraints
-	btScalar nonContactResidual = 0;
+
 	//printf("m_multiBodyNonContactConstraints = %d\n",m_multiBodyNonContactConstraints.size());
-	for (int i = 0; i < infoGlobal.m_numNonContactInnerIterations; ++i)
+
+	for (int j = 0; j < m_multiBodyNonContactConstraints.size(); j++)
 	{
-		// reset the nonContactResdual to 0 at start of each inner iteration
-		nonContactResidual = 0;
-		for (int j = 0; j < m_multiBodyNonContactConstraints.size(); j++)
-		{
-			int index = iteration & 1 ? j : m_multiBodyNonContactConstraints.size() - 1 - j;
+		int index = iteration & 1 ? j : m_multiBodyNonContactConstraints.size() - 1 - j;
 
-			btMultiBodySolverConstraint& constraint = m_multiBodyNonContactConstraints[index];
+		btMultiBodySolverConstraint& constraint = m_multiBodyNonContactConstraints[index];
 
-			btScalar residual = resolveSingleConstraintRowGeneric(constraint);
-			nonContactResidual = btMax(nonContactResidual, residual * residual);
+		btScalar residual = resolveSingleConstraintRowGeneric(constraint);
+		leastSquaredResidual = btMax(leastSquaredResidual, residual * residual);
 
-			if (constraint.m_multiBodyA)
-				constraint.m_multiBodyA->setPosUpdated(false);
-			if (constraint.m_multiBodyB)
-				constraint.m_multiBodyB->setPosUpdated(false);
-		}
+		if (constraint.m_multiBodyA)
+			constraint.m_multiBodyA->setPosUpdated(false);
+		if (constraint.m_multiBodyB)
+			constraint.m_multiBodyB->setPosUpdated(false);
 	}
-	leastSquaredResidual = btMax(leastSquaredResidual, nonContactResidual);
 
 	//solve featherstone normal contact
 	for (int j0 = 0; j0 < m_multiBodyNormalContactConstraints.size(); j0++)
@@ -1255,7 +1250,7 @@ void btMultiBodyConstraintSolver::convertMultiBodyContact(btPersistentManifold* 
 {
 	const btMultiBodyLinkCollider* fcA = btMultiBodyLinkCollider::upcast(manifold->getBody0());
 	const btMultiBodyLinkCollider* fcB = btMultiBodyLinkCollider::upcast(manifold->getBody1());
-	
+
 	btMultiBody* mbA = fcA ? fcA->m_multiBody : 0;
 	btMultiBody* mbB = fcB ? fcB->m_multiBody : 0;
 
@@ -1275,7 +1270,7 @@ void btMultiBodyConstraintSolver::convertMultiBodyContact(btPersistentManifold* 
 	//	return;
 
 	//only a single rollingFriction per manifold
-	int rollingFriction = 4;
+	int rollingFriction = 1;
 
 	for (int j = 0; j < manifold->getNumContacts(); j++)
 	{

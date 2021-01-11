@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/gui/dialogs.h"
 #include "scene/gui/tree.h"
 class EditorAssetInstaller : public ConfirmationDialog {
+
 	GDCLASS(EditorAssetInstaller, ConfirmationDialog);
 
 	Tree *tree;
@@ -44,7 +45,7 @@ class EditorAssetInstaller : public ConfirmationDialog {
 	void _update_subitems(TreeItem *p_item, bool p_check, bool p_first = false);
 	void _uncheck_parent(TreeItem *p_item);
 	void _item_edited();
-	virtual void ok_pressed() override;
+	virtual void ok_pressed();
 
 protected:
 	static void _bind_methods();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,10 +31,10 @@
 #ifndef CAMERA_FEED_H
 #define CAMERA_FEED_H
 
-#include "core/io/image.h"
+#include "core/image.h"
 #include "core/math/transform_2d.h"
 #include "servers/camera_server.h"
-#include "servers/rendering_server.h"
+#include "servers/visual_server.h"
 
 /**
 	@author Bastiaan Olij <mux213@gmail.com>
@@ -103,10 +103,7 @@ public:
 	void set_RGB_img(Ref<Image> p_rgb_img);
 	void set_YCbCr_img(Ref<Image> p_ycbcr_img);
 	void set_YCbCr_imgs(Ref<Image> p_y_img, Ref<Image> p_cbcr_img);
-// FIXME: Disabled during Vulkan refactoring, should be ported.
-#if 0
-	void allocate_texture(int p_width, int p_height, Image::Format p_format, RenderingServer::TextureType p_texture_type, FeedDataType p_data_type);
-#endif
+	void allocate_texture(int p_width, int p_height, Image::Format p_format, VisualServer::TextureType p_texture_type, FeedDataType p_data_type);
 
 	virtual bool activate_feed();
 	virtual void deactivate_feed();

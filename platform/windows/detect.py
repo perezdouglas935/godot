@@ -64,22 +64,22 @@ def get_opts():
         # XP support dropped after EOL due to missing API for IPv6 and other issues
         # Vista support dropped after EOL due to GH-10243
         ("target_win_version", "Targeted Windows version, >= 0x0601 (Windows 7)", "0x0601"),
-        EnumVariable("debug_symbols", "Add debugging symbols to release/release_debug builds", "yes", ("yes", "no")),
-        EnumVariable("windows_subsystem", "Windows subsystem", "default", ("default", "console", "gui")),
+        EnumVariable("debug_symbols", "Add debugging symbols to release builds", "yes", ("yes", "no", "full")),
         BoolVariable("separate_debug_symbols", "Create a separate file containing debugging symbols", False),
         ("msvc_version", "MSVC version to use. Ignored if VCINSTALLDIR is set in shell env.", None),
-        BoolVariable("use_mingw", "Use the Mingw compiler, even if MSVC is installed.", False),
+        BoolVariable("use_mingw", "Use the Mingw compiler, even if MSVC is installed. Only used on Windows.", False),
         BoolVariable("use_llvm", "Use the LLVM compiler", False),
         BoolVariable("use_thinlto", "Use ThinLTO", False),
-        BoolVariable("use_static_cpp", "Link MinGW/MSVC C++ runtime libraries statically", True),
     ]
 
 
 def get_flags():
+
     return []
 
 
 def build_res_file(target, source, env):
+
     if env["bits"] == "32":
         cmdbase = env["mingw_prefix_32"]
     else:
@@ -93,7 +93,7 @@ def build_res_file(target, source, env):
             out = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE).communicate()
             if len(out[1]):
                 return 1
-        except Exception:
+        except:
             return 1
     return 0
 
@@ -128,9 +128,7 @@ def setup_msvc_manual(env):
         print("Compiled program architecture will be a 32 bit executable. (forcing bits=32).")
     else:
         print(
-            "Failed to manually detect MSVC compiler architecture version... Defaulting to 32bit executable settings"
-            " (forcing bits=32). Compilation attempt will continue, but SCons can not detect for what architecture this"
-            " build is compiled for. You should check your settings/compilation setup, or avoid setting VCINSTALLDIR."
+            "Failed to manually detect MSVC compiler architecture version... Defaulting to 32bit executable settings (forcing bits=32). Compilation attempt will continue, but SCons can not detect for what architecture this build is compiled for. You should check your settings/compilation setup, or avoid setting VCINSTALLDIR."
         )
 
 
@@ -178,20 +176,12 @@ def configure_msvc(env, manual_msvc_config):
 
     # Build type
 
-    if env["tests"]:
-        env["windows_subsystem"] = "console"
-    elif env["windows_subsystem"] == "default":
-        # Default means we use console for debug, gui for release.
-        if "debug" in env["target"]:
-            env["windows_subsystem"] = "console"
-        else:
-            env["windows_subsystem"] = "gui"
-
     if env["target"] == "release":
         if env["optimize"] == "speed":  # optimize for speed (default)
             env.Append(CCFLAGS=["/O2"])
         else:  # optimize for size
             env.Append(CCFLAGS=["/O1"])
+        env.Append(LINKFLAGS=["/SUBSYSTEM:WINDOWS"])
         env.Append(LINKFLAGS=["/ENTRY:mainCRTStartup"])
         env.Append(LINKFLAGS=["/OPT:REF"])
 
@@ -201,32 +191,24 @@ def configure_msvc(env, manual_msvc_config):
         else:  # optimize for size
             env.Append(CCFLAGS=["/O1"])
         env.AppendUnique(CPPDEFINES=["DEBUG_ENABLED"])
+        env.Append(LINKFLAGS=["/SUBSYSTEM:CONSOLE"])
         env.Append(LINKFLAGS=["/OPT:REF"])
 
     elif env["target"] == "debug":
         env.AppendUnique(CCFLAGS=["/Z7", "/Od", "/EHsc"])
         env.AppendUnique(CPPDEFINES=["DEBUG_ENABLED"])
+        env.Append(LINKFLAGS=["/SUBSYSTEM:CONSOLE"])
         env.Append(LINKFLAGS=["/DEBUG"])
 
-    if env["debug_symbols"] == "yes":
+    if env["debug_symbols"] == "full" or env["debug_symbols"] == "yes":
         env.AppendUnique(CCFLAGS=["/Z7"])
         env.AppendUnique(LINKFLAGS=["/DEBUG"])
 
-    if env["windows_subsystem"] == "gui":
-        env.Append(LINKFLAGS=["/SUBSYSTEM:WINDOWS"])
-    else:
-        env.Append(LINKFLAGS=["/SUBSYSTEM:CONSOLE"])
-        env.AppendUnique(CPPDEFINES=["WINDOWS_SUBSYSTEM_CONSOLE"])
-
     ## Compile/link flags
 
-    if env["use_static_cpp"]:
-        env.AppendUnique(CCFLAGS=["/MT"])
-    else:
-        env.AppendUnique(CCFLAGS=["/MD"])
-    env.AppendUnique(CCFLAGS=["/Gd", "/GR", "/nologo"])
-    # Force to use Unicode encoding
-    env.AppendUnique(CCFLAGS=["/utf-8"])
+    env.AppendUnique(CCFLAGS=["/MT", "/Gd", "/GR", "/nologo"])
+    if int(env["MSVC_VERSION"].split(".")[0]) >= 14:  # vs2015 and later
+        env.AppendUnique(CCFLAGS=["/utf-8"])
     env.AppendUnique(CXXFLAGS=["/TP"])  # assume all sources are C++
     if manual_msvc_config:  # should be automatic if SCons found it
         if os.getenv("WindowsSdkDir") is not None:
@@ -237,6 +219,7 @@ def configure_msvc(env, manual_msvc_config):
     env.AppendUnique(
         CPPDEFINES=[
             "WINDOWS_ENABLED",
+            "OPENGL_ENABLED",
             "WASAPI_ENABLED",
             "WINMIDI_ENABLED",
             "TYPED_METHOD_BIND",
@@ -254,6 +237,7 @@ def configure_msvc(env, manual_msvc_config):
 
     LIBS = [
         "winmm",
+        "opengl32",
         "dsound",
         "kernel32",
         "ole32",
@@ -273,16 +257,6 @@ def configure_msvc(env, manual_msvc_config):
         "Avrt",
         "dwmapi",
     ]
-
-    env.AppendUnique(CPPDEFINES=["VULKAN_ENABLED"])
-    if not env["builtin_vulkan"]:
-        LIBS += ["vulkan"]
-    else:
-        LIBS += ["cfgmgr32"]
-
-    # env.AppendUnique(CPPDEFINES = ['OPENGL_ENABLED'])
-    LIBS += ["opengl32"]
-
     env.Append(LINKFLAGS=[p + env["LIBSUFFIX"] for p in LIBS])
 
     if manual_msvc_config:
@@ -319,15 +293,6 @@ def configure_mingw(env):
 
     ## Build type
 
-    if env["tests"]:
-        env["windows_subsystem"] = "console"
-    elif env["windows_subsystem"] == "default":
-        # Default means we use console for debug, gui for release.
-        if "debug" in env["target"]:
-            env["windows_subsystem"] = "console"
-        else:
-            env["windows_subsystem"] = "gui"
-
     if env["target"] == "release":
         env.Append(CCFLAGS=["-msse2"])
 
@@ -339,13 +304,19 @@ def configure_mingw(env):
         else:  # optimize for size
             env.Prepend(CCFLAGS=["-Os"])
 
+        env.Append(LINKFLAGS=["-Wl,--subsystem,windows"])
+
         if env["debug_symbols"] == "yes":
+            env.Prepend(CCFLAGS=["-g1"])
+        if env["debug_symbols"] == "full":
             env.Prepend(CCFLAGS=["-g2"])
 
     elif env["target"] == "release_debug":
         env.Append(CCFLAGS=["-O2"])
         env.Append(CPPDEFINES=["DEBUG_ENABLED"])
         if env["debug_symbols"] == "yes":
+            env.Prepend(CCFLAGS=["-g1"])
+        if env["debug_symbols"] == "full":
             env.Prepend(CCFLAGS=["-g2"])
         if env["optimize"] == "speed":  # optimize for speed (default)
             env.Append(CCFLAGS=["-O2"])
@@ -356,15 +327,14 @@ def configure_mingw(env):
         env.Append(CCFLAGS=["-g3"])
         env.Append(CPPDEFINES=["DEBUG_ENABLED"])
 
-    if env["windows_subsystem"] == "gui":
-        env.Append(LINKFLAGS=["-Wl,--subsystem,windows"])
-    else:
-        env.Append(LINKFLAGS=["-Wl,--subsystem,console"])
-        env.AppendUnique(CPPDEFINES=["WINDOWS_SUBSYSTEM_CONSOLE"])
-
     ## Compiler configuration
 
-    if os.name != "nt":
+    if os.name == "nt":
+        # Force splitting libmodules.a in multiple chunks to work around
+        # issues reaching the linker command line size limit, which also
+        # seem to induce huge slowdown for 'ar' (GH-30892).
+        env["split_libmodules"] = True
+    else:
         env["PROGSUFFIX"] = env["PROGSUFFIX"] + ".exe"  # for linux cross-compilation
 
     if env["bits"] == "default":
@@ -376,29 +346,28 @@ def configure_mingw(env):
     mingw_prefix = ""
 
     if env["bits"] == "32":
-        if env["use_static_cpp"]:
-            env.Append(LINKFLAGS=["-static"])
-            env.Append(LINKFLAGS=["-static-libgcc"])
-            env.Append(LINKFLAGS=["-static-libstdc++"])
+        env.Append(LINKFLAGS=["-static"])
+        env.Append(LINKFLAGS=["-static-libgcc"])
+        env.Append(LINKFLAGS=["-static-libstdc++"])
         mingw_prefix = env["mingw_prefix_32"]
     else:
-        if env["use_static_cpp"]:
-            env.Append(LINKFLAGS=["-static"])
+        env.Append(LINKFLAGS=["-static"])
         mingw_prefix = env["mingw_prefix_64"]
 
     if env["use_llvm"]:
         env["CC"] = mingw_prefix + "clang"
-        env["CXX"] = mingw_prefix + "clang++"
         env["AS"] = mingw_prefix + "as"
+        env["CXX"] = mingw_prefix + "clang++"
         env["AR"] = mingw_prefix + "ar"
         env["RANLIB"] = mingw_prefix + "ranlib"
+        env["LINK"] = mingw_prefix + "clang++"
     else:
         env["CC"] = mingw_prefix + "gcc"
-        env["CXX"] = mingw_prefix + "g++"
         env["AS"] = mingw_prefix + "as"
+        env["CXX"] = mingw_prefix + "g++"
         env["AR"] = mingw_prefix + "gcc-ar"
         env["RANLIB"] = mingw_prefix + "gcc-ranlib"
-
+        env["LINK"] = mingw_prefix + "g++"
     env["x86_libtheora_opt_gcc"] = True
 
     if env["use_lto"]:
@@ -418,12 +387,12 @@ def configure_mingw(env):
     ## Compile flags
 
     env.Append(CCFLAGS=["-mwindows"])
-
-    env.Append(CPPDEFINES=["WINDOWS_ENABLED", "WASAPI_ENABLED", "WINMIDI_ENABLED"])
+    env.Append(CPPDEFINES=["WINDOWS_ENABLED", "OPENGL_ENABLED", "WASAPI_ENABLED", "WINMIDI_ENABLED"])
     env.Append(CPPDEFINES=[("WINVER", env["target_win_version"]), ("_WIN32_WINNT", env["target_win_version"])])
     env.Append(
         LIBS=[
             "mingw32",
+            "opengl32",
             "dsound",
             "ole32",
             "d3d9",
@@ -445,16 +414,6 @@ def configure_mingw(env):
             "dwmapi",
         ]
     )
-
-    env.Append(CPPDEFINES=["VULKAN_ENABLED"])
-    if not env["builtin_vulkan"]:
-        env.Append(LIBS=["vulkan"])
-    else:
-        env.Append(LIBS=["cfgmgr32"])
-
-    ## TODO !!! Re-enable when OpenGLES Rendering Device is implemented !!!
-    # env.Append(CPPDEFINES=['OPENGL_ENABLED'])
-    env.Append(LIBS=["opengl32"])
 
     env.Append(CPPDEFINES=["MINGW_ENABLED", ("MINGW_HAS_SECURE_API", 1)])
 

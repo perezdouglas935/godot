@@ -43,9 +43,10 @@
 #define GXVCOMMN_H_
 
 
+#include <ft2build.h>
 #include "gxvalid.h"
-#include <freetype/internal/ftdebug.h>
-#include <freetype/ftsnames.h>
+#include FT_INTERNAL_DEBUG_H
+#include FT_SFNT_NAMES_H
 
 
 FT_BEGIN_HEADER

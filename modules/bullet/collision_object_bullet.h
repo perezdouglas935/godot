@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,8 +33,8 @@
 
 #include "core/math/transform.h"
 #include "core/math/vector3.h"
-#include "core/object/class_db.h"
-#include "core/templates/vset.h"
+#include "core/object.h"
+#include "core/vset.h"
 #include "shape_owner_bullet.h"
 
 #include <LinearMath/btTransform.h>
@@ -69,22 +69,27 @@ public:
 	};
 
 	struct ShapeWrapper {
-		ShapeBullet *shape = nullptr;
-		btCollisionShape *bt_shape = nullptr;
+		ShapeBullet *shape;
+		btCollisionShape *bt_shape;
 		btTransform transform;
 		btVector3 scale;
-		bool active = true;
+		bool active;
 
-		ShapeWrapper() {}
+		ShapeWrapper() :
+				shape(NULL),
+				bt_shape(NULL),
+				active(true) {}
 
 		ShapeWrapper(ShapeBullet *p_shape, const btTransform &p_transform, bool p_active) :
 				shape(p_shape),
+				bt_shape(NULL),
 				active(p_active) {
 			set_transform(p_transform);
 		}
 
 		ShapeWrapper(ShapeBullet *p_shape, const Transform &p_transform, bool p_active) :
 				shape(p_shape),
+				bt_shape(NULL),
 				active(p_active) {
 			set_transform(p_transform);
 		}
@@ -112,15 +117,15 @@ public:
 protected:
 	Type type;
 	ObjectID instance_id;
-	uint32_t collisionLayer = 0;
-	uint32_t collisionMask = 0;
-	bool collisionsEnabled = true;
-	bool m_isStatic = false;
-	bool ray_pickable = false;
-	btCollisionObject *bt_collision_object = nullptr;
-	Vector3 body_scale = Vector3(1, 1, 1);
-	bool force_shape_reset = false;
-	SpaceBullet *space = nullptr;
+	uint32_t collisionLayer;
+	uint32_t collisionMask;
+	bool collisionsEnabled;
+	bool m_isStatic;
+	bool ray_pickable;
+	btCollisionObject *bt_collision_object;
+	Vector3 body_scale;
+	bool force_shape_reset;
+	SpaceBullet *space;
 
 	VSet<RID> exceptions;
 
@@ -128,7 +133,7 @@ protected:
 	/// New area is added when overlap with new area (AreaBullet::addOverlap), then is removed when it exit (CollisionObjectBullet::onExitArea)
 	/// This array is used mainly to know which area hold the pointer of this object
 	Vector<AreaBullet *> areasOverlapped;
-	bool isTransformChanged = false;
+	bool isTransformChanged;
 
 public:
 	CollisionObjectBullet(Type p_type);
@@ -213,12 +218,11 @@ public:
 
 class RigidCollisionObjectBullet : public CollisionObjectBullet, public ShapeOwnerBullet {
 protected:
-	btCollisionShape *mainShape = nullptr;
+	btCollisionShape *mainShape;
 	Vector<ShapeWrapper> shapes;
 
 public:
-	RigidCollisionObjectBullet(Type p_type) :
-			CollisionObjectBullet(p_type) {}
+	RigidCollisionObjectBullet(Type p_type);
 	~RigidCollisionObjectBullet();
 
 	_FORCE_INLINE_ const Vector<ShapeWrapper> &get_shapes_wrappers() const { return shapes; }

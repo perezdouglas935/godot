@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,10 +33,9 @@ package org.godotengine.godot.input;
 import static org.godotengine.godot.utils.GLUtils.DEBUG;
 
 import org.godotengine.godot.GodotLib;
-import org.godotengine.godot.GodotRenderView;
+import org.godotengine.godot.GodotView;
 import org.godotengine.godot.input.InputManagerCompat.InputDeviceListener;
 
-import android.os.Build;
 import android.util.Log;
 import android.view.InputDevice;
 import android.view.InputDevice.MotionRange;
@@ -49,22 +48,23 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Handles input related events for the {@link GodotRenderView} view.
+ * Handles input related events for the {@link GodotView} view.
  */
 public class GodotInputHandler implements InputDeviceListener {
-	private final ArrayList<Joystick> mJoysticksDevices = new ArrayList<Joystick>();
 
-	private final GodotRenderView mRenderView;
-	private final InputManagerCompat mInputManager;
+	private final ArrayList<Joystick> joysticksDevices = new ArrayList<Joystick>();
 
-	public GodotInputHandler(GodotRenderView godotView) {
-		mRenderView = godotView;
-		mInputManager = InputManagerCompat.Factory.getInputManager(mRenderView.getView().getContext());
-		mInputManager.registerInputDeviceListener(this, null);
+	private final GodotView godotView;
+	private final InputManagerCompat inputManager;
+
+	public GodotInputHandler(GodotView godotView) {
+		this.godotView = godotView;
+		this.inputManager = InputManagerCompat.Factory.getInputManager(godotView.getContext());
+		this.inputManager.registerInputDeviceListener(this, null);
 	}
 
 	private void queueEvent(Runnable task) {
-		mRenderView.queueOnRenderThread(task);
+		godotView.queueEvent(task);
 	}
 
 	private boolean isKeyEvent_GameDevice(int source) {
@@ -86,6 +86,7 @@ public class GodotInputHandler implements InputDeviceListener {
 
 		int source = event.getSource();
 		if (isKeyEvent_GameDevice(source)) {
+
 			final int button = getGodotButton(keyCode);
 			final int device_id = findJoystickDevice(event.getDeviceId());
 
@@ -99,12 +100,11 @@ public class GodotInputHandler implements InputDeviceListener {
 				});
 			}
 		} else {
-			final int scanCode = event.getScanCode();
 			final int chr = event.getUnicodeChar(0);
 			queueEvent(new Runnable() {
 				@Override
 				public void run() {
-					GodotLib.key(keyCode, scanCode, chr, false);
+					GodotLib.key(keyCode, chr, false);
 				}
 			});
 		};
@@ -114,7 +114,7 @@ public class GodotInputHandler implements InputDeviceListener {
 
 	public boolean onKeyDown(final int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			mRenderView.onBackPressed();
+			godotView.onBackPressed();
 			// press 'back' button should not terminate program
 			//normal handle 'back' event in game logic
 			return true;
@@ -128,6 +128,7 @@ public class GodotInputHandler implements InputDeviceListener {
 		//Log.e(TAG, String.format("Key down! source %d, device %d, joystick %d, %d, %d", event.getDeviceId(), source, (source & InputDevice.SOURCE_JOYSTICK), (source & InputDevice.SOURCE_DPAD), (source & InputDevice.SOURCE_GAMEPAD)));
 
 		if (isKeyEvent_GameDevice(source)) {
+
 			if (event.getRepeatCount() > 0) // ignore key echo
 				return true;
 
@@ -144,12 +145,11 @@ public class GodotInputHandler implements InputDeviceListener {
 				});
 			}
 		} else {
-			final int scanCode = event.getScanCode();
 			final int chr = event.getUnicodeChar(0);
 			queueEvent(new Runnable() {
 				@Override
 				public void run() {
-					GodotLib.key(keyCode, scanCode, chr, true);
+					GodotLib.key(keyCode, chr, true);
 				}
 			});
 		};
@@ -157,58 +157,14 @@ public class GodotInputHandler implements InputDeviceListener {
 		return true;
 	}
 
-	public boolean onTouchEvent(final MotionEvent event) {
-		// Mouse drag (mouse pressed and move) doesn't fire onGenericMotionEvent so this is needed
-		if (event.isFromSource(InputDevice.SOURCE_MOUSE)) {
-			if (event.getAction() != MotionEvent.ACTION_MOVE) {
-				// we return true because every time a mouse event is fired, the event is already handled
-				// in onGenericMotionEvent, so by touch event we can say that the event is also handled
-				return true;
-			}
-			return handleMouseEvent(event);
-		}
-
-		final int evcount = event.getPointerCount();
-		if (evcount == 0)
-			return true;
-
-		if (mRenderView != null) {
-			final float[] arr = new float[event.getPointerCount() * 3]; // pointerId1, x1, y1, pointerId2, etc...
-
-			for (int i = 0; i < event.getPointerCount(); i++) {
-				arr[i * 3 + 0] = event.getPointerId(i);
-				arr[i * 3 + 1] = event.getX(i);
-				arr[i * 3 + 2] = event.getY(i);
-			}
-			final int action = event.getActionMasked();
-			final int pointer_idx = event.getPointerId(event.getActionIndex());
-
-			mRenderView.queueOnRenderThread(new Runnable() {
-				@Override
-				public void run() {
-					switch (action) {
-						case MotionEvent.ACTION_DOWN:
-						case MotionEvent.ACTION_CANCEL:
-						case MotionEvent.ACTION_UP:
-						case MotionEvent.ACTION_MOVE:
-						case MotionEvent.ACTION_POINTER_UP:
-						case MotionEvent.ACTION_POINTER_DOWN: {
-							GodotLib.touch(event.getSource(), action, pointer_idx, evcount, arr);
-						} break;
-					}
-				}
-			});
-		}
-		return true;
-	}
-
 	public boolean onGenericMotionEvent(MotionEvent event) {
 		if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK && event.getAction() == MotionEvent.ACTION_MOVE) {
+
 			final int device_id = findJoystickDevice(event.getDeviceId());
 
 			// Check if the device exists
 			if (device_id > -1) {
-				Joystick joy = mJoysticksDevices.get(device_id);
+				Joystick joy = joysticksDevices.get(device_id);
 
 				for (int i = 0; i < joy.axes.size(); i++) {
 					InputDevice.MotionRange range = joy.axes.get(i);
@@ -235,8 +191,8 @@ public class GodotInputHandler implements InputDeviceListener {
 				return true;
 			}
 		} else if ((event.getSource() & InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS) {
-			final float x = event.getX();
-			final float y = event.getY();
+			final int x = Math.round(event.getX());
+			final int y = Math.round(event.getY());
 			final int type = event.getAction();
 			queueEvent(new Runnable() {
 				@Override
@@ -245,10 +201,6 @@ public class GodotInputHandler implements InputDeviceListener {
 				}
 			});
 			return true;
-		} else if (event.isFromSource(InputDevice.SOURCE_MOUSE) || event.isFromSource(InputDevice.SOURCE_MOUSE_RELATIVE)) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-				return handleMouseEvent(event);
-			}
 		}
 
 		return false;
@@ -256,11 +208,11 @@ public class GodotInputHandler implements InputDeviceListener {
 
 	public void initInputDevices() {
 		/* initially add input devices*/
-		int[] deviceIds = mInputManager.getInputDeviceIds();
+		int[] deviceIds = inputManager.getInputDeviceIds();
 		for (int deviceId : deviceIds) {
-			InputDevice device = mInputManager.getInputDevice(deviceId);
+			InputDevice device = inputManager.getInputDevice(deviceId);
 			if (DEBUG) {
-				Log.v("GodotInputHandler", String.format("init() deviceId:%d, Name:%s\n", deviceId, device.getName()));
+				Log.v("GodotView", String.format("init() deviceId:%d, Name:%s\n", deviceId, device.getName()));
 			}
 			onInputDeviceAdded(deviceId);
 		}
@@ -272,13 +224,13 @@ public class GodotInputHandler implements InputDeviceListener {
 
 		// Check if the device has not been already added
 		if (id < 0) {
-			InputDevice device = mInputManager.getInputDevice(deviceId);
+			InputDevice device = inputManager.getInputDevice(deviceId);
 			//device can be null if deviceId is not found
 			if (device != null) {
 				int sources = device.getSources();
 				if (((sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) ||
 						((sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
-					id = mJoysticksDevices.size();
+					id = joysticksDevices.size();
 
 					Joystick joy = new Joystick();
 					joy.device_id = deviceId;
@@ -297,7 +249,7 @@ public class GodotInputHandler implements InputDeviceListener {
 						}
 					}
 
-					mJoysticksDevices.add(joy);
+					joysticksDevices.add(joy);
 
 					final int device_id = id;
 					final String name = joy.name;
@@ -318,7 +270,7 @@ public class GodotInputHandler implements InputDeviceListener {
 
 		// Check if the evice has not been already removed
 		if (device_id > -1) {
-			mJoysticksDevices.remove(device_id);
+			joysticksDevices.remove(device_id);
 
 			queueEvent(new Runnable() {
 				@Override
@@ -408,66 +360,12 @@ public class GodotInputHandler implements InputDeviceListener {
 	}
 
 	private int findJoystickDevice(int device_id) {
-		for (int i = 0; i < mJoysticksDevices.size(); i++) {
-			if (mJoysticksDevices.get(i).device_id == device_id) {
+		for (int i = 0; i < joysticksDevices.size(); i++) {
+			if (joysticksDevices.get(i).device_id == device_id) {
 				return i;
 			}
 		}
 
 		return -1;
-	}
-
-	private boolean handleMouseEvent(final MotionEvent event) {
-		switch (event.getActionMasked()) {
-			case MotionEvent.ACTION_HOVER_ENTER:
-			case MotionEvent.ACTION_HOVER_MOVE:
-			case MotionEvent.ACTION_HOVER_EXIT: {
-				final float x = event.getX();
-				final float y = event.getY();
-				final int type = event.getAction();
-				queueEvent(new Runnable() {
-					@Override
-					public void run() {
-						GodotLib.hover(type, x, y);
-					}
-				});
-				return true;
-			}
-			case MotionEvent.ACTION_BUTTON_PRESS:
-			case MotionEvent.ACTION_BUTTON_RELEASE:
-			case MotionEvent.ACTION_MOVE: {
-				final float x = event.getX();
-				final float y = event.getY();
-				final int buttonsMask = event.getButtonState();
-				final int action = event.getAction();
-				queueEvent(new Runnable() {
-					@Override
-					public void run() {
-						GodotLib.touch(event.getSource(), action, 0, 1, new float[] { 0, x, y }, buttonsMask);
-					}
-				});
-				return true;
-			}
-			case MotionEvent.ACTION_SCROLL: {
-				final float x = event.getX();
-				final float y = event.getY();
-				final int buttonsMask = event.getButtonState();
-				final int action = event.getAction();
-				final float verticalFactor = event.getAxisValue(MotionEvent.AXIS_VSCROLL);
-				final float horizontalFactor = event.getAxisValue(MotionEvent.AXIS_HSCROLL);
-				queueEvent(new Runnable() {
-					@Override
-					public void run() {
-						GodotLib.touch(event.getSource(), action, 0, 1, new float[] { 0, x, y }, buttonsMask, verticalFactor, horizontalFactor);
-					}
-				});
-			}
-			case MotionEvent.ACTION_DOWN:
-			case MotionEvent.ACTION_UP: {
-				// we can safely ignore these cases because they are always come beside ACTION_BUTTON_PRESS and ACTION_BUTTON_RELEASE
-				return true;
-			}
-		}
-		return false;
 	}
 }

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/gui/control.h"
 
 class NinePatchRect : public Control {
+
 	GDCLASS(NinePatchRect, Control);
 
 public:
@@ -46,21 +47,21 @@ public:
 	bool draw_center;
 	int margin[4];
 	Rect2 region_rect;
-	Ref<Texture2D> texture;
+	Ref<Texture> texture;
 
 	AxisStretchMode axis_h, axis_v;
 
 protected:
 	void _notification(int p_what);
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 	static void _bind_methods();
 
 public:
-	void set_texture(const Ref<Texture2D> &p_tex);
-	Ref<Texture2D> get_texture() const;
+	void set_texture(const Ref<Texture> &p_tex);
+	Ref<Texture> get_texture() const;
 
-	void set_patch_margin(Side p_side, int p_size);
-	int get_patch_margin(Side p_side) const;
+	void set_patch_margin(Margin p_margin, int p_size);
+	int get_patch_margin(Margin p_margin) const;
 
 	void set_region_rect(const Rect2 &p_region_rect);
 	Rect2 get_region_rect() const;
@@ -79,5 +80,4 @@ public:
 };
 
 VARIANT_ENUM_CAST(NinePatchRect::AxisStretchMode)
-
 #endif // NINE_PATCH_RECT_H

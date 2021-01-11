@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,6 +34,7 @@
 #include "scene/gui/range.h"
 
 class ScrollBar : public Range {
+
 	GDCLASS(ScrollBar, Range);
 
 	enum HighlightStatus {
@@ -47,41 +48,42 @@ class ScrollBar : public Range {
 
 	Orientation orientation;
 	Size2 size;
-	float custom_step = -1;
+	float custom_step;
 
-	HighlightStatus highlight = HIGHLIGHT_NONE;
+	HighlightStatus highlight;
 
 	struct Drag {
-		bool active = false;
-		float pos_at_click = 0;
-		float value_at_click = 0;
+		bool active;
+		float pos_at_click;
+		float value_at_click;
 	} drag;
 
 	double get_grabber_size() const;
 	double get_grabber_min_size() const;
 	double get_area_size() const;
 	double get_area_offset() const;
+	double get_click_pos(const Point2 &p_pos) const;
 	double get_grabber_offset() const;
 
 	static void set_can_focus_by_default(bool p_can_focus);
 
-	Node *drag_node = nullptr;
+	Node *drag_node;
 	NodePath drag_node_path;
-	bool drag_node_enabled = true;
+	bool drag_node_enabled;
 
-	Vector2 drag_node_speed = Vector2();
+	Vector2 drag_node_speed;
 	Vector2 drag_node_accum;
 	Vector2 drag_node_from;
 	Vector2 last_drag_node_accum;
 	float last_drag_node_time;
 	float time_since_motion;
-	bool drag_node_touching = false;
-	bool drag_node_touching_deaccel = false;
+	bool drag_node_touching;
+	bool drag_node_touching_deaccel;
 	bool click_handled;
 
-	bool scrolling = false;
-	double target_scroll = 0;
-	bool smooth_scroll_enabled = false;
+	bool scrolling;
+	double target_scroll;
+	bool smooth_scroll_enabled;
 
 	void _drag_node_exit();
 	void _drag_node_input(const Ref<InputEvent> &p_input);
@@ -104,12 +106,13 @@ public:
 	void set_smooth_scroll_enabled(bool p_enable);
 	bool is_smooth_scroll_enabled() const;
 
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 	ScrollBar(Orientation p_orientation = VERTICAL);
 	~ScrollBar();
 };
 
 class HScrollBar : public ScrollBar {
+
 	GDCLASS(HScrollBar, ScrollBar);
 
 public:
@@ -118,6 +121,7 @@ public:
 };
 
 class VScrollBar : public ScrollBar {
+
 	GDCLASS(VScrollBar, ScrollBar);
 
 public:

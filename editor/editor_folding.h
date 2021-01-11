@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -34,8 +34,9 @@
 #include "scene/main/node.h"
 
 class EditorFolding {
-	Vector<String> _get_unfolds(const Object *p_object);
-	void _set_unfolds(Object *p_object, const Vector<String> &p_unfolds);
+
+	PoolVector<String> _get_unfolds(const Object *p_object);
+	void _set_unfolds(Object *p_object, const PoolVector<String> &p_unfolds);
 
 	void _fill_folds(const Node *p_root, const Node *p_node, Array &p_folds, Array &resource_folds, Array &nodes_folded, Set<RES> &resources);
 

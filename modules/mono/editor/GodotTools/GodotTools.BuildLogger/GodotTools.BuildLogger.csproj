@@ -7,4 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" Version="16.5.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GodotTools.Core\GodotTools.Core.csproj" />
+  </ItemGroup>
 </Project>

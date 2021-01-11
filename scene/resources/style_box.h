@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,28 +31,29 @@
 #ifndef STYLE_BOX_H
 #define STYLE_BOX_H
 
-#include "core/io/resource.h"
+#include "core/resource.h"
 #include "scene/resources/texture.h"
-#include "servers/rendering_server.h"
+#include "servers/visual_server.h"
 
 class CanvasItem;
 
 class StyleBox : public Resource {
+
 	GDCLASS(StyleBox, Resource);
 	RES_BASE_EXTENSION("stylebox");
 	OBJ_SAVE_TYPE(StyleBox);
 	float margin[4];
 
 protected:
-	virtual float get_style_margin(Side p_side) const = 0;
+	virtual float get_style_margin(Margin p_margin) const = 0;
 	static void _bind_methods();
 
 public:
 	virtual bool test_mask(const Point2 &p_point, const Rect2 &p_rect) const;
 
-	void set_default_margin(Side p_side, float p_value);
-	float get_default_margin(Side p_side) const;
-	float get_margin(Side p_side) const;
+	void set_default_margin(Margin p_margin, float p_value);
+	float get_default_margin(Margin p_margin) const;
+	float get_margin(Margin p_margin) const;
 	virtual Size2 get_center_size() const;
 
 	virtual Rect2 get_draw_rect(const Rect2 &p_rect) const;
@@ -67,15 +68,17 @@ public:
 };
 
 class StyleBoxEmpty : public StyleBox {
+
 	GDCLASS(StyleBoxEmpty, StyleBox);
-	virtual float get_style_margin(Side p_side) const override { return 0; }
+	virtual float get_style_margin(Margin p_margin) const { return 0; }
 
 public:
-	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const override {}
+	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const {}
 	StyleBoxEmpty() {}
 };
 
 class StyleBoxTexture : public StyleBox {
+
 	GDCLASS(StyleBoxTexture, StyleBox);
 
 public:
@@ -89,34 +92,38 @@ private:
 	float expand_margin[4];
 	float margin[4];
 	Rect2 region_rect;
-	Ref<Texture2D> texture;
+	Ref<Texture> texture;
+	Ref<Texture> normal_map;
 	bool draw_center;
 	Color modulate;
 	AxisStretchMode axis_h;
 	AxisStretchMode axis_v;
 
 protected:
-	virtual float get_style_margin(Side p_side) const override;
+	virtual float get_style_margin(Margin p_margin) const;
 	static void _bind_methods();
 
 public:
-	void set_expand_margin_size(Side p_expand_side, float p_size);
+	void set_expand_margin_size(Margin p_expand_margin, float p_size);
 	void set_expand_margin_size_all(float p_expand_margin_size);
 	void set_expand_margin_size_individual(float p_left, float p_top, float p_right, float p_bottom);
-	float get_expand_margin_size(Side p_expand_side) const;
+	float get_expand_margin_size(Margin p_expand_margin) const;
 
-	void set_margin_size(Side p_side, float p_size);
-	float get_margin_size(Side p_side) const;
+	void set_margin_size(Margin p_margin, float p_size);
+	float get_margin_size(Margin p_margin) const;
 
 	void set_region_rect(const Rect2 &p_region_rect);
 	Rect2 get_region_rect() const;
 
-	void set_texture(Ref<Texture2D> p_texture);
-	Ref<Texture2D> get_texture() const;
+	void set_texture(Ref<Texture> p_texture);
+	Ref<Texture> get_texture() const;
+
+	void set_normal_map(Ref<Texture> p_normal_map);
+	Ref<Texture> get_normal_map() const;
 
 	void set_draw_center(bool p_enabled);
 	bool is_draw_center_enabled() const;
-	virtual Size2 get_center_size() const override;
+	virtual Size2 get_center_size() const;
 
 	void set_h_axis_stretch_mode(AxisStretchMode p_mode);
 	AxisStretchMode get_h_axis_stretch_mode() const;
@@ -127,8 +134,8 @@ public:
 	void set_modulate(const Color &p_modulate);
 	Color get_modulate() const;
 
-	virtual Rect2 get_draw_rect(const Rect2 &p_rect) const override;
-	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const override;
+	virtual Rect2 get_draw_rect(const Rect2 &p_rect) const;
+	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const;
 
 	StyleBoxTexture();
 	~StyleBoxTexture();
@@ -137,6 +144,7 @@ public:
 VARIANT_ENUM_CAST(StyleBoxTexture::AxisStretchMode)
 
 class StyleBoxFlat : public StyleBox {
+
 	GDCLASS(StyleBoxFlat, StyleBox);
 
 	Color bg_color;
@@ -157,7 +165,7 @@ class StyleBoxFlat : public StyleBox {
 	int aa_size;
 
 protected:
-	virtual float get_style_margin(Side p_side) const override;
+	virtual float get_style_margin(Margin p_margin) const;
 	static void _bind_methods();
 
 public:
@@ -174,8 +182,8 @@ public:
 	void set_border_width_all(int p_size);
 	int get_border_width_min() const;
 
-	void set_border_width(Side p_side, int p_width);
-	int get_border_width(Side p_side) const;
+	void set_border_width(Margin p_margin, int p_width);
+	int get_border_width(Margin p_margin) const;
 
 	//blend
 	void set_border_blend(bool p_blend);
@@ -184,6 +192,7 @@ public:
 	//CORNER
 	void set_corner_radius_all(int radius);
 	void set_corner_radius_individual(const int radius_top_left, const int radius_top_right, const int radius_botton_right, const int radius_bottom_left);
+	int get_corner_radius_min() const;
 
 	void set_corner_radius(Corner p_corner, const int radius);
 	int get_corner_radius(Corner p_corner) const;
@@ -192,10 +201,10 @@ public:
 	int get_corner_detail() const;
 
 	//EXPANDS
-	void set_expand_margin_size(Side p_expand_side, float p_size);
+	void set_expand_margin_size(Margin p_expand_margin, float p_size);
 	void set_expand_margin_size_all(float p_expand_margin_size);
 	void set_expand_margin_size_individual(float p_left, float p_top, float p_right, float p_bottom);
-	float get_expand_margin_size(Side p_expand_side) const;
+	float get_expand_margin_size(Margin p_expand_margin) const;
 
 	//DRAW CENTER
 	void set_draw_center(bool p_enabled);
@@ -218,10 +227,10 @@ public:
 	void set_aa_size(const int &p_aa_size);
 	int get_aa_size() const;
 
-	virtual Size2 get_center_size() const override;
+	virtual Size2 get_center_size() const;
 
-	virtual Rect2 get_draw_rect(const Rect2 &p_rect) const override;
-	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const override;
+	virtual Rect2 get_draw_rect(const Rect2 &p_rect) const;
+	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const;
 
 	StyleBoxFlat();
 	~StyleBoxFlat();
@@ -229,6 +238,7 @@ public:
 
 // just used to draw lines.
 class StyleBoxLine : public StyleBox {
+
 	GDCLASS(StyleBoxLine, StyleBox);
 	Color color;
 	int thickness;
@@ -237,7 +247,7 @@ class StyleBoxLine : public StyleBox {
 	float grow_end;
 
 protected:
-	virtual float get_style_margin(Side p_side) const override;
+	virtual float get_style_margin(Margin p_margin) const;
 	static void _bind_methods();
 
 public:
@@ -256,9 +266,9 @@ public:
 	void set_grow_end(float p_grow);
 	float get_grow_end() const;
 
-	virtual Size2 get_center_size() const override;
+	virtual Size2 get_center_size() const;
 
-	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const override;
+	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const;
 
 	StyleBoxLine();
 	~StyleBoxLine();

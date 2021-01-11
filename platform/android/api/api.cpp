@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -30,15 +30,16 @@
 
 #include "api.h"
 
-#include "core/config/engine.h"
+#include "core/engine.h"
 #include "java_class_wrapper.h"
 #include "jni_singleton.h"
 
 #if !defined(ANDROID_ENABLED)
-static JavaClassWrapper *java_class_wrapper = nullptr;
+static JavaClassWrapper *java_class_wrapper = NULL;
 #endif
 
 void register_android_api() {
+
 #if !defined(ANDROID_ENABLED)
 	// On Android platforms, the `java_class_wrapper` instantiation and the
 	// `JNISingleton` registration occurs in
@@ -53,29 +54,31 @@ void register_android_api() {
 }
 
 void unregister_android_api() {
+
 #if !defined(ANDROID_ENABLED)
 	memdelete(java_class_wrapper);
 #endif
 }
 
 void JavaClassWrapper::_bind_methods() {
+
 	ClassDB::bind_method(D_METHOD("wrap", "name"), &JavaClassWrapper::wrap);
 }
 
 #if !defined(ANDROID_ENABLED)
 
-Variant JavaClass::call(const StringName &, const Variant **, int, Callable::CallError &) {
+Variant JavaClass::call(const StringName &, const Variant **, int, Variant::CallError &) {
 	return Variant();
 }
 
 JavaClass::JavaClass() {
 }
 
-Variant JavaObject::call(const StringName &, const Variant **, int, Callable::CallError &) {
+Variant JavaObject::call(const StringName &, const Variant **, int, Variant::CallError &) {
 	return Variant();
 }
 
-JavaClassWrapper *JavaClassWrapper::singleton = nullptr;
+JavaClassWrapper *JavaClassWrapper::singleton = NULL;
 
 Ref<JavaClass> JavaClassWrapper::wrap(const String &) {
 	return Ref<JavaClass>();

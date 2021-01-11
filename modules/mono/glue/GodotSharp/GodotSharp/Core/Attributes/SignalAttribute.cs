@@ -2,7 +2,7 @@ using System;
 
 namespace Godot
 {
-    [AttributeUsage(AttributeTargets.Delegate | AttributeTargets.Event)]
+    [AttributeUsage(AttributeTargets.Delegate)]
     public class SignalAttribute : Attribute
     {
     }

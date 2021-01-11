@@ -16,8 +16,9 @@
  */
 
 
-#include <freetype/internal/ftdebug.h>
-#include <freetype/fterrors.h>
+#include <ft2build.h>
+#include FT_INTERNAL_DEBUG_H
+#include FT_ERRORS_H
 
 
   /* documentation is in fterrors.h */
@@ -37,7 +38,7 @@
 #define FT_ERRORDEF( e, v, s )    case v: return s;
 #define FT_ERROR_END_LIST       }
 
-#include <freetype/fterrors.h>
+#include FT_ERRORS_H
 
 #endif /* defined( FT_CONFIG_OPTION_ERROR_STRINGS ) || ... */
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,12 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef TEXTURE_RECT_H
-#define TEXTURE_RECT_H
+#ifndef TEXTURE_FRAME_H
+#define TEXTURE_FRAME_H
 
 #include "scene/gui/control.h"
 
 class TextureRect : public Control {
+
 	GDCLASS(TextureRect, Control);
 
 public:
@@ -52,19 +53,19 @@ private:
 	bool expand;
 	bool hflip;
 	bool vflip;
-	Ref<Texture2D> texture;
+	Ref<Texture> texture;
 	StretchMode stretch_mode;
 
 	void _texture_changed();
 
 protected:
 	void _notification(int p_what);
-	virtual Size2 get_minimum_size() const override;
+	virtual Size2 get_minimum_size() const;
 	static void _bind_methods();
 
 public:
-	void set_texture(const Ref<Texture2D> &p_tex);
-	Ref<Texture2D> get_texture() const;
+	void set_texture(const Ref<Texture> &p_tex);
+	Ref<Texture> get_texture() const;
 
 	void set_expand(bool p_expand);
 	bool has_expand() const;
@@ -83,5 +84,4 @@ public:
 };
 
 VARIANT_ENUM_CAST(TextureRect::StretchMode);
-
-#endif // TEXTURE_RECT_H
+#endif // TEXTURE_FRAME_H

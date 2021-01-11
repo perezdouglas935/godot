@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -50,7 +50,7 @@ class AudioEffectChorusInstance : public AudioEffectInstance {
 	void _process_chunk(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count);
 
 public:
-	virtual void process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count) override;
+	virtual void process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count);
 };
 
 class AudioEffectChorus : public AudioEffect {
@@ -60,6 +60,7 @@ class AudioEffectChorus : public AudioEffect {
 
 public:
 	enum {
+
 		MAX_DELAY_MS = 50,
 		MAX_DEPTH_MS = 20,
 		MAX_WIDTH_MS = 50,
@@ -72,6 +73,7 @@ public:
 
 private:
 	struct Voice {
+
 		float delay;
 		float rate;
 		float depth;
@@ -80,6 +82,7 @@ private:
 		float pan;
 
 		Voice() {
+
 			delay = 12.0;
 			rate = 1;
 			depth = 0;
@@ -96,7 +99,7 @@ private:
 	float dry;
 
 protected:
-	void _validate_property(PropertyInfo &property) const override;
+	void _validate_property(PropertyInfo &property) const;
 
 	static void _bind_methods();
 
@@ -128,7 +131,7 @@ public:
 	void set_dry(float amount);
 	float get_dry() const;
 
-	Ref<AudioEffectInstance> instance() override;
+	Ref<AudioEffectInstance> instance();
 
 	AudioEffectChorus();
 };

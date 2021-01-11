@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VisualShaderNodeTextureUniform" inherits="VisualShaderNodeUniform" version="4.0">
+<class name="VisualShaderNodeTextureUniform" inherits="VisualShaderNodeUniform" version="3.2">
 	<brief_description>
 		Performs a uniform texture lookup within the visual shader graph.
 	</brief_description>
@@ -25,7 +25,7 @@
 		<constant name="TYPE_COLOR" value="1" enum="TextureType">
 			Adds [code]hint_albedo[/code] as hint to the uniform declaration for proper sRGB to linear conversion.
 		</constant>
-		<constant name="TYPE_NORMAL_MAP" value="2" enum="TextureType">
+		<constant name="TYPE_NORMALMAP" value="2" enum="TextureType">
 			Adds [code]hint_normal[/code] as hint to the uniform declaration, which internally converts the texture for proper usage as normal map.
 		</constant>
 		<constant name="TYPE_ANISO" value="3" enum="TextureType">
